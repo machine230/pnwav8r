@@ -15,10 +15,11 @@
         input[type="text"] { width: 300px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
         button { padding: 10px 20px; margin-left: 10px; background-color: #2b6cb0; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
         button:hover { background-color: #1a4e8a; }
-        .grid-table { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 10px; margin-top: 20px; }
-        .table-section { background: #edf2f7; padding: 15px; border-radius: 4px; }
+        .grid-table { display: flex; flex-wrap: wrap; gap: 20px; margin-top: 20px; justify-content: center; }
+        .table-section { flex: 1 1 45%; background: #edf2f7; padding: 15px; border-radius: 4px; min-width: 300px; }
         .table-section h3 { margin-top: 0; color: #2b6cb0; }
         pre { background: #fff; padding: 10px; border-radius: 4px; overflow-x: auto; }
+        .error { color: red; text-align: center; }
     </style>
 </head>
 <body>
@@ -34,6 +35,8 @@
             <button onclick="lookupWeather()">Get Weather</button>
         </div>
 
+        <div id="error-message" class="error"></div>
+
         <div id="results" style="display:none;">
             <div class="grid-table">
                 <div class="table-section">
@@ -41,12 +44,8 @@
                     <pre id="metar-raw">Loading...</pre>
                 </div>
                 <div class="table-section">
-                    <h3>Decoded METAR</h3>
-                    <pre id="metar-decoded">Loading...</pre>
-                </div>
-                <div class="table-section">
-                    <h3>TAF Forecast</h3>
-                    <pre id="taf-decoded">Loading...</pre>
+                    <h3>Raw TAF</h3>
+                    <pre id="taf-raw">Loading...</pre>
                 </div>
             </div>
         </div>
@@ -55,24 +54,34 @@
     <script>
         async function lookupWeather() {
             const icao = document.getElementById('airport-code').value.toUpperCase().trim();
-            if (!icao) { alert('Please enter a valid ICAO code.'); return; }
-            document.getElementById('results').style.display = 'block';
-            document.getElementById('metar-raw').textContent = 'Loading...';
-            document.getElementById('metar-decoded').textContent = 'Loading...';
-            document.getElementById('taf-decoded').textContent = 'Loading...';
+            const errorMessage = document.getElementById('error-message');
+            errorMessage.textContent = '';
 
-            const res = await fetch(`/.netlify/functions/proxyWeather?icao=${icao}`);
-            if (!res.ok) {
-                document.getElementById('metar-raw').textContent = 'Failed to load METAR';
-                document.getElementById('metar-decoded').textContent = 'Failed to load METAR';
-                document.getElementById('taf-decoded').textContent = 'Failed to load TAF';
-                return;
+            if (!icao) { errorMessage.textContent = 'Please enter a valid ICAO code.'; return; }
+
+            const token = 'Ld0Z9WEaR9yaouqQqIFqJnalxQRXIGQ5oyFLJ6_DeD4';
+
+            try {
+                const metarRes = await fetch(`https://avwx.rest/api/metar/${icao}?token=${token}&format=json`);
+                const tafRes = await fetch(`https://avwx.rest/api/taf/${icao}?token=${token}&format=json`);
+
+                if (!metarRes.ok && !tafRes.ok) {
+                    errorMessage.textContent = `Failed to load data for ${icao}.`;
+                    document.getElementById('results').style.display = 'none';
+                    return;
+                }
+
+                const metarData = await metarRes.json();
+                const tafData = await tafRes.json();
+
+                document.getElementById('results').style.display = 'block';
+                document.getElementById('metar-raw').textContent = metarData.raw || 'No METAR Raw Data';
+                document.getElementById('taf-raw').textContent = tafData.raw || 'No TAF Data';
+
+            } catch (error) {
+                console.error(error);
+                errorMessage.textContent = 'Failed to fetch weather data.';
             }
-
-            const data = await res.json();
-            document.getElementById('metar-raw').textContent = data.rawMetar || 'N/A';
-            document.getElementById('metar-decoded').textContent = data.metar;
-            document.getElementById('taf-decoded').textContent = data.taf;
         }
     </script>
 </body>
