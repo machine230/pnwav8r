@@ -5,9 +5,3 @@
 [dev]
   functions = "netlify/functions"
 
-[[redirects]]
-  from = "/metar-taf"
-  to = "/metar-taf.html"
-  status = 200
-
-
