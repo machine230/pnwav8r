@@ -1,6 +1,6 @@
 export async function handler(event) {
     const icao = event.queryStringParameters.icao || 'KBFI';
-    const token = 'QzUO0o8Jaw_lFWryxZVMtn2SrI5t5dcD8BsbR-kBEqY';
+    const token = 'QzUO0o8Jaw_lFWryxZVMtn2SrI5t5dcD8BsbR-kBEqY'; // <-- Your API Token
 
     try {
         const metarRes = await fetch(`https://avwx.rest/api/metar/${icao}?options=info,translate&format=json`, {
@@ -12,7 +12,14 @@ export async function handler(event) {
         });
 
         if (!metarRes.ok || !tafRes.ok) {
-            return { statusCode: 500, body: 'Failed to fetch data from AVWX' };
+            return {
+                statusCode: 500,
+                headers: {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type'
+                },
+                body: 'Failed to fetch data from AVWX'
+            };
         }
 
         const metarData = await metarRes.json();
@@ -20,6 +27,10 @@ export async function handler(event) {
 
         return {
             statusCode: 200,
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Headers': 'Content-Type'
+            },
             body: JSON.stringify({
                 rawMetar: metarData.Raw || 'No METAR Raw Data',
                 metar: metarData.Sanitized || 'No METAR Decoded',
@@ -27,7 +38,13 @@ export async function handler(event) {
             })
         };
     } catch (error) {
-        return { statusCode: 500, body: `Error: ${error.message}` };
+        return {
+            statusCode: 500,
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Headers': 'Content-Type'
+            },
+            body: `Error: ${error.message}`
+        };
     }
 }
-
