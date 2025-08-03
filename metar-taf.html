@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PNWAV8R Tools</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+        nav {
+            background-color: #2b6cb0;
+            padding: 10px 20px;
+        }
+        nav a {
+            color: #fff;
+            text-decoration: none;
+            margin-right: 20px;
+            font-weight: bold;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 40px auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #2b6cb0;
+        }
+        .input-row {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        input[type="text"] {
+            width: 300px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 20px;
+            margin-left: 10px;
+            background-color: #2b6cb0;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #1a4e8a;
+        }
+        .grid-table {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .table-section {
+            background: #edf2f7;
+            padding: 15px;
+            border-radius: 4px;
+        }
+        .table-section h3 {
+            margin-top: 0;
+            color: #2b6cb0;
+        }
+        .table-section table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .table-section th, .table-section td {
+            padding: 8px;
+            border-bottom: 1px solid #ccc;
+            text-align: left;
+        }
+        .highlight {
+            font-weight: bold;
+            font-family: monospace;
+            font-size: 1.1em;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="index.html">Weight & Balance</a>
+        <a href="metar-taf.html">METAR & TAF Lookup</a>
+    </nav>
+
+    <div class="container">
+        <h1>METAR & TAF Lookup</h1>
+        <div class="input-row">
+            <input type="text" id="airport-code" placeholder="Enter ICAO Code (e.g., KBFI)">
+            <button onclick="lookupWeather()">Get Weather</button>
+        </div>
+
+        <div id="results" style="display:none;">
+            <div class="grid-table">
+                <div class="table-section">
+                    <h3>Raw METAR</h3>
+                    <div class="highlight" id="metar-raw">Loading...</div>
+                </div>
+
+                <div class="table-section">
+                    <h3>Decoded METAR</h3>
+                    <pre id="metar-decoded">Loading...</pre>
+                </div>
+
+                <div class="table-section">
+                    <h3>TAF Forecast</h3>
+                    <pre id="taf-decoded">Loading...</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function lookupWeather() {
+            const icao = document.getElementById('airport-code').value.toUpperCase().trim();
+            if (!icao) {
+                alert('Please enter a valid ICAO code.');
+                return;
+            }
+
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('metar-raw').textContent = 'Loading...';
+            document.getElementById('metar-decoded').textContent = 'Loading...';
+            document.getElementById('taf-decoded').textContent = 'Loading...';
+
+            const res = await fetch(`/.netlify/functions/proxyWeather?icao=${icao}`);
+
+            if (!res.ok) {
+                document.getElementById('metar-raw').textContent = 'Failed to load METAR';
+                document.getElementById('metar-decoded').textContent = 'Failed to load METAR';
+                document.getElementById('taf-decoded').textContent = 'Failed to load TAF';
+                return;
+            }
+
+            const data = await res.json();
+            document.getElementById('metar-raw').textContent = data.rawMetar || 'N/A';
+            document.getElementById('metar-decoded').textContent = data.metar;
+            document.getElementById('taf-decoded').textContent = data.taf;
+        }
+    </script>
+</body>
+</html>
