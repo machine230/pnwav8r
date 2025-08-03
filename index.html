@@ -3,36 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cessna 150 Weight & Balance Calculator</title>
+    <title>PNWAV8R - Weight & Balance Calculator</title>
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        input { width: 80px; margin-right: 10px; }
-        table { border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ccc; padding: 5px 10px; text-align: center; }
-        .warning { background-color: #f8d7da; color: #721c24; font-weight: bold; }
-        .ok { background-color: #d4edda; color: #155724; font-weight: bold; }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+        nav {
+            background-color: #2b6cb0;
+            padding: 10px 20px;
+        }
+        nav a {
+            color: #fff;
+            text-decoration: none;
+            margin-right: 20px;
+            font-weight: bold;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 40px auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #2b6cb0;
+        }
+        label {
+            display: inline-block;
+            width: 200px;
+            margin-bottom: 10px;
+        }
+        input {
+            width: 80px;
+            padding: 5px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #2b6cb0;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #1a4e8a;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #2b6cb0;
+            color: #fff;
+        }
+        .warning {
+            background-color: #f8d7da;
+            color: #721c24;
+            font-weight: bold;
+        }
+        .ok {
+            background-color: #d4edda;
+            color: #155724;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
-    <h1>Cessna 150 Weight & Balance Calculator</h1>
+    <nav>
+        <a href="index.html">Weight & Balance</a>
+        <a href="metar-taf.html">METAR & TAF Lookup</a>
+    </nav>
 
-    <label>Pilot Weight (lbs): </label>
-    <input type="number" id="pilotWeight" value="160"> lbs<br><br>
+    <div class="container">
+        <h1>Cessna 150 Weight & Balance Calculator</h1>
 
-    <label>Passenger Weight (lbs): </label>
-    <input type="number" id="passengerWeight" value="160"> lbs<br><br>
+        <label>Pilot Weight (lbs):</label>
+        <input type="number" id="pilotWeight" value="160"><br>
 
-    <label>Baggage Weight (lbs): </label>
-    <input type="number" id="baggage" value="20" max="80"> lbs (Max 80 lbs)<br><br>
+        <label>Passenger Weight (lbs):</label>
+        <input type="number" id="passengerWeight" value="160"><br>
 
-    <label>Fuel (Gallons usable): </label>
-    <input type="number" id="fuel" value="20" max="22.5"> gal (Max 22.5 gal)<br><br>
+        <label>Baggage Weight (lbs):</label>
+        <input type="number" id="baggage" value="20" max="80"> (Max 80 lbs)<br>
 
-    <button onclick="calculateWB()">Calculate</button>
+        <label>Fuel (Gallons usable):</label>
+        <input type="number" id="fuel" value="20" max="22.5"> (Max 22.5 gal)<br><br>
 
-    <div id="breakdown"></div>
-    <div id="advisoryTable"></div>
-    <div id="vspeeds"></div>
+        <button onclick="calculateWB()">Calculate</button>
+
+        <div id="breakdown"></div>
+        <div id="advisoryTable"></div>
+        <div id="vspeeds"></div>
+    </div>
 
     <script>
         const EMPTY_WEIGHT = 1041.5;
@@ -108,4 +182,3 @@
     </script>
 </body>
 </html>
-
