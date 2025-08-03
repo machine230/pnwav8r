@@ -1,6 +1,6 @@
 export async function handler(event) {
     const icao = event.queryStringParameters.icao || 'KBFI';
-    const token = 'QzUO0o8Jaw_lFWryxZVMtn2SrI5t5dcD8BsbR-kBEqY'; // <-- Your API Token
+    const token = 'Ld0Z9WEaR9yaouqQqIFqJnalxQRXIGQ5oyFLJ6_DeD4'; // <-- Your API Token
 
     try {
         const metarRes = await fetch(`https://avwx.rest/api/metar/${icao}?options=info,translate&format=json`, {
