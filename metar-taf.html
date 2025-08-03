@@ -3,14 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PNWAV8R Tools</title>
+    <title>PNWAV8R - Weight & Balance Calculator</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            background-color: #f5f7fa;
-            color: #333;
-        }
+        body { font-family: Arial, sans-serif; margin: 0; background-color: #f5f7fa; }
         nav {
             background-color: #2b6cb0;
             padding: 10px 20px;
@@ -29,65 +24,16 @@
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
-        h1 {
-            text-align: center;
-            color: #2b6cb0;
-        }
-        .section {
-            margin-top: 40px;
-        }
-        .input-group label {
-            display: inline-block;
-            width: 200px;
-            font-weight: bold;
-        }
-        .input-group input {
-            width: 100px;
-            padding: 5px;
-            margin-bottom: 10px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            border: 1px solid #ccc;
-            padding: 10px;
-            text-align: center;
-        }
-        th {
-            background-color: #2b6cb0;
-            color: #fff;
-        }
-        .status-green {
-            background-color: #c6f6d5;
-            color: #22543d;
-            padding: 5px 10px;
-            border-radius: 4px;
-            display: inline-block;
-        }
-        .grid-table {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 10px;
-            margin-top: 20px;
-        }
-        .table-section {
-            background: #edf2f7;
-            padding: 15px;
-            border-radius: 4px;
-        }
-        .table-section h3 {
-            margin-top: 0;
-            color: #2b6cb0;
-        }
-        pre {
-            background: #fff;
-            padding: 10px;
-            border-radius: 4px;
-            overflow-x: auto;
-        }
+        h1 { text-align: center; color: #2b6cb0; }
+        label { display: inline-block; width: 200px; margin-bottom: 10px; }
+        input { width: 80px; margin-right: 10px; padding: 5px; }
+        button { padding: 10px 20px; background-color: #2b6cb0; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #1a4e8a; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
+        th { background-color: #2b6cb0; color: #fff; }
+        .warning { background-color: #f8d7da; color: #721c24; font-weight: bold; }
+        .ok { background-color: #d4edda; color: #155724; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -99,96 +45,96 @@
     <div class="container">
         <h1>Cessna 150 Weight & Balance Calculator</h1>
 
-        <div class="input-group">
-            <label>Pilot Weight (lbs):</label><input type="number" value="185">
-            <label>Passenger Weight (lbs):</label><input type="number" value="130">
-            <label>Baggage Weight (lbs):</label><input type="number" value="20">
-            <label>Fuel (Gallons usable):</label><input type="number" value="20">
-            <button>Calculate</button>
-        </div>
+        <label>Pilot Weight (lbs): </label>
+        <input type="number" id="pilotWeight" value="160"><br>
 
-        <table>
-            <tr><th>Station</th><th>Weight (lbs)</th><th>Arm (in)</th><th>Moment (in-lbs)</th></tr>
-            <tr><td>Empty Weight</td><td>1041.5</td><td>31.78</td><td>33098.9</td></tr>
-            <tr><td>Front Seats</td><td>315</td><td>39.11</td><td>12319.6</td></tr>
-            <tr><td>Baggage</td><td>20</td><td>65.51</td><td>1310.2</td></tr>
-            <tr><td>Fuel</td><td>120</td><td>42.22</td><td>5066.4</td></tr>
-            <tr><td>Total</td><td>1496.5</td><td>-</td><td>51795.1</td></tr>
-            <tr><td><strong>CG ARM</strong></td><td colspan="3"><strong>34.61 in</strong></td></tr>
-        </table>
+        <label>Passenger Weight (lbs): </label>
+        <input type="number" id="passengerWeight" value="160"><br>
 
-        <table>
-            <tr><th>Condition</th><th>Status</th></tr>
-            <tr><td>Total Weight</td><td class="status-green">Within Limit</td></tr>
-            <tr><td>CG Position</td><td class="status-green">Within Limits</td></tr>
-        </table>
+        <label>Baggage Weight (lbs): </label>
+        <input type="number" id="baggage" value="20" max="80"> (Max 80 lbs)<br>
 
-        <table>
-            <tr><th>V-Speed</th><th>Speed (MPH)</th></tr>
-            <tr><td>Va @ Gross Weight</td><td>106</td></tr>
-            <tr><td>Va @ Current Weight</td><td>105.9</td></tr>
-            <tr><td>Vr (Rotation)</td><td>55</td></tr>
-            <tr><td>Vx (Best Angle)</td><td>60</td></tr>
-            <tr><td>Vy (Best Rate)</td><td>68</td></tr>
-            <tr><td>Vglide (Best Glide)</td><td>65</td></tr>
-        </table>
+        <label>Fuel (Gallons usable): </label>
+        <input type="number" id="fuel" value="20" max="22.5"> (Max 22.5 gal)<br><br>
 
-        <div class="section">
-            <h1>METAR & TAF Lookup</h1>
-            <div class="input-row">
-                <input type="text" id="airport-code" placeholder="Enter ICAO Code (e.g., KBFI)">
-                <button onclick="lookupWeather()">Get Weather</button>
-            </div>
+        <button onclick="calculateWB()">Calculate</button>
 
-            <div id="results" style="display:none;">
-                <div class="grid-table">
-                    <div class="table-section">
-                        <h3>Raw METAR</h3>
-                        <pre id="metar-raw">Loading...</pre>
-                    </div>
-
-                    <div class="table-section">
-                        <h3>Decoded METAR</h3>
-                        <pre id="metar-decoded">Loading...</pre>
-                    </div>
-
-                    <div class="table-section">
-                        <h3>TAF Forecast</h3>
-                        <pre id="taf-decoded">Loading...</pre>
-                    </div>
-                </div>
-            </div>
-        </div>
-
+        <div id="breakdown"></div>
+        <div id="advisoryTable"></div>
+        <div id="vspeeds"></div>
     </div>
 
     <script>
-        async function lookupWeather() {
-            const icao = document.getElementById('airport-code').value.toUpperCase().trim();
-            if (!icao) {
-                alert('Please enter a valid ICAO code.');
-                return;
+        const EMPTY_WEIGHT = 1041.5;
+        const EMPTY_CG = 31.78;
+        const STATIONS = { 'FrontSeats': 39.11, 'Baggage': 65.51, 'Fuel': 42.22 };
+        const MAX_GROSS_WEIGHT = 1500;
+        const CG_LIMITS = { forward: 32.20, aft: 36.00 };
+        const VA_MAX_GROSS = 106;
+        const VR = 55;
+        const VX = 60;
+        const VY = 68;
+        const VGLIDE = 65;
+
+        function calculateWB() {
+            const pilotWeight = parseFloat(document.getElementById('pilotWeight').value);
+            const passengerWeight = parseFloat(document.getElementById('passengerWeight').value);
+            const frontSeatsWeight = pilotWeight + passengerWeight;
+            const baggageWeight = Math.min(parseFloat(document.getElementById('baggage').value), 80);
+            const fuelGallons = Math.min(parseFloat(document.getElementById('fuel').value), 22.5);
+            const fuelWeight = fuelGallons * 6;
+
+            const emptyMoment = EMPTY_WEIGHT * EMPTY_CG;
+            const frontSeatsMoment = frontSeatsWeight * STATIONS.FrontSeats;
+            const baggageMoment = baggageWeight * STATIONS.Baggage;
+            const fuelMoment = fuelWeight * STATIONS.Fuel;
+
+            const totalWeight = EMPTY_WEIGHT + frontSeatsWeight + baggageWeight + fuelWeight;
+            const totalMoment = emptyMoment + frontSeatsMoment + baggageMoment + fuelMoment;
+            const cgPosition = totalMoment / totalWeight;
+
+            const cgStatus = (cgPosition < CG_LIMITS.forward || cgPosition > CG_LIMITS.aft) ? 'Out of Limits' : 'Within Limits';
+            const weightStatus = (totalWeight > MAX_GROSS_WEIGHT) ? 'Over Limit' : 'Within Limit';
+            const vaActual = VA_MAX_GROSS * Math.sqrt(totalWeight / MAX_GROSS_WEIGHT);
+
+            document.getElementById('breakdown').innerHTML = `
+                <table>
+                    <tr><th>Station</th><th>Weight (lbs)</th><th>Arm (in)</th><th>Moment (in-lbs)</th></tr>
+                    <tr><td>Empty Weight</td><td>${EMPTY_WEIGHT}</td><td>${EMPTY_CG}</td><td>${emptyMoment.toFixed(1)}</td></tr>
+                    <tr><td>Front Seats</td><td>${frontSeatsWeight}</td><td>${STATIONS.FrontSeats}</td><td>${frontSeatsMoment.toFixed(1)}</td></tr>
+                    <tr><td>Baggage</td><td>${baggageWeight}</td><td>${STATIONS.Baggage}</td><td>${baggageMoment.toFixed(1)}</td></tr>
+                    <tr><td>Fuel</td><td>${fuelWeight}</td><td>${STATIONS.Fuel}</td><td>${fuelMoment.toFixed(1)}</td></tr>
+                    <tr><th>Total</th><th>${totalWeight.toFixed(1)}</th><th>-</th><th>${totalMoment.toFixed(1)}</th></tr>
+                    <tr><th>CG ARM</th><th colspan="3">${cgPosition.toFixed(2)} in</th></tr>
+                </table>`;
+
+            let advisoryContent = `
+                <table>
+                    <tr><th>Condition</th><th>Status</th></tr>
+                    <tr><td>Total Weight</td><td class="${weightStatus === 'Over Limit' ? 'warning' : 'ok'}">${weightStatus}</td></tr>
+                    <tr><td>CG Position</td><td class="${cgStatus === 'Out of Limits' ? 'warning' : 'ok'}">${cgStatus}</td></tr>`;
+
+            if (cgStatus === 'Out of Limits') {
+                advisoryContent += `
+                    <tr><td colspan="2" class="warning">CG is out of safe limits. Aircraft may become uncontrollable or stall unpredictably.</td></tr>`;
             }
 
-            document.getElementById('results').style.display = 'block';
-            document.getElementById('metar-raw').textContent = 'Loading...';
-            document.getElementById('metar-decoded').textContent = 'Loading...';
-            document.getElementById('taf-decoded').textContent = 'Loading...';
+            advisoryContent += `</table>`;
+            document.getElementById('advisoryTable').innerHTML = advisoryContent;
 
-            const res = await fetch(`/.netlify/functions/proxyWeather?icao=${icao}`);
-
-            if (!res.ok) {
-                document.getElementById('metar-raw').textContent = 'Failed to load METAR';
-                document.getElementById('metar-decoded').textContent = 'Failed to load METAR';
-                document.getElementById('taf-decoded').textContent = 'Failed to load TAF';
-                return;
-            }
-
-            const data = await res.json();
-            document.getElementById('metar-raw').textContent = data.rawMetar || 'N/A';
-            document.getElementById('metar-decoded').textContent = data.metar;
-            document.getElementById('taf-decoded').textContent = data.taf;
+            document.getElementById('vspeeds').innerHTML = `
+                <table>
+                    <tr><th>V-Speed</th><th>Speed (MPH)</th></tr>
+                    <tr><td>Va @ Gross Weight</td><td>${VA_MAX_GROSS}</td></tr>
+                    <tr><td>Va @ Current Weight</td><td>${vaActual.toFixed(1)}</td></tr>
+                    <tr><td>Vr (Rotation)</td><td>${VR}</td></tr>
+                    <tr><td>Vx (Best Angle)</td><td>${VX}</td></tr>
+                    <tr><td>Vy (Best Rate)</td><td>${VY}</td></tr>
+                    <tr><td>Vglide (Best Glide)</td><td>${VGLIDE}</td></tr>
+                </table>`;
         }
+
+        calculateWB();
     </script>
 </body>
 </html>
