@@ -1,0 +1,126 @@
+<!-- wb.html - Weight & Balance Calculator -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PNWAV8R - Weight & Balance</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; background-color: #f5f7fa; color: #333; }
+        nav { background-color: #2b6cb0; padding: 10px 20px; }
+        nav a { color: #fff; text-decoration: none; margin-right: 20px; font-weight: bold; }
+        .container { max-width: 1000px; margin: 40px auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #2b6cb0; }
+        label { display: inline-block; width: 200px; margin-bottom: 10px; }
+        input { width: 80px; padding: 5px; margin-bottom: 10px; }
+        button { padding: 10px 20px; background-color: #2b6cb0; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #1a4e8a; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
+        th { background-color: #2b6cb0; color: #fff; }
+        .warning { background-color: #f8d7da; color: #721c24; font-weight: bold; }
+        .ok { background-color: #d4edda; color: #155724; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="index.html">METAR Lookup</a>
+        <a href="wb.html">Weight & Balance</a>
+    </nav>
+
+    <div class="container">
+        <h1>Cessna 150 Weight & Balance Calculator</h1>
+
+        <label>Pilot Weight (lbs):</label>
+        <input type="number" id="pilotWeight" value="160"><br>
+
+        <label>Passenger Weight (lbs):</label>
+        <input type="number" id="passengerWeight" value="160"><br>
+
+        <label>Baggage Weight (lbs):</label>
+        <input type="number" id="baggage" value="20" max="80"> (Max 80 lbs)<br>
+
+        <label>Fuel (Gallons usable):</label>
+        <input type="number" id="fuel" value="20" max="22.5"> (Max 22.5 gal)<br><br>
+
+        <button onclick="calculateWB()">Calculate</button>
+
+        <div id="breakdown"></div>
+        <div id="advisoryTable"></div>
+        <div id="vspeeds"></div>
+    </div>
+
+    <script>
+        const EMPTY_WEIGHT = 1041.5;
+        const EMPTY_CG = 31.78;
+        const STATIONS = { 'FrontSeats': 39.11, 'Baggage': 65.51, 'Fuel': 42.22 };
+        const MAX_GROSS_WEIGHT = 1500;
+        const CG_LIMITS = { forward: 32.20, aft: 36.00 };
+        const VA_MAX_GROSS = 106;
+        const VR = 55;
+        const VX = 60;
+        const VY = 68;
+        const VGLIDE = 65;
+
+        function calculateWB() {
+            const pilotWeight = parseFloat(document.getElementById('pilotWeight').value);
+            const passengerWeight = parseFloat(document.getElementById('passengerWeight').value);
+            const frontSeatsWeight = pilotWeight + passengerWeight;
+            const baggageWeight = Math.min(parseFloat(document.getElementById('baggage').value), 80);
+            const fuelGallons = Math.min(parseFloat(document.getElementById('fuel').value), 22.5);
+            const fuelWeight = fuelGallons * 6;
+
+            const emptyMoment = EMPTY_WEIGHT * EMPTY_CG;
+            const frontSeatsMoment = frontSeatsWeight * STATIONS.FrontSeats;
+            const baggageMoment = baggageWeight * STATIONS.Baggage;
+            const fuelMoment = fuelWeight * STATIONS.Fuel;
+
+            const totalWeight = EMPTY_WEIGHT + frontSeatsWeight + baggageWeight + fuelWeight;
+            const totalMoment = emptyMoment + frontSeatsMoment + baggageMoment + fuelMoment;
+            const cgPosition = totalMoment / totalWeight;
+
+            const cgStatus = (cgPosition < CG_LIMITS.forward || cgPosition > CG_LIMITS.aft) ? 'Out of Limits' : 'Within Limits';
+            const weightStatus = (totalWeight > MAX_GROSS_WEIGHT) ? 'Over Limit' : 'Within Limit';
+            const vaActual = VA_MAX_GROSS * Math.sqrt(totalWeight / MAX_GROSS_WEIGHT);
+
+            document.getElementById('breakdown').innerHTML = `
+                <table>
+                    <tr><th>Station</th><th>Weight (lbs)</th><th>Arm (in)</th><th>Moment (in-lbs)</th></tr>
+                    <tr><td>Empty Weight</td><td>${EMPTY_WEIGHT}</td><td>${EMPTY_CG}</td><td>${emptyMoment.toFixed(1)}</td></tr>
+                    <tr><td>Front Seats</td><td>${frontSeatsWeight}</td><td>${STATIONS.FrontSeats}</td><td>${frontSeatsMoment.toFixed(1)}</td></tr>
+                    <tr><td>Baggage</td><td>${baggageWeight}</td><td>${STATIONS.Baggage}</td><td>${baggageMoment.toFixed(1)}</td></tr>
+                    <tr><td>Fuel</td><td>${fuelWeight}</td><td>${STATIONS.Fuel}</td><td>${fuelMoment.toFixed(1)}</td></tr>
+                    <tr><th>Total</th><th>${totalWeight.toFixed(1)}</th><th>-</th><th>${totalMoment.toFixed(1)}</th></tr>
+                    <tr><th>CG ARM</th><th colspan="3">${cgPosition.toFixed(2)} in</th></tr>
+                </table>`;
+
+            let advisoryContent = `
+                <table>
+                    <tr><th>Condition</th><th>Status</th></tr>
+                    <tr><td>Total Weight</td><td class="${weightStatus === 'Over Limit' ? 'warning' : 'ok'}">${weightStatus}</td></tr>
+                    <tr><td>CG Position</td><td class="${cgStatus === 'Out of Limits' ? 'warning' : 'ok'}">${cgStatus}</td></tr>`;
+
+            if (cgStatus === 'Out of Limits') {
+                advisoryContent += `
+                    <tr><td colspan="2" class="warning">CG is out of safe limits. Aircraft may become uncontrollable or stall unpredictably.</td></tr>`;
+            }
+
+            advisoryContent += `</table>`;
+            document.getElementById('advisoryTable').innerHTML = advisoryContent;
+
+            document.getElementById('vspeeds').innerHTML = `
+                <table>
+                    <tr><th>V-Speed</th><th>Speed (MPH)</th></tr>
+                    <tr><td>Va @ Gross Weight</td><td>${VA_MAX_GROSS}</td></tr>
+                    <tr><td>Va @ Current Weight</td><td>${vaActual.toFixed(1)}</td></tr>
+                    <tr><td>Vr (Rotation)</td><td>${VR}</td></tr>
+                    <tr><td>Vx (Best Angle)</td><td>${VX}</td></tr>
+                    <tr><td>Vy (Best Rate)</td><td>${VY}</td></tr>
+                    <tr><td>Vglide (Best Glide)</td><td>${VGLIDE}</td></tr>
+                </table>`;
+        }
+
+        calculateWB();
+    </script>
+</body>
+</html>
