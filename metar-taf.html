@@ -33,28 +33,39 @@
             text-align: center;
             color: #2b6cb0;
         }
-        .input-row {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
+        .section {
+            margin-top: 40px;
         }
-        input[type="text"] {
-            width: 300px;
-            padding: 10px;
+        .input-group label {
+            display: inline-block;
+            width: 200px;
+            font-weight: bold;
+        }
+        .input-group input {
+            width: 100px;
+            padding: 5px;
+            margin-bottom: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
             border: 1px solid #ccc;
-            border-radius: 4px;
+            padding: 10px;
+            text-align: center;
         }
-        button {
-            padding: 10px 20px;
-            margin-left: 10px;
+        th {
             background-color: #2b6cb0;
             color: #fff;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
         }
-        button:hover {
-            background-color: #1a4e8a;
+        .status-green {
+            background-color: #c6f6d5;
+            color: #22543d;
+            padding: 5px 10px;
+            border-radius: 4px;
+            display: inline-block;
         }
         .grid-table {
             display: grid;
@@ -71,19 +82,11 @@
             margin-top: 0;
             color: #2b6cb0;
         }
-        .table-section table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .table-section th, .table-section td {
-            padding: 8px;
-            border-bottom: 1px solid #ccc;
-            text-align: left;
-        }
-        .highlight {
-            font-weight: bold;
-            font-family: monospace;
-            font-size: 1.1em;
+        pre {
+            background: #fff;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
         }
     </style>
 </head>
@@ -94,30 +97,69 @@
     </nav>
 
     <div class="container">
-        <h1>METAR & TAF Lookup</h1>
-        <div class="input-row">
-            <input type="text" id="airport-code" placeholder="Enter ICAO Code (e.g., KBFI)">
-            <button onclick="lookupWeather()">Get Weather</button>
+        <h1>Cessna 150 Weight & Balance Calculator</h1>
+
+        <div class="input-group">
+            <label>Pilot Weight (lbs):</label><input type="number" value="185">
+            <label>Passenger Weight (lbs):</label><input type="number" value="130">
+            <label>Baggage Weight (lbs):</label><input type="number" value="20">
+            <label>Fuel (Gallons usable):</label><input type="number" value="20">
+            <button>Calculate</button>
         </div>
 
-        <div id="results" style="display:none;">
-            <div class="grid-table">
-                <div class="table-section">
-                    <h3>Raw METAR</h3>
-                    <div class="highlight" id="metar-raw">Loading...</div>
-                </div>
+        <table>
+            <tr><th>Station</th><th>Weight (lbs)</th><th>Arm (in)</th><th>Moment (in-lbs)</th></tr>
+            <tr><td>Empty Weight</td><td>1041.5</td><td>31.78</td><td>33098.9</td></tr>
+            <tr><td>Front Seats</td><td>315</td><td>39.11</td><td>12319.6</td></tr>
+            <tr><td>Baggage</td><td>20</td><td>65.51</td><td>1310.2</td></tr>
+            <tr><td>Fuel</td><td>120</td><td>42.22</td><td>5066.4</td></tr>
+            <tr><td>Total</td><td>1496.5</td><td>-</td><td>51795.1</td></tr>
+            <tr><td><strong>CG ARM</strong></td><td colspan="3"><strong>34.61 in</strong></td></tr>
+        </table>
 
-                <div class="table-section">
-                    <h3>Decoded METAR</h3>
-                    <pre id="metar-decoded">Loading...</pre>
-                </div>
+        <table>
+            <tr><th>Condition</th><th>Status</th></tr>
+            <tr><td>Total Weight</td><td class="status-green">Within Limit</td></tr>
+            <tr><td>CG Position</td><td class="status-green">Within Limits</td></tr>
+        </table>
 
-                <div class="table-section">
-                    <h3>TAF Forecast</h3>
-                    <pre id="taf-decoded">Loading...</pre>
+        <table>
+            <tr><th>V-Speed</th><th>Speed (MPH)</th></tr>
+            <tr><td>Va @ Gross Weight</td><td>106</td></tr>
+            <tr><td>Va @ Current Weight</td><td>105.9</td></tr>
+            <tr><td>Vr (Rotation)</td><td>55</td></tr>
+            <tr><td>Vx (Best Angle)</td><td>60</td></tr>
+            <tr><td>Vy (Best Rate)</td><td>68</td></tr>
+            <tr><td>Vglide (Best Glide)</td><td>65</td></tr>
+        </table>
+
+        <div class="section">
+            <h1>METAR & TAF Lookup</h1>
+            <div class="input-row">
+                <input type="text" id="airport-code" placeholder="Enter ICAO Code (e.g., KBFI)">
+                <button onclick="lookupWeather()">Get Weather</button>
+            </div>
+
+            <div id="results" style="display:none;">
+                <div class="grid-table">
+                    <div class="table-section">
+                        <h3>Raw METAR</h3>
+                        <pre id="metar-raw">Loading...</pre>
+                    </div>
+
+                    <div class="table-section">
+                        <h3>Decoded METAR</h3>
+                        <pre id="metar-decoded">Loading...</pre>
+                    </div>
+
+                    <div class="table-section">
+                        <h3>TAF Forecast</h3>
+                        <pre id="taf-decoded">Loading...</pre>
+                    </div>
                 </div>
             </div>
         </div>
+
     </div>
 
     <script>
