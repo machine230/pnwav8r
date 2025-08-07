@@ -1,196 +1,236 @@
+/**
+ * Final HTML page for Cessna 150 N7798E Weight & Balance Calculator
+ * Deployed to: https://pnwav8r.com/wb
+ */
+
 <!DOCTYPE html>
 <html lang="en">
-<<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>N7798E Weight & Balance Calculator</title>
-    <style>
-        body { font-family: Arial, sans-serif; background-color: #f5f7fa; color: #333; margin: 0; }
-        nav { background-color: #2b6cb0; padding: 10px 20px; }
-        nav a { color: #fff; text-decoration: none; margin-right: 20px; font-weight: bold; }
-        .container { max-width: 1000px; margin: 20px auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        h1 { text-align: center; color: #2b6cb0; }
-        label { display: inline-block; width: 220px; margin-bottom: 10px; }
-        input { width: 80px; padding: 5px; margin-bottom: 10px; }
-        button { padding: 10px 20px; background-color: #2b6cb0; color: #fff; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px; }
-        button:hover { background-color: #1a4e8a; }
-        table { border-collapse: collapse; margin-top: 20px; width: auto; }
-        th, td { border: 1px solid #ccc; padding: 5px 10px; text-align: center; }
-        th { background-color: #2b6cb0; color: #fff; }
-        canvas { display: block; margin: 20px auto; background: #fff; border: 1px solid #ccc; }
-        .small-text { font-size: 12px; color: #555; text-align: center; margin-top: 20px; }
-        @media (max-width: 768px) {
-            .container { width: 95%; padding: 10px; margin: auto; }
-            nav a { display: block; margin: 10px 0; }
-            label { width: 100%; display: block; margin-bottom: 5px; }
-            input { width: 100%; padding: 8px; }
-            button { width: 100%; margin-bottom: 10px; }
-            table { width: 100%; font-size: 14px; }
-            canvas { width: 100% !important; height: auto !important; }
-        }
-    </style>
-</head>
->
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>N7798E Weight & Balance Calculator</title>
-    <style>
-        body { font-family: Arial, sans-serif; background-color: #f5f7fa; color: #333; margin: 0; }
-        nav { background-color: #2b6cb0; padding: 10px 20px; }
-        nav a { color: #fff; text-decoration: none; margin-right: 20px; font-weight: bold; }
-        .container { max-width: 1000px; margin: 20px auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        h1 { text-align: center; color: #2b6cb0; }
-        label { display: inline-block; width: 220px; margin-bottom: 10px; }
-        input { width: 80px; padding: 5px; margin-bottom: 10px; }
-        button { padding: 10px 20px; background-color: #2b6cb0; color: #fff; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px; }
-        button:hover { background-color: #1a4e8a; }
-        table { border-collapse: collapse; margin-top: 20px; width: auto; }
-        th, td { border: 1px solid #ccc; padding: 5px 10px; text-align: center; }
-        th { background-color: #2b6cb0; color: #fff; }
-        canvas { display: block; margin: 20px auto; background: #fff; border: 1px solid #ccc; }
-        .small-text { font-size: 12px; color: #555; text-align: center; margin-top: 20px; }
-    </style>
+<head>
+  <meta charset="UTF-8">
+  <title>Weight & Balance | N7798E - PNWAV8R</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --bg: #f2f2f2;
+      --panel: #fff;
+      --accent: #003366;
+      --primary: #336699;
+      --danger: #cc0000;
+      --safe: #228B22;
+    }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: var(--bg);
+      color: #111;
+    }
+    header {
+      background: var(--primary);
+      color: white;
+      padding: 1rem;
+      text-align: center;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 2rem auto;
+      background: var(--panel);
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    }
+    h1, h2 {
+      text-align: center;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 0.25rem;
+    }
+    input[type="number"] {
+      width: 90%;
+      padding: 0.3rem 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 0.95rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 2rem;
+    }
+    th, td {
+      padding: 6px;
+      border: 1px solid #999;
+      text-align: center;
+      font-size: 0.95rem;
+    }
+    .result, .reference, .airdata {
+      margin-top: 2rem;
+    }
+    .warning {
+      font-weight: bold;
+      text-align: center;
+      margin-top: 1rem;
+    }
+    .safe {
+      color: var(--safe);
+    }
+    .danger {
+      color: var(--danger);
+    }
+    canvas {
+      display: none;
+    }
+    .actions {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+    button {
+      padding: 0.6rem 1.5rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 4px;
+      background: var(--accent);
+      color: white;
+      cursor: pointer;
+    }
+    .disclaimer {
+      font-size: 0.85rem;
+      text-align: center;
+      margin-top: 2rem;
+      color: #666;
+    }
+    @media (max-width: 768px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
 <body>
-    <nav>
-        <a href="index.html">METAR Lookup</a>
-        <a href="wb.html">Weight & Balance</a>
-    </nav>
-
-    <div class="container">
-        <h1>N7798E Weight & Balance Calculator</h1>
-        <p style="text-align:center; font-size: 16px; margin-top: -10px;">
-            Tail Number: <strong>N7798E</strong> - Cessna 150 (<a href="https://link-to-your-poh.pdf" target="_blank" style="color:#2b6cb0; text-decoration:underline;">View POH</a>)
-        </p>
-
-        <label>Pilot Weight (lbs):</label>
-        <input type="number" id="pilotWeight" value="160"><br>
-        <label>Passenger Weight (lbs):</label>
-        <input type="number" id="passengerWeight" value="160"><br>
-        <label>Baggage Weight (lbs):</label>
-        <input type="number" id="baggage" value="10" max="29"><br>
-        <label>Fuel (Gallons usable):</label>
-        <input type="number" id="fuel" value="20" max="22.5"><br><br>
-
-        <button onclick="calculateWB()">Calculate</button>
-
-        <canvas id="cgCanvas" width="600" height="400"></canvas>
-
-        <div id="breakdown"></div>
-        <div id="advisoryTable"></div>
-
-        <h3>Basic Weights (lbs):</h3>
+  <header>
+    <h1>N7798E Weight & Balance Calculator</h1>
+  </header>
+  <main class="container">
+    <div class="grid">
+      <div>
+        <label for="front">Front Seats (lbs)</label>
+        <input type="number" id="front" placeholder="e.g. 320">
+        <label for="fuel">Fuel (usable gallons)</label>
+        <input type="number" id="fuel" placeholder="e.g. 22.5">
+        <label for="baggage">Baggage Area 1 (max 29 lbs)</label>
+        <input type="number" id="baggage" placeholder="e.g. 10">
+      </div>
+      <div class="result">
+        <h2>Calculated Results</h2>
         <table>
-            <tr><th>Empty Weight</th><th>MGTW</th><th>MRW</th><th>MLW</th></tr>
-            <tr><td>1041.5</td><td>1500</td><td>1500</td><td>1500</td></tr>
+          <thead>
+            <tr><th>Item</th><th>Weight</th><th>Max</th><th>Δ</th><th>Arm</th><th>Moment</th></tr>
+          </thead>
+          <tbody id="resultsTable"></tbody>
+          <tfoot>
+            <tr><th>Total</th><th id="totalWeight">—</th><th></th><th></th><th id="cg">—</th><th id="totalMoment">—</th></tr>
+          </tfoot>
         </table>
-
-        <h3>Normal category CG Limits (lbs, in):</h3>
-        <table>
-            <tr><th>Up to</th><th>Fwd Limit</th><th>Aft Limit</th></tr>
-            <tr><td>1100</td><td>32.20</td><td>37.30</td></tr>
-            <tr><td>1250</td><td>32.20</td><td>36.50</td></tr>
-            <tr><td>1500</td><td>33.40</td><td>36.50</td></tr>
-        </table>
-
-        <p class="small-text">
-            NB: Always verify with the latest POH. This calculator is for preflight estimation only.
-        </p>
+        <p><strong>Va (maneuvering speed):</strong> <span id="va">—</span> MPH</p>
+        <p class="warning" id="warning"></p>
+      </div>
     </div>
 
-    <script>
-        const EMPTY_WEIGHT = 1041.5;
-        const EMPTY_CG = 31.78;
-        const MAX_GROSS_WEIGHT = 1500;
-        const CG_FORWARD_LIMITS = [
-            { weight: 1100, cg: 32.20 },
-            { weight: 1250, cg: 32.20 },
-            { weight: 1500, cg: 33.40 }
-        ];
-        const CG_AFT_LIMIT = 36.50;
+    <div class="airdata">
+      <h2>Airspeed Reference (from POH)</h2>
+      <ul>
+        <li><strong>Vr (Rotation):</strong> 55 MPH</li>
+        <li><strong>Vx (Best Angle of Climb):</strong> 60 MPH</li>
+        <li><strong>Vy (Best Rate of Climb):</strong> 71 MPH</li>
+        <li><strong>Va (Max at Gross Weight 1500 lbs):</strong> 106 MPH</li>
+        <li><strong>Va Formula:</strong> <code>Va = Va_max × √(W / Wmax)</code></li>
+      </ul>
+    </div>
 
-        function interpolateForwardCGLimit(weight) {
-            for (let i = 0; i < CG_FORWARD_LIMITS.length - 1; i++) {
-                const current = CG_FORWARD_LIMITS[i];
-                const next = CG_FORWARD_LIMITS[i + 1];
-                if (weight <= next.weight) {
-                    const ratio = (weight - current.weight) / (next.weight - current.weight);
-                    return current.cg + ratio * (next.cg - current.cg);
-                }
-            }
-            return CG_FORWARD_LIMITS[CG_FORWARD_LIMITS.length - 1].cg;
-        }
+    <div class="reference">
+      <h2>Reference Data</h2>
+      <table>
+        <caption>Basic Weights (lbs)</caption>
+        <thead>
+          <tr><th>Empty Weight</th><th>MGTW</th><th>MRW</th><th>MLW</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1041.5</td><td>1500</td><td>1500</td><td>1500</td></tr>
+        </tbody>
+      </table>
+      <table>
+        <caption>CG Limits - Normal Category</caption>
+        <tr><th>Up To (lbs)</th><th>Fwd Limit</th><th>Aft Limit</th></tr>
+        <tr><td>1250</td><td>32.20</td><td>36.00</td></tr>
+        <tr><td>1500</td><td>33.40</td><td>36.00</td></tr>
+      </table>
+    </div>
 
-        function calculateWB() {
-            const pilotWeight = parseFloat(document.getElementById('pilotWeight').value);
-            const passengerWeight = parseFloat(document.getElementById('passengerWeight').value);
-            const baggageWeight = Math.min(parseFloat(document.getElementById('baggage').value), 29);
-            const fuelGallons = Math.min(parseFloat(document.getElementById('fuel').value), 22.5);
-            const fuelWeight = fuelGallons * 6;
+    <div class="actions">
+      <button onclick="calculate()">Calculate</button>
+      <button onclick="window.print()">Print</button>
+      <button onclick="location.reload()">Reset</button>
+    </div>
 
-            const emptyMoment = EMPTY_WEIGHT * EMPTY_CG;
-            const frontSeatsMoment = (pilotWeight + passengerWeight) * 39.11;
-            const baggageMoment = baggageWeight * 65.51;
-            const fuelMoment = fuelWeight * 42.22;
+    <div class="disclaimer">
+      This tool is for N7798E only. Always verify final W&amp;B using the official POH before flight.
+    </div>
+  </main>
 
-            const totalWeight = EMPTY_WEIGHT + pilotWeight + passengerWeight + baggageWeight + fuelWeight;
-            const totalMoment = emptyMoment + frontSeatsMoment + baggageMoment + fuelMoment;
-            const cgPosition = totalMoment / totalWeight;
-
-            const forwardLimit = interpolateForwardCGLimit(totalWeight);
-            const cgStatus = (cgPosition < forwardLimit || cgPosition > CG_AFT_LIMIT) ? 'Out of Limits' : 'Within Limits';
-            const weightStatus = (totalWeight > MAX_GROSS_WEIGHT) ? 'Over Limit' : 'Within Limit';
-
-            document.getElementById('breakdown').innerHTML = `
-                <table>
-                    <tr><th>Station</th><th>Weight (lbs)</th><th>Arm (in)</th><th>Moment (in-lbs)</th></tr>
-                    <tr><td>Empty Weight</td><td>${EMPTY_WEIGHT}</td><td>${EMPTY_CG}</td><td>${emptyMoment.toFixed(1)}</td></tr>
-                    <tr><td>Front Seats</td><td>${pilotWeight + passengerWeight}</td><td>39.11</td><td>${frontSeatsMoment.toFixed(1)}</td></tr>
-                    <tr><td>Baggage</td><td>${baggageWeight}</td><td>65.51</td><td>${baggageMoment.toFixed(1)}</td></tr>
-                    <tr><td>Fuel</td><td>${fuelWeight}</td><td>42.22</td><td>${fuelMoment.toFixed(1)}</td></tr>
-                    <tr><th>Total</th><th>${totalWeight.toFixed(1)}</th><th>-</th><th>${totalMoment.toFixed(1)}</th></tr>
-                    <tr><th>CG ARM</th><th colspan="3">${cgPosition.toFixed(2)} in</th></tr>
-                </table>`;
-
-            document.getElementById('advisoryTable').innerHTML = `
-                <table>
-                    <tr><th>Condition</th><th>Status</th></tr>
-                    <tr><td>Total Weight</td><td class="${weightStatus === 'Over Limit' ? 'warning' : 'ok'}">${weightStatus}</td></tr>
-                    <tr><td>CG Position (${forwardLimit.toFixed(2)} - ${CG_AFT_LIMIT})</td><td class="${cgStatus === 'Out of Limits' ? 'warning' : 'ok'}">${cgStatus}</td></tr>
-                </table>`;
-
-            drawCGGraph(cgPosition, totalWeight);
-        }
-
-        function drawCGGraph(cg, weight) {
-            const canvas = document.getElementById('cgCanvas');
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            const xScale = 50;
-            const yScale = 0.5;
-            const xOffset = 50;
-            const yOffset = 350;
-
-            ctx.fillStyle = '#e0e0e0';
-            ctx.beginPath();
-            ctx.moveTo(xOffset + (32.20 - 30) * xScale, yOffset - (1100 - 1100) * yScale);
-            ctx.lineTo(xOffset + (32.20 - 30) * xScale, yOffset - (1250 - 1100) * yScale);
-            ctx.lineTo(xOffset + (33.40 - 30) * xScale, yOffset - (1500 - 1100) * yScale);
-            ctx.lineTo(xOffset + (36.50 - 30) * xScale, yOffset - (1500 - 1100) * yScale);
-            ctx.lineTo(xOffset + (36.50 - 30) * xScale, yOffset - (1250 - 1100) * yScale);
-            ctx.lineTo(xOffset + (37.30 - 30) * xScale, yOffset - (1100 - 1100) * yScale);
-            ctx.closePath();
-            ctx.fill();
-
-            ctx.beginPath();
-            ctx.arc(xOffset + (cg - 30) * xScale, yOffset - (weight - 1100) * yScale, 6, 0, 2 * Math.PI);
-            ctx.fillStyle = 'red';
-            ctx.fill();
-        }
-
-        window.onload = function() {
-            calculateWB();
-        }
-    </script>
+  <script>
+    const EMPTY_WEIGHT = 1041.5, EMPTY_ARM = 31.78, MAX_TAKEOFF_WEIGHT = 1500;
+    const arms = { front: 39.11, fuel: 42.22, baggage: 65.51 };
+    function calculate() {
+      const front = parseFloat(document.getElementById('front').value) || 0;
+      const fuelGal = parseFloat(document.getElementById('fuel').value) || 0;
+      const baggage = parseFloat(document.getElementById('baggage').value) || 0;
+      const fuel = fuelGal * 6;
+      const warningBox = document.getElementById('warning');
+      if (baggage > 29) {
+        warningBox.innerText = "Baggage exceeds max (29 lbs)";
+        warningBox.className = "warning danger";
+        return;
+      }
+      const rows = [
+        { name: "Empty Weight", weight: EMPTY_WEIGHT, max: 1500, arm: EMPTY_ARM },
+        { name: "Front Seats", weight: front, max: 340, arm: arms.front },
+        { name: "Fuel", weight: fuel, max: 135, arm: arms.fuel },
+        { name: "Baggage 1", weight: baggage, max: 29, arm: arms.baggage },
+      ];
+      let totalWeight = 0, totalMoment = 0;
+      const resultHTML = rows.map(row => {
+        const moment = row.weight * row.arm;
+        totalWeight += row.weight;
+        totalMoment += moment;
+        const delta = row.max - row.weight;
+        return `<tr><td>${row.name}</td><td>${row.weight.toFixed(1)}</td><td>${row.max}</td><td>${delta.toFixed(1)}</td><td>${row.arm.toFixed(2)}</td><td>${moment.toFixed(0)}</td></tr>`;
+      }).join('');
+      const cg = totalMoment / totalWeight;
+      const va = Math.round(Math.sqrt(totalWeight / MAX_TAKEOFF_WEIGHT) * 106);
+      document.getElementById('resultsTable').innerHTML = resultHTML;
+      document.getElementById('totalWeight').innerText = totalWeight.toFixed(1);
+      document.getElementById('cg').innerText = cg.toFixed(2);
+      document.getElementById('totalMoment').innerText = totalMoment.toFixed(0);
+      document.getElementById('va').innerText = va + " MPH";
+      const limitsStatus = checkLimits(totalWeight, cg);
+      warningBox.innerText = limitsStatus.message;
+      warningBox.className = `warning ${limitsStatus.status}`;
+    }
+    function checkLimits(weight, cg) {
+      if (weight > 1500) return { message: "Aircraft is over max gross weight.", status: "danger" };
+      const fwd = weight <= 1250 ? 32.20 : 33.40, aft = 36.00;
+      if (cg < fwd) return { message: "CG is forward of limit.", status: "danger" };
+      if (cg > aft) return { message: "CG is aft of limit.", status: "danger" };
+      return { message: "✔ Weight and CG are within limits for the Normal category.", status: "safe" };
+    }
+  </script>
 </body>
 </html>
