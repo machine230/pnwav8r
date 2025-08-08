@@ -55,32 +55,54 @@
         async function lookupWeather() {
             const icao = document.getElementById('airport-code').value.toUpperCase().trim();
             const errorMessage = document.getElementById('error-message');
+            const resultsDiv = document.getElementById('results');
+
             errorMessage.textContent = '';
+            resultsDiv.style.display = 'none';
 
-            if (!icao) { errorMessage.textContent = 'Please enter a valid ICAO code.'; return; }
+            if (!icao) {
+                errorMessage.textContent = 'Please enter a valid ICAO code.';
+                return;
+            }
 
-            const token = 'Ld0Z9WEaR9yaouqQqIFqJnalxQRXIGQ5oyFLJ6_DeD4';
+            const token = 'YOUR_TOKEN_HERE'; // Replace with your AVWX token
 
             try {
-                const metarRes = await fetch(`https://avwx.rest/api/metar/${icao}?token=${token}&format=json`);
-                const tafRes = await fetch(`https://avwx.rest/api/taf/${icao}?token=${token}&format=json`);
+                const [metarRes, tafRes] = await Promise.all([
+                    fetch(`https://avwx.rest/api/metar/${icao}?token=${token}&format=json`),
+                    fetch(`https://avwx.rest/api/taf/${icao}?token=${token}&format=json`)
+                ]);
 
-                if (!metarRes.ok && !tafRes.ok) {
-                    errorMessage.textContent = `Failed to load data for ${icao}.`;
-                    document.getElementById('results').style.display = 'none';
-                    return;
+                let metarText = 'METAR not available';
+                let tafText = 'TAF not available';
+
+                if (metarRes.ok) {
+                    const metarData = await metarRes.json();
+                    metarText = metarData.raw || metarText;
+                } else {
+                    const errText = await metarRes.text();
+                    console.warn(`METAR error for ${icao}:`, errText);
                 }
 
-                const metarData = await metarRes.json();
-                const tafData = await tafRes.json();
+                if (tafRes.ok) {
+                    const tafData = await tafRes.json();
+                    tafText = tafData.raw || tafText;
+                } else {
+                    const errText = await tafRes.text();
+                    console.warn(`TAF error for ${icao}:`, errText);
+                }
 
-                document.getElementById('results').style.display = 'block';
-                document.getElementById('metar-raw').textContent = metarData.raw || 'No METAR Raw Data';
-                document.getElementById('taf-raw').textContent = tafData.raw || 'No TAF Data';
+                document.getElementById('metar-raw').textContent = metarText;
+                document.getElementById('taf-raw').textContent = tafText;
+                resultsDiv.style.display = 'block';
+
+                if (!metarRes.ok && !tafRes.ok) {
+                    errorMessage.textContent = `No weather data found for ${icao}.`;
+                }
 
             } catch (error) {
                 console.error(error);
-                errorMessage.textContent = 'Failed to fetch weather data.';
+                errorMessage.textContent = 'Failed to fetch weather data. Please try again.';
             }
         }
     </script>
