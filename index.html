@@ -1,110 +1,210 @@
-<!-- index.html - METAR Lookup Homepage -->
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PNWAV8R - METAR Lookup</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 0; background-color: #f5f7fa; color: #333; }
-        nav { background-color: #2b6cb0; padding: 10px 20px; }
-        nav a { color: #fff; text-decoration: none; margin-right: 20px; font-weight: bold; }
-        .container { max-width: 1000px; margin: 40px auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        h1 { text-align: center; color: #2b6cb0; }
-        .input-row { display: flex; justify-content: center; margin-bottom: 20px; }
-        input[type="text"] { width: 300px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
-        button { padding: 10px 20px; margin-left: 10px; background-color: #2b6cb0; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
-        button:hover { background-color: #1a4e8a; }
-        .grid-table { display: flex; flex-wrap: wrap; gap: 20px; margin-top: 20px; justify-content: center; }
-        .table-section { flex: 1 1 45%; background: #edf2f7; padding: 15px; border-radius: 4px; min-width: 300px; }
-        .table-section h3 { margin-top: 0; color: #2b6cb0; }
-        pre { background: #fff; padding: 10px; border-radius: 4px; overflow-x: auto; }
-        .error { color: red; text-align: center; }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PNWAV8R | METAR & TAF</title>
+  <style>
+    :root{--bg:#0b1220;--card:#111a2b;--muted:#7e8aa6;--text:#eef3ff;--accent:#5ac8fa;}
+    *{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#0b1220,#0e1526);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Open Sans",sans-serif}
+    header{padding:24px 16px;text-align:center;border-bottom:1px solid #1b2740;position:sticky;top:0;background:#0b1220e6;backdrop-filter:saturate(120%) blur(6px)}
+    h1{margin:0;font-size:20px;letter-spacing:.3px}
+    main{max-width:980px;margin:24px auto;padding:0 16px}
+    .card{background:var(--card);border:1px solid #1b2740;border-radius:16px;padding:16px;margin-bottom:16px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+    form{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+    input[type=text]{flex:1;min-width:200px;padding:12px 14px;border-radius:12px;border:1px solid #2a395b;background:#0c1426;color:var(--text);font-size:16px}
+    button{padding:12px 16px;border-radius:12px;border:1px solid #2a395b;background:linear-gradient(180deg,#1a2a45,#142238);color:var(--text);font-weight:600;cursor:pointer}
+    button:hover{border-color:#3c4e78}
+    .row{display:grid;grid-template-columns:1fr;gap:16px}
+    @media(min-width:900px){.row{grid-template-columns:1fr 1fr}}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+    .muted{color:var(--muted)}
+    .pill{display:inline-flex;gap:6px;align-items:center;padding:4px 10px;border-radius:999px;border:1px solid #273555;background:#0e1629;font-size:12px}
+    .kvs{display:grid;grid-template-columns:max-content 1fr;gap:6px 12px}
+    .kvs div:nth-child(odd){color:#9fb0d6}
+    .error{color:#ff8b8b}
+    footer{padding:32px 16px;color:#6e7ba0;text-align:center}
+    .tiny{font-size:12px}
+  </style>
 </head>
 <body>
-    <nav>
-        <a href="index.html">METAR Lookup</a>
-        <a href="wb.html">Weight & Balance</a>
-    </nav>
+  <header>
+    <h1>PNWAV8R — METAR & TAF</h1>
+    <div class="tiny muted">Type any ICAO (e.g., KBFI, KRNT, CYVR, EGLL). No sign‑in needed.</div>
+  </header>
 
-    <div class="container">
-        <h1>METAR & TAF Lookup</h1>
-        <div class="input-row">
-            <input type="text" id="airport-code" placeholder="Enter ICAO Code (e.g., KBFI)">
-            <button onclick="lookupWeather()">Get Weather</button>
-        </div>
+  <main>
+    <section class="card">
+      <form id="lookupForm">
+        <input id="icao" type="text" inputmode="latin" autocomplete="off" placeholder="Enter ICAO (e.g., KBFI)" aria-label="ICAO code" required pattern="^[A-Za-z]{4}$" />
+        <button type="submit">Get Weather</button>
+        <span id="status" class="pill muted">Idle</span>
+      </form>
+    </section>
 
-        <div id="error-message" class="error"></div>
+    <section id="results" class="row" aria-live="polite">
+      <article class="card">
+        <h2 style="margin-top:0">METAR</h2>
+        <div id="metarRaw" class="mono"></div>
+        <hr style="border:0;border-top:1px solid #213252;margin:12px 0" />
+        <div id="metarDecoded"></div>
+      </article>
+      <article class="card">
+        <h2 style="margin-top:0">TAF</h2>
+        <div id="tafRaw" class="mono"></div>
+        <hr style="border:0;border-top:1px solid #213252;margin:12px 0" />
+        <div id="tafNotes" class="muted tiny">Tip: We show the most recent TAF issued for the station.</div>
+      </article>
+    </section>
 
-        <div id="results" style="display:none;">
-            <div class="grid-table">
-                <div class="table-section">
-                    <h3>Raw METAR</h3>
-                    <pre id="metar-raw">Loading...</pre>
-                </div>
-                <div class="table-section">
-                    <h3>Raw TAF</h3>
-                    <pre id="taf-raw">Loading...</pre>
-                </div>
-            </div>
-        </div>
-    </div>
+    <section class="card muted tiny">
+      Data: NOAA Aviation Weather Center (ADDS). This page calls their JSON API directly. If CORS ever blocks in production, deploy the lightweight Netlify proxy below.
+    </section>
+  </main>
 
-    <script>
-        async function lookupWeather() {
-            const icao = document.getElementById('airport-code').value.toUpperCase().trim();
-            const errorMessage = document.getElementById('error-message');
-            const resultsDiv = document.getElementById('results');
+  <footer>© <span id="yr"></span> PNWAV8R</footer>
 
-            errorMessage.textContent = '';
-            resultsDiv.style.display = 'none';
+<script>
+  // ---- Helpers ------------------------------------------------------------
+  const $ = (sel) => document.querySelector(sel);
+  const statusEl = $('#status');
+  const metarRawEl = $('#metarRaw');
+  const tafRawEl = $('#tafRaw');
+  const metarDecodedEl = $('#metarDecoded');
+  $('#yr').textContent = new Date().getFullYear();
 
-            if (!icao) {
-                errorMessage.textContent = 'Please enter a valid ICAO code.';
-                return;
-            }
+  function setStatus(txt){ statusEl.textContent = txt }
 
-            const token = 'YOUR_TOKEN_HERE'; // Replace with your AVWX token
+  function icaoNormalize(s){
+    const v = (s||'').trim().toUpperCase();
+    if(!/^[A-Z]{4}$/.test(v)) throw new Error('Enter a 4‑letter ICAO like KBFI');
+    return v;
+  }
 
-            try {
-                const [metarRes, tafRes] = await Promise.all([
-                    fetch(`https://avwx.rest/api/metar/${icao}?token=${token}&format=json`),
-                    fetch(`https://avwx.rest/api/taf/${icao}?token=${token}&format=json`)
-                ]);
+  // ---- NOAA ADDS endpoints ------------------------------------------------
+  // Docs: https://aviationweather.gov/data/api/#/default
+  const ADDS = {
+    metar: (icao) => `https://aviationweather.gov/adds/dataserver_current/httpparam?` +
+      new URLSearchParams({ datasource:'metars', requestType:'retrieve', format:'JSON', mostRecent:'true', hoursBeforeNow:'3', stationString:icao }),
+    taf: (icao) => `https://aviationweather.gov/adds/dataserver_current/httpparam?` +
+      new URLSearchParams({ datasource:'tafs', requestType:'retrieve', format:'JSON', mostRecent:'true', hoursBeforeNow:'12', stationString:icao })
+  };
 
-                let metarText = 'METAR not available';
-                let tafText = 'TAF not available';
+  async function fetchAdds(url){
+    const r = await fetch(url, { headers:{ 'Accept':'application/json' } });
+    if(!r.ok) throw new Error('Request failed: ' + r.status);
+    return r.json();
+  }
 
-                if (metarRes.ok) {
-                    const metarData = await metarRes.json();
-                    metarText = metarData.raw || metarText;
-                } else {
-                    const errText = await metarRes.text();
-                    console.warn(`METAR error for ${icao}:`, errText);
-                }
+  // ---- Simple METAR decoder (plain‑English summary) ----------------------
+  function decodeMetar(raw){
+    if(!raw) return 'No METAR available.';
+    const out = [];
+    const parts = raw.split(/\s+/);
 
-                if (tafRes.ok) {
-                    const tafData = await tafRes.json();
-                    tafText = tafData.raw || tafText;
-                } else {
-                    const errText = await tafRes.text();
-                    console.warn(`TAF error for ${icao}:`, errText);
-                }
+    // Station / time
+    const station = parts[0];
+    const timeIdx = parts.findIndex(p=>/\d{6}Z/.test(p));
+    const time = timeIdx>-1?parts[timeIdx]:null;
 
-                document.getElementById('metar-raw').textContent = metarText;
-                document.getElementById('taf-raw').textContent = tafText;
-                resultsDiv.style.display = 'block';
+    // Wind (dddffGggKT or VRB)
+    const windTok = parts.find(p=>/(\d{3}|VRB)\d{2,3}(G\d{2,3})?KT/.test(p));
+    let windTxt = 'calm';
+    if(windTok){
+      const m = windTok.match(/(\d{3}|VRB)(\d{2,3})(?:G(\d{2,3}))?KT/);
+      const dir = m[1]==='VRB'?'variable':m[1]+'°';
+      const spd = parseInt(m[2],10);
+      const gust = m[3]?` gusting ${parseInt(m[3],10)}`:'';
+      windTxt = `${dir} at ${spd} kt${gust}`;
+    } else if(parts.includes('00000KT')) {
+      windTxt = 'calm winds';
+    }
 
-                if (!metarRes.ok && !tafRes.ok) {
-                    errorMessage.textContent = `No weather data found for ${icao}.`;
-                }
+    // Visibility (US: ####SM)
+    const visTok = parts.find(p=>/^(\d{1,2}|M?\d/)?\d?SM$/.test(p)) || parts.find(p=>/\d{4}/.test(p));
+    let visTxt = visTok? visTok.replace('SM',' SM') : 'unknown vis';
 
-            } catch (error) {
-                console.error(error);
-                errorMessage.textContent = 'Failed to fetch weather data. Please try again.';
-            }
-        }
-    </script>
+    // Clouds (FEW/SCT/BKN/OVCxxx)
+    const cloudToks = parts.filter(p=>/^(FEW|SCT|BKN|OVC)\d{3}/.test(p));
+    const clouds = cloudToks.map(t=>{
+      const cov = {FEW:'few',SCT:'scattered',BKN:'broken',OVC:'overcast'}[t.slice(0,3)];
+      const height = parseInt(t.slice(3,6),10)*100; // feet AGL
+      return `${cov} at ${height.toLocaleString()} ft`; 
+    }).join('; ');
+
+    // Temp / Dewpoint (TT/DD) possibly M for minus
+    const tdTok = parts.find(p=>/(M?\d{2})\/(M?\d{2})/.test(p));
+    let tempTxt='';
+    if(tdTok){
+      const m = tdTok.match(/(M?\d{2})\/(M?\d{2})/);
+      const t = (m[1].startsWith('M')?-1:1)*parseInt(m[1].replace('M',''),10);
+      const d = (m[2].startsWith('M')?-1:1)*parseInt(m[2].replace('M',''),10);
+      tempTxt = `${t}°C / dewpoint ${d}°C`;
+    }
+
+    // Altimeter A2992 -> 29.92 inHg
+    const altTok = parts.find(p=>/^A\d{4}$/.test(p));
+    const altTxt = altTok ? (altTok.replace('A','').slice(0,2)+'.'+altTok.slice(-2)+' inHg') : '—';
+
+    // Remarks hint
+    const rmki = parts.indexOf('RMK');
+    const rmk = rmki>-1 ? parts.slice(rmki+1).join(' ') : '';
+
+    out.push(`<div class="kvs">
+      <div>Station</div><div>${station}</div>
+      <div>Time</div><div>${time?time.replace('Z','Z (UTC)'):'—'}</div>
+      <div>Wind</div><div>${windTxt}</div>
+      <div>Visibility</div><div>${visTxt}</div>
+      <div>Clouds</div><div>${clouds || 'no significant clouds reported'}</div>
+      <div>Temp/Dew</div><div>${tempTxt || '—'}</div>
+      <div>Altimeter</div><div>${altTxt}</div>
+    </div>`);
+
+    if(rmk){ out.push(`<div class="muted tiny" style="margin-top:8px">RMK: ${rmk}</div>`); }
+    return out.join('\n');
+  }
+
+  // ---- Event: submit -----------------------------------------------------
+  document.getElementById('lookupForm').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const icao = icaoNormalize(document.getElementById('icao').value);
+    setStatus('Fetching…');
+    metarRawEl.textContent = ''; tafRawEl.textContent = ''; metarDecodedEl.innerHTML='';
+
+    try{
+      // Fetch METAR
+      const metarJson = await fetchAdds(ADDS.metar(icao));
+      const metar = metarJson?.data?.METAR?.[0]?.raw_text || metarJson?.data?.data?.[0]?.raw_text;
+      metarRawEl.textContent = metar || 'No METAR found.';
+      metarDecodedEl.innerHTML = decodeMetar(metar);
+
+      // Fetch TAF
+      const tafJson = await fetchAdds(ADDS.taf(icao));
+      const taf = tafJson?.data?.TAF?.[0]?.raw_text || tafJson?.data?.data?.[0]?.raw_text;
+      tafRawEl.textContent = taf || 'No TAF found.';
+      setStatus('Done');
+    }catch(err){
+      console.error(err);
+      setStatus('Error');
+      metarRawEl.innerHTML = `<span class="error">${err.message}</span>`;
+    }
+  });
+</script>
+
+<!-- ---------------------------------------------------------------------
+     Optional: Netlify proxy if CORS blocks direct calls in prod.
+     1) Create /netlify/functions/awx.js with the code below.
+     2) In the ADDS object above, swap the base to '/.netlify/functions/awx?kind=metar' etc.
+----------------------------------------------------------------------------
+export async function handler(event) {
+  const { kind, icao } = event.queryStringParameters;
+  const isMetar = kind === 'metar';
+  const url = isMetar
+    ? 'https://aviationweather.gov/adds/dataserver_current/httpparam?'+new URLSearchParams({datasource:'metars',requestType:'retrieve',format:'JSON',mostRecent:'true',hoursBeforeNow:'3',stationString:icao})
+    : 'https://aviationweather.gov/adds/dataserver_current/httpparam?'+new URLSearchParams({datasource:'tafs',requestType:'retrieve',format:'JSON',mostRecent:'true',hoursBeforeNow:'12',stationString:icao});
+  const r = await fetch(url); const body = await r.text();
+  return { statusCode: 200, headers: { 'content-type':'application/json','cache-control':'public, max-age=60' }, body };
+}
+---------------------------------------------------------------------------- -->
 </body>
 </html>
