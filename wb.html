@@ -5,359 +5,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>N7798E Weight & Balance - PNWAV8R</title>
     <link rel="stylesheet" href="css/style.css">
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
     <style>
-        /* Additional styles specific to W&B calculator */
-        .wb-calculator {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            overflow: hidden;
-            margin-bottom: 40px;
-        }
-        
-        .wb-header {
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-        
-        .wb-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            padding: 30px;
-        }
-        
-        .input-section {
-            background: #f8f9fa;
-            padding: 25px;
-            border-radius: 10px;
-            border: 2px solid #e9ecef;
-        }
-        
-        .results-section {
-            background: #fff;
-            padding: 25px;
-            border-radius: 10px;
-            border: 2px solid #dee2e6;
-        }
-        
-        .input-group {
-            margin-bottom: 20px;
-        }
-        
-        .input-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: #34495e;
-        }
-        
-        .input-group input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #bdc3c7;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: border-color 0.3s ease;
-            box-sizing: border-box;
-        }
-        
-        .input-group input:focus {
-            outline: none;
-            border-color: #3498db;
-            box-shadow: 0 0 10px rgba(52, 152, 219, 0.2);
-        }
-        
-        .input-group small {
-            color: #7f8c8d;
-            font-size: 12px;
-        }
-        
-        .results-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-            background: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        
-        .results-table th,
-        .results-table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #ecf0f1;
-        }
-        
-        .results-table th {
-            background: #34495e;
-            color: white;
-            font-weight: 600;
-        }
-        
-        .results-table tr:nth-child(even) {
-            background: #f8f9fa;
-        }
-        
-        .total-row {
-            font-weight: bold;
-            background: #e8f4f8 !important;
-            border-top: 2px solid #3498db;
-        }
-        
-        .status {
-            padding: 15px;
-            border-radius: 8px;
-            margin: 15px 0;
-            font-weight: 600;
-            text-align: center;
-        }
-        
-        .status.safe {
-            background: #d4edda;
-            color: #155724;
-            border: 2px solid #c3e6cb;
-        }
-        
-        .status.warning {
-            background: #fff3cd;
-            color: #856404;
-            border: 2px solid #ffeaa7;
-        }
-        
-        .status.danger {
-            background: #f8d7da;
-            color: #721c24;
-            border: 2px solid #f5c6cb;
-        }
-        
-        .cg-envelope {
-            margin-top: 15px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            border-left: 4px solid #28a745;
-        }
-        
-        .cg-scale-container {
-            margin: 20px 0;
-        }
-        
-        .cg-scale {
-            position: relative;
-            height: 40px;
-            border-radius: 20px;
-            overflow: hidden;
-            margin-bottom: 10px;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .scale-background {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, #e74c3c 0%, #e74c3c 15%, #27ae60 15%, #27ae60 85%, #e74c3c 85%, #e74c3c 100%);
-        }
-        
-        .safe-zone {
-            position: absolute;
-            left: 15%;
-            width: 70%;
-            height: 100%;
-            background: linear-gradient(90deg, #f39c12 0%, #27ae60 20%, #27ae60 80%, #f39c12 100%);
-        }
-        
-        .cg-indicator {
-            position: absolute;
-            top: -15px;
-            height: 70px;
-            width: 6px;
-            background: #2c3e50;
-            border: 3px solid #fff;
-            border-radius: 3px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.3), 0 0 20px rgba(44,62,80,0.5);
-            transition: left 0.3s ease;
-            z-index: 15;
-        }
-        
-        .cg-pointer {
-            position: absolute;
-            top: -5px;
-            left: -12px;
-            width: 0;
-            height: 0;
-            border-left: 15px solid transparent;
-            border-right: 15px solid transparent;
-            border-top: 20px solid #2c3e50;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
-        }
-        
-        .cg-pointer::after {
-            content: '';
-            position: absolute;
-            top: 20px;
-            left: -3px;
-            width: 6px;
-            height: 35px;
-            background: #2c3e50;
-            border: 3px solid #fff;
-            border-top: none;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-        }
-        
-        .cg-value {
-            position: absolute;
-            top: 60px;
-            left: -25px;
-            background: #2c3e50;
-            color: white;
-            padding: 6px 10px;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: bold;
-            white-space: nowrap;
-            border: 2px solid #fff;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-        }
-        
-        .scale-labels {
-            display: flex;
-            justify-content: space-between;
-            font-size: 12px;
-            color: #7f8c8d;
-            margin-top: 5px;
-        }
-        
-        .flight-characteristics {
-            margin: 20px 0;
-            padding: 15px;
-            border-radius: 8px;
-        }
-        
-        .characteristic-forward {
-            background: #f8d7da;
-            border-left: 4px solid #dc3545;
-        }
-        
-        .characteristic-aft {
-            background: #f8d7da;
-            border-left: 4px solid #dc3545;
-        }
-        
-        .characteristic-normal {
-            background: #d4edda;
-            border-left: 4px solid #28a745;
-        }
-        
-        .characteristic-caution {
-            background: #fff3cd;
-            border-left: 4px solid #ffc107;
-        }
-        
-        .speed-info {
-            background: #e3f2fd;
-            padding: 20px;
-            border-radius: 8px;
-            margin-top: 20px;
-            border-left: 4px solid #2196f3;
-        }
-        
-        .speed-info h3 {
-            margin-top: 0;
-            color: #1565c0;
-        }
-        
-        .disclaimer {
-            background: #fff3cd;
-            border: 2px solid #ffc107;
-            border-left: 6px solid #ff6b35;
-            border-radius: 8px;
-            padding: 20px;
-            margin: 20px 0;
-        }
-        
-        .disclaimer h4 {
-            margin-top: 0;
-            color: #856404;
-        }
-        
-        .button-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-        
-        .calc-button, .print-button {
-            flex: 1;
-            padding: 15px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: opacity 0.3s ease;
-        }
-        
-        .calc-button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        
-        .print-button {
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-            color: white;
-        }
-        
-        .calc-button:hover, .print-button:hover {
-            opacity: 0.9;
-        }
-        
-        @media (max-width: 768px) {
-            .wb-content {
-                grid-template-columns: 1fr;
-                gap: 20px;
-                padding: 20px;
-            }
-        }
-        
-        @media print {
-            .navbar, .footer, .input-section, .button-group {
-                display: none;
-            }
-            
-            .wb-content {
-                grid-template-columns: 1fr;
-            }
-            
-            body {
-                background: white;
-            }
-            
-            .wb-calculator {
-                box-shadow: none;
-            }
-        }
+        .wb-calculator { background: rgba(255, 255, 255, 0.95); border-radius: 15px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); overflow: hidden; margin-bottom: 40px; }
+        .wb-header { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 30px; text-align: center; }
+        .wb-content { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; padding: 30px; }
+        .input-section { background: #f8f9fa; padding: 25px; border-radius: 10px; border: 2px solid #e9ecef; }
+        .results-section { background: #fff; padding: 25px; border-radius: 10px; border: 2px solid #dee2e6; }
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: 500; color: #34495e; }
+        .input-group input { width: 100%; padding: 12px; border: 2px solid #bdc3c7; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
+        .input-group small { color: #7f8c8d; font-size: 12px; }
+        .results-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .results-table th, .results-table td { padding: 12px; text-align: left; border-bottom: 1px solid #ecf0f1; }
+        .results-table th { background: #34495e; color: white; font-weight: 600; }
+        .results-table tr:nth-child(even) { background: #f8f9fa; }
+        .total-row { font-weight: bold; background: #e8f4f8 !important; border-top: 2px solid #3498db; }
+        .status { padding: 15px; border-radius: 8px; margin: 15px 0; font-weight: 600; text-align: center; }
+        .status.safe { background: #d4edda; color: #155724; border: 2px solid #c3e6cb; }
+        .status.warning { background: #fff3cd; color: #856404; border: 2px solid #ffeaa7; }
+        .status.danger { background: #f8d7da; color: #721c24; border: 2px solid #f5c6cb; }
+        .button-group { display: flex; gap: 10px; margin-top: 20px; }
+        .calc-button, .print-button { flex: 1; padding: 15px; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; }
+        .calc-button { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .print-button { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; }
+        @media (max-width: 768px) { .wb-content { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
     <nav class="navbar">
         <div class="nav-container">
             <a href="index.html" class="logo">PNWAV8R</a>
-            <button class="mobile-menu" onclick="toggleMobileMenu()">☰</button>
-            <ul class="nav-menu" id="navMenu">
+            <ul class="nav-menu">
                 <li><a href="index.html" class="nav-link">Home</a></li>
                 <li><a href="weather.html" class="nav-link">Weather</a></li>
-                <li class="dropdown">
-                    <a href="weight-balance.html" class="nav-link active">Weight & Balance</a>
-                    <ul class="dropdown-menu">
-                        <li><a href="wb.html" class="dropdown-link">N7798E (Cessna 150)</a></li>
-                        <li><a href="#" class="dropdown-link" onclick="showComingSoon()">Future Aircraft</a></li>
-                    </ul>
-                </li>
+                <li><a href="weight-balance.html" class="nav-link active">Weight & Balance</a></li>
             </ul>
         </div>
     </nav>
@@ -371,7 +52,7 @@
             
             <div class="wb-content">
                 <div class="input-section">
-                    <h2 class="section-title">Loading Configuration</h2>
+                    <h2>Loading Configuration</h2>
                     
                     <div class="input-group">
                         <label for="pilot-weight">Pilot + Co-Pilot (lbs)</label>
@@ -393,12 +74,12 @@
                     
                     <div class="button-group">
                         <button class="calc-button" onclick="calculate()">Calculate W&B</button>
-                        <button class="print-button" onclick="printCalculation()">Print W&B Sheet</button>
+                        <button class="print-button" onclick="window.print()">Print Sheet</button>
                     </div>
                 </div>
                 
                 <div class="results-section">
-                    <h2 class="section-title">Weight & Balance Results</h2>
+                    <h2>Results</h2>
                     
                     <table class="results-table">
                         <thead>
@@ -445,34 +126,8 @@
                     
                     <div id="status" class="status danger">OVERWEIGHT</div>
                     
-                    <div class="cg-envelope">
-                        <h4>Center of Gravity Position</h4>
-                        <div class="cg-scale-container">
-                            <div class="cg-scale">
-                                <div class="scale-background"></div>
-                                <div class="safe-zone" id="safe-zone"></div>
-                                <div class="cg-indicator" id="cg-indicator">
-                                    <div class="cg-pointer"></div>
-                                    <span class="cg-value" id="cg-value">33.28"</span>
-                                </div>
-                            </div>
-                            <div class="scale-labels">
-                                <span class="label-forward" id="forward-label">32.20"</span>
-                                <span class="label-center">34.00"</span>
-                                <span class="label-aft" id="aft-label">36.00"</span>
-                            </div>
-                        </div>
-                        <p id="cg-limits">Forward Limit: 32.96" | Aft Limit: 36.00"</p>
-                        <p id="cg-margin">CG Position: Within limits</p>
-                    </div>
-                    
-                    <div id="flight-characteristics" class="flight-characteristics characteristic-normal">
-                        <h4>Normal CG Range</h4>
-                        <p>Aircraft exhibits normal flight characteristics with predictable handling qualities.</p>
-                    </div>
-                    
-                    <div class="speed-info">
-                        <h3>Maneuvering Speed (Va)</h3>
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-top: 20px;">
+                        <h4>Maneuvering Speed (Va)</h4>
                         <p id="va-speed"><strong>107 MPH</strong></p>
                         <p><small>Va = 106 × √(Weight / 1500)</small></p>
                     </div>
@@ -480,45 +135,24 @@
             </div>
         </div>
         
-        <div class="disclaimer">
-            <h4>⚠️ IMPORTANT DISCLAIMER</h4>
-            <p><strong>This calculator is designed specifically for 1959-1960 Cessna 150 aircraft.</strong></p>
-            <p>Always verify all calculations against your aircraft's official Pilot's Operating Handbook (POH) and current weight & balance documentation. The pilot in command is solely responsible for ensuring the aircraft is loaded within approved limits before flight.</p>
+        <div style="background: #fff3cd; border: 2px solid #ffc107; border-radius: 8px; padding: 20px; margin: 20px 0;">
+            <h4 style="margin-top: 0; color: #856404;">⚠️ IMPORTANT DISCLAIMER</h4>
+            <p style="color: #856404;"><strong>This calculator is designed specifically for 1959-1960 Cessna 150 aircraft.</strong></p>
+            <p style="color: #856404;">Always verify all calculations against your aircraft's official POH and current W&B documentation. The pilot in command is solely responsible for ensuring the aircraft is loaded within approved limits before flight.</p>
         </div>
     </div>
 
-    <footer class="footer">
-        <p><strong>PNWAV8R</strong> - Pacific Northwest Aviation Resources</p>
-        <p>N7798E Weight & Balance based on official aircraft documentation</p>
-        <p><strong>Always verify with current POH before flight</strong></p>
-    </footer>
-
-    <script src="js/main.js"></script>
     <script>
-        // Weight & Balance Calculator Functions
-        function interpolateCGLimits(weight) {
-            if (weight <= 1250) {
-                return { forward: 32.20, aft: 36.00 };
-            } else if (weight >= 1500) {
-                return { forward: 33.40, aft: 36.00 };
-            } else {
-                const ratio = (weight - 1250) / (1500 - 1250);
-                const forward = 32.20 + ratio * (33.40 - 32.20);
-                return { forward: forward, aft: 36.00 };
-            }
-        }
-        
         function calculate() {
             const pilotWeight = parseFloat(document.getElementById('pilot-weight').value) || 0;
             const baggageWeight = parseFloat(document.getElementById('baggage-weight').value) || 0;
             const fuelGallons = parseFloat(document.getElementById('fuel-gallons').value) || 0;
             
             const fuelWeight = fuelGallons * 6.0;
-            document.getElementById('fuel-weight-display').textContent = `${fuelWeight.toFixed(1)} lbs`;
+            document.getElementById('fuel-weight-display').textContent = fuelWeight.toFixed(1) + ' lbs';
             
             const emptyWeight = 1049.2;
             const emptyMoment = 34865.5;
-            
             const pilotArm = 32.0;
             const baggageArm = 95.0;
             const fuelArm = 31.0;
@@ -534,49 +168,40 @@
             document.getElementById('pilot-display').textContent = pilotWeight;
             document.getElementById('baggage-display').textContent = baggageWeight;
             document.getElementById('fuel-display').textContent = fuelWeight.toFixed(1);
-            
             document.getElementById('pilot-moment').textContent = pilotMoment.toFixed(0);
             document.getElementById('baggage-moment').textContent = baggageMoment.toFixed(0);
             document.getElementById('fuel-moment').textContent = fuelMoment.toFixed(0);
+            document.getElementById('total-weight').innerHTML = '<strong>' + totalWeight.toFixed(1) + '</strong>';
+            document.getElementById('total-cg').innerHTML = '<strong>' + totalCG.toFixed(2) + '</strong>';
+            document.getElementById('total-moment').innerHTML = '<strong>' + totalMoment.toFixed(0) + '</strong>';
             
-            document.getElementById('total-weight').innerHTML = `<strong>${totalWeight.toFixed(1)}</strong>`;
-            document.getElementById('total-cg').innerHTML = `<strong>${totalCG.toFixed(2)}</strong>`;
-            document.getElementById('total-moment').innerHTML = `<strong>${totalMoment.toFixed(0)}</strong>`;
-            
-            const cgLimits = interpolateCGLimits(totalWeight);
-            updateCGScale(totalCG, cgLimits);
-            updateStatus(totalWeight, totalCG, cgLimits, baggageWeight, fuelGallons);
-            updateFlightCharacteristics(totalCG, cgLimits);
+            const statusElement = document.getElementById('status');
+            if (totalWeight > 1500) {
+                statusElement.className = 'status danger';
+                statusElement.textContent = 'OVERWEIGHT - Reduce by ' + (totalWeight - 1500).toFixed(1) + ' lbs';
+            } else if (baggageWeight > 120) {
+                statusElement.className = 'status danger';
+                statusElement.textContent = 'BAGGAGE OVERWEIGHT - Max 120 lbs';
+            } else if (fuelGallons > 22) {
+                statusElement.className = 'status danger';
+                statusElement.textContent = 'FUEL OVERWEIGHT - Max 22 gallons';
+            } else {
+                statusElement.className = 'status safe';
+                statusElement.textContent = 'WITHIN LIMITS - Safe for flight';
+            }
             
             const vaMax = 106;
             const currentVa = vaMax * Math.sqrt(totalWeight / 1500);
-            document.getElementById('va-speed').innerHTML = `<strong>${currentVa.toFixed(0)} MPH</strong>`;
+            document.getElementById('va-speed').innerHTML = '<strong>' + currentVa.toFixed(0) + ' MPH</strong>';
         }
         
-        function updateCGScale(currentCG, cgLimits) {
-            const scaleMin = 31.0;
-            const scaleMax = 37.0;
-            const scaleRange = scaleMax - scaleMin;
-            
-            const cgPercent = ((currentCG - scaleMin) / scaleRange) * 100;
-            const forwardLimitPercent = ((cgLimits.forward - scaleMin) / scaleRange) * 100;
-            const aftLimitPercent = ((cgLimits.aft - scaleMin) / scaleRange) * 100;
-            
-            const indicator = document.getElementById('cg-indicator');
-            indicator.style.left = `${cgPercent}%`;
-            document.getElementById('cg-value').textContent = `${currentCG.toFixed(2)}"`;
-            
-            const safeZone = document.getElementById('safe-zone');
-            safeZone.style.left = `${forwardLimitPercent}%`;
-            safeZone.style.width = `${aftLimitPercent - forwardLimitPercent}%`;
-            
-            document.getElementById('forward-label').textContent = `${cgLimits.forward.toFixed(2)}"`;
-            document.getElementById('aft-label').textContent = `${cgLimits.aft.toFixed(2)}"`;
-            
-            document.getElementById('cg-limits').textContent = 
-                `Forward Limit: ${cgLimits.forward.toFixed(2)}" | Aft Limit: ${cgLimits.aft.toFixed(2)}"`;
-            
-            const marginFromForward = currentCG - cgLimits.forward;
-            const marginFromAft = cgLimits.aft - currentCG;
-            document.getElementById('cg-margin').textContent = 
-                `${marginFromForward.toFixed(2)}" from forwar
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputs = document.querySelectorAll('input[type="number"]');
+            inputs.forEach(input => {
+                input.addEventListener('input', calculate);
+            });
+            calculate();
+        });
+    </script>
+</body>
+</html>
