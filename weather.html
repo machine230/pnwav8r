@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather - PNWAV8R</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">PNWAV8R</a>
+            <button class="mobile-menu" onclick="toggleMobileMenu()">☰</button>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li><a href="weather.html" class="nav-link active">Weather</a></li>
+                <li class="dropdown">
+                    <a href="weight-balance.html" class="nav-link">Weight & Balance</a>
+                    <ul class="dropdown-menu">
+                        <li><a href="wb.html" class="dropdown-link">N7798E (Cessna 150)</a></li>
+                        <li><a href="#" class="dropdown-link" onclick="showComingSoon()">Future Aircraft</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <div class="weather-tools">
+            <h2 class="section-title">Aviation Weather</h2>
+            
+            <div class="search-container">
+                <input type="text" class="search-input" id="airportSearch" placeholder="Enter airport code (e.g., KSEA)" maxlength="4">
+                <button class="search-btn" onclick="searchWeather()">Get Weather</button>
+            </div>
+            
+            <div class="quick-airports">
+                <button class="airport-btn" onclick="displayWeatherData('KSEA')">SEA</button>
+                <button class="airport-btn" onclick="displayWeatherData('KBFI')">BFI</button>
+                <button class="airport-btn" onclick="displayWeatherData('KPAE')">PAE</button>
+                <button class="airport-btn" onclick="displayWeatherData('KBVS')">BVS</button>
+                <button class="airport-btn" onclick="displayWeatherData('KAWO')">AWO</button>
+                <button class="airport-btn" onclick="displayWeatherData('KTCM')">TCM</button>
+                <button class="airport-btn" onclick="displayWeatherData('KOLM')">OLM</button>
+                <button class="airport-btn" onclick="displayWeatherData('KGRF')">GRF</button>
+            </div>
+        </div>
+        
+        <div class="weather-display" id="weatherDisplay">
+            <div class="loading">Select an airport to view current weather conditions</div>

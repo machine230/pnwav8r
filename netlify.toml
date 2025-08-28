@@ -1,9 +1,14 @@
 [build]
-  functions = "netlify/functions"
   publish = "."
+  functions = "netlify/functions"
 
 [functions]
   node_bundler = "esbuild"
 
 [dev]
   functions = "netlify/functions"
+  publish = "."
+
+[functions.proxyWeather]
+  node_bundler = "esbuild"
+

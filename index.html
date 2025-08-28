@@ -1,210 +1,70 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>PNWAV8R | METAR & TAF</title>
-  <style>
-    :root{--bg:#0b1220;--card:#111a2b;--muted:#7e8aa6;--text:#eef3ff;--accent:#5ac8fa;}
-    *{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#0b1220,#0e1526);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Open Sans",sans-serif}
-    header{padding:24px 16px;text-align:center;border-bottom:1px solid #1b2740;position:sticky;top:0;background:#0b1220e6;backdrop-filter:saturate(120%) blur(6px)}
-    h1{margin:0;font-size:20px;letter-spacing:.3px}
-    main{max-width:980px;margin:24px auto;padding:0 16px}
-    .card{background:var(--card);border:1px solid #1b2740;border-radius:16px;padding:16px;margin-bottom:16px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
-    form{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
-    input[type=text]{flex:1;min-width:200px;padding:12px 14px;border-radius:12px;border:1px solid #2a395b;background:#0c1426;color:var(--text);font-size:16px}
-    button{padding:12px 16px;border-radius:12px;border:1px solid #2a395b;background:linear-gradient(180deg,#1a2a45,#142238);color:var(--text);font-weight:600;cursor:pointer}
-    button:hover{border-color:#3c4e78}
-    .row{display:grid;grid-template-columns:1fr;gap:16px}
-    @media(min-width:900px){.row{grid-template-columns:1fr 1fr}}
-    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-    .muted{color:var(--muted)}
-    .pill{display:inline-flex;gap:6px;align-items:center;padding:4px 10px;border-radius:999px;border:1px solid #273555;background:#0e1629;font-size:12px}
-    .kvs{display:grid;grid-template-columns:max-content 1fr;gap:6px 12px}
-    .kvs div:nth-child(odd){color:#9fb0d6}
-    .error{color:#ff8b8b}
-    footer{padding:32px 16px;color:#6e7ba0;text-align:center}
-    .tiny{font-size:12px}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PNWAV8R - Pacific Northwest Aviation</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
 <body>
-  <header>
-    <h1>PNWAV8R — METAR & TAF</h1>
-    <div class="tiny muted">Type any ICAO (e.g., KBFI, KRNT, CYVR, EGLL). No sign‑in needed.</div>
-  </header>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">PNWAV8R</a>
+            <button class="mobile-menu" onclick="toggleMobileMenu()">☰</button>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="index.html" class="nav-link active">Home</a></li>
+                <li><a href="weather.html" class="nav-link">Weather</a></li>
+                <li class="dropdown">
+                    <a href="weight-balance.html" class="nav-link">Weight & Balance</a>
+                    <ul class="dropdown-menu">
+                        <li><a href="wb.html" class="dropdown-link">N7798E (Cessna 150)</a></li>
+                        <li><a href="#" class="dropdown-link" onclick="showComingSoon()">Future Aircraft</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </nav>
 
-  <main>
-    <section class="card">
-      <form id="lookupForm">
-        <input id="icao" type="text" inputmode="latin" autocomplete="off" placeholder="Enter ICAO (e.g., KBFI)" aria-label="ICAO code" required pattern="^[A-Za-z]{4}$" />
-        <button type="submit">Get Weather</button>
-        <span id="status" class="pill muted">Idle</span>
-      </form>
-    </section>
+    <div class="main-content">
+        <div class="hero">
+            <h1>Pacific Northwest Aviation</h1>
+            <p>Your flight planning companion for the beautiful Pacific Northwest</p>
+            <p class="subtitle">Real-time weather • Weight & Balance • Flight Tools</p>
+        </div>
+        
+        <div class="quick-weather">
+            <div class="weather-card">
+                <h3>Seattle-Tacoma Intl (SEA)</h3>
+                <div class="metar-display" id="sea-metar">Loading METAR...</div>
+                <p>Major commercial hub with Class B airspace</p>
+                <a href="weather.html?airport=KSEA" class="calc-btn">View Details</a>
+            </div>
+            
+            <div class="weather-card">
+                <h3>Boeing Field (BFI)</h3>
+                <div class="metar-display" id="bfi-metar">Loading METAR...</div>
+                <p>General aviation friendly with excellent facilities</p>
+                <a href="weather.html?airport=KBFI" class="calc-btn">View Details</a>
+            </div>
+        </div>
+    </div>
 
-    <section id="results" class="row" aria-live="polite">
-      <article class="card">
-        <h2 style="margin-top:0">METAR</h2>
-        <div id="metarRaw" class="mono"></div>
-        <hr style="border:0;border-top:1px solid #213252;margin:12px 0" />
-        <div id="metarDecoded"></div>
-      </article>
-      <article class="card">
-        <h2 style="margin-top:0">TAF</h2>
-        <div id="tafRaw" class="mono"></div>
-        <hr style="border:0;border-top:1px solid #213252;margin:12px 0" />
-        <div id="tafNotes" class="muted tiny">Tip: We show the most recent TAF issued for the station.</div>
-      </article>
-    </section>
+    <footer class="footer">
+        <p><strong>PNWAV8R</strong> - Pacific Northwest Aviation Resources</p>
+        <p>Weather data provided by NOAA Aviation Weather Service</p>
+        <p><strong>Disclaimer:</strong> This tool is for flight planning reference only. Always verify with official sources and current NOTAMs.</p>
+        <p><strong>Pilot responsibility:</strong> The pilot in command is solely responsible for all flight planning decisions.</p>
+    </footer>
 
-    <section class="card muted tiny">
-      Data: NOAA Aviation Weather Center (ADDS). This page calls their JSON API directly. If CORS ever blocks in production, deploy the lightweight Netlify proxy below.
-    </section>
-  </main>
-
-  <footer>© <span id="yr"></span> PNWAV8R</footer>
-
-<script>
-  // ---- Helpers ------------------------------------------------------------
-  const $ = (sel) => document.querySelector(sel);
-  const statusEl = $('#status');
-  const metarRawEl = $('#metarRaw');
-  const tafRawEl = $('#tafRaw');
-  const metarDecodedEl = $('#metarDecoded');
-  $('#yr').textContent = new Date().getFullYear();
-
-  function setStatus(txt){ statusEl.textContent = txt }
-
-  function icaoNormalize(s){
-    const v = (s||'').trim().toUpperCase();
-    if(!/^[A-Z]{4}$/.test(v)) throw new Error('Enter a 4‑letter ICAO like KBFI');
-    return v;
-  }
-
-  // ---- NOAA ADDS endpoints ------------------------------------------------
-  // Docs: https://aviationweather.gov/data/api/#/default
-  const ADDS = {
-    metar: (icao) => `https://aviationweather.gov/adds/dataserver_current/httpparam?` +
-      new URLSearchParams({ datasource:'metars', requestType:'retrieve', format:'JSON', mostRecent:'true', hoursBeforeNow:'3', stationString:icao }),
-    taf: (icao) => `https://aviationweather.gov/adds/dataserver_current/httpparam?` +
-      new URLSearchParams({ datasource:'tafs', requestType:'retrieve', format:'JSON', mostRecent:'true', hoursBeforeNow:'12', stationString:icao })
-  };
-
-  async function fetchAdds(url){
-    const r = await fetch(url, { headers:{ 'Accept':'application/json' } });
-    if(!r.ok) throw new Error('Request failed: ' + r.status);
-    return r.json();
-  }
-
-  // ---- Simple METAR decoder (plain‑English summary) ----------------------
-  function decodeMetar(raw){
-    if(!raw) return 'No METAR available.';
-    const out = [];
-    const parts = raw.split(/\s+/);
-
-    // Station / time
-    const station = parts[0];
-    const timeIdx = parts.findIndex(p=>/\d{6}Z/.test(p));
-    const time = timeIdx>-1?parts[timeIdx]:null;
-
-    // Wind (dddffGggKT or VRB)
-    const windTok = parts.find(p=>/(\d{3}|VRB)\d{2,3}(G\d{2,3})?KT/.test(p));
-    let windTxt = 'calm';
-    if(windTok){
-      const m = windTok.match(/(\d{3}|VRB)(\d{2,3})(?:G(\d{2,3}))?KT/);
-      const dir = m[1]==='VRB'?'variable':m[1]+'°';
-      const spd = parseInt(m[2],10);
-      const gust = m[3]?` gusting ${parseInt(m[3],10)}`:'';
-      windTxt = `${dir} at ${spd} kt${gust}`;
-    } else if(parts.includes('00000KT')) {
-      windTxt = 'calm winds';
-    }
-
-    // Visibility (US: ####SM)
-    const visTok = parts.find(p=>/^(\d{1,2}|M?\d/)?\d?SM$/.test(p)) || parts.find(p=>/\d{4}/.test(p));
-    let visTxt = visTok? visTok.replace('SM',' SM') : 'unknown vis';
-
-    // Clouds (FEW/SCT/BKN/OVCxxx)
-    const cloudToks = parts.filter(p=>/^(FEW|SCT|BKN|OVC)\d{3}/.test(p));
-    const clouds = cloudToks.map(t=>{
-      const cov = {FEW:'few',SCT:'scattered',BKN:'broken',OVC:'overcast'}[t.slice(0,3)];
-      const height = parseInt(t.slice(3,6),10)*100; // feet AGL
-      return `${cov} at ${height.toLocaleString()} ft`; 
-    }).join('; ');
-
-    // Temp / Dewpoint (TT/DD) possibly M for minus
-    const tdTok = parts.find(p=>/(M?\d{2})\/(M?\d{2})/.test(p));
-    let tempTxt='';
-    if(tdTok){
-      const m = tdTok.match(/(M?\d{2})\/(M?\d{2})/);
-      const t = (m[1].startsWith('M')?-1:1)*parseInt(m[1].replace('M',''),10);
-      const d = (m[2].startsWith('M')?-1:1)*parseInt(m[2].replace('M',''),10);
-      tempTxt = `${t}°C / dewpoint ${d}°C`;
-    }
-
-    // Altimeter A2992 -> 29.92 inHg
-    const altTok = parts.find(p=>/^A\d{4}$/.test(p));
-    const altTxt = altTok ? (altTok.replace('A','').slice(0,2)+'.'+altTok.slice(-2)+' inHg') : '—';
-
-    // Remarks hint
-    const rmki = parts.indexOf('RMK');
-    const rmk = rmki>-1 ? parts.slice(rmki+1).join(' ') : '';
-
-    out.push(`<div class="kvs">
-      <div>Station</div><div>${station}</div>
-      <div>Time</div><div>${time?time.replace('Z','Z (UTC)'):'—'}</div>
-      <div>Wind</div><div>${windTxt}</div>
-      <div>Visibility</div><div>${visTxt}</div>
-      <div>Clouds</div><div>${clouds || 'no significant clouds reported'}</div>
-      <div>Temp/Dew</div><div>${tempTxt || '—'}</div>
-      <div>Altimeter</div><div>${altTxt}</div>
-    </div>`);
-
-    if(rmk){ out.push(`<div class="muted tiny" style="margin-top:8px">RMK: ${rmk}</div>`); }
-    return out.join('\n');
-  }
-
-  // ---- Event: submit -----------------------------------------------------
-  document.getElementById('lookupForm').addEventListener('submit', async (e)=>{
-    e.preventDefault();
-    const icao = icaoNormalize(document.getElementById('icao').value);
-    setStatus('Fetching…');
-    metarRawEl.textContent = ''; tafRawEl.textContent = ''; metarDecodedEl.innerHTML='';
-
-    try{
-      // Fetch METAR
-      const metarJson = await fetchAdds(ADDS.metar(icao));
-      const metar = metarJson?.data?.METAR?.[0]?.raw_text || metarJson?.data?.data?.[0]?.raw_text;
-      metarRawEl.textContent = metar || 'No METAR found.';
-      metarDecodedEl.innerHTML = decodeMetar(metar);
-
-      // Fetch TAF
-      const tafJson = await fetchAdds(ADDS.taf(icao));
-      const taf = tafJson?.data?.TAF?.[0]?.raw_text || tafJson?.data?.data?.[0]?.raw_text;
-      tafRawEl.textContent = taf || 'No TAF found.';
-      setStatus('Done');
-    }catch(err){
-      console.error(err);
-      setStatus('Error');
-      metarRawEl.innerHTML = `<span class="error">${err.message}</span>`;
-    }
-  });
-</script>
-
-<!-- ---------------------------------------------------------------------
-     Optional: Netlify proxy if CORS blocks direct calls in prod.
-     1) Create /netlify/functions/awx.js with the code below.
-     2) In the ADDS object above, swap the base to '/.netlify/functions/awx?kind=metar' etc.
-----------------------------------------------------------------------------
-export async function handler(event) {
-  const { kind, icao } = event.queryStringParameters;
-  const isMetar = kind === 'metar';
-  const url = isMetar
-    ? 'https://aviationweather.gov/adds/dataserver_current/httpparam?'+new URLSearchParams({datasource:'metars',requestType:'retrieve',format:'JSON',mostRecent:'true',hoursBeforeNow:'3',stationString:icao})
-    : 'https://aviationweather.gov/adds/dataserver_current/httpparam?'+new URLSearchParams({datasource:'tafs',requestType:'retrieve',format:'JSON',mostRecent:'true',hoursBeforeNow:'12',stationString:icao});
-  const r = await fetch(url); const body = await r.text();
-  return { statusCode: 200, headers: { 'content-type':'application/json','cache-control':'public, max-age=60' }, body };
-}
----------------------------------------------------------------------------- -->
+    <script src="js/main.js"></script>
+    <script>
+        // Load home page weather on page load
+        document.addEventListener('DOMContentLoaded', loadHomeWeather);
+        
+        function showComingSoon() {
+            alert('Additional aircraft calculators coming soon! Contact us if you have specific aircraft you\'d like to see added.');
+        }
+    </script>
 </body>
 </html>

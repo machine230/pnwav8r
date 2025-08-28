@@ -1,231 +1,582 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Weight & Balance | N7798E - PNWAV8R</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    :root {
-      --bg: #f2f2f2;
-      --panel: #fff;
-      --accent: #003366;
-      --primary: #336699;
-      --danger: #cc0000;
-      --safe: #228B22;
-    }
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: var(--bg);
-      color: #111;
-    }
-    header {
-      background: var(--primary);
-      color: white;
-      padding: 1rem;
-      text-align: center;
-    }
-    .container {
-      max-width: 1000px;
-      margin: 2rem auto;
-      background: var(--panel);
-      padding: 2rem;
-      border-radius: 8px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-    }
-    h1, h2 {
-      text-align: center;
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 2rem;
-    }
-    label {
-      font-weight: bold;
-      display: block;
-      margin-bottom: 0.25rem;
-    }
-    input[type="number"] {
-      width: 90%;
-      padding: 0.3rem 0.5rem;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      font-size: 0.95rem;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 2rem;
-    }
-    th, td {
-      padding: 6px;
-      border: 1px solid #999;
-      text-align: center;
-      font-size: 0.95rem;
-    }
-    .result, .reference, .airdata {
-      margin-top: 2rem;
-    }
-    .warning {
-      font-weight: bold;
-      text-align: center;
-      margin-top: 1rem;
-    }
-    .safe {
-      color: var(--safe);
-    }
-    .danger {
-      color: var(--danger);
-    }
-    canvas {
-      display: none;
-    }
-    .actions {
-      display: flex;
-      justify-content: center;
-      gap: 1rem;
-      margin-top: 2rem;
-    }
-    button {
-      padding: 0.6rem 1.5rem;
-      font-size: 1rem;
-      border: none;
-      border-radius: 4px;
-      background: var(--accent);
-      color: white;
-      cursor: pointer;
-    }
-    .disclaimer {
-      font-size: 0.85rem;
-      text-align: center;
-      margin-top: 2rem;
-      color: #666;
-    }
-    @media (max-width: 768px) {
-      .grid {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>N7798E Weight & Balance - PNWAV8R</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <style>
+        /* Additional styles specific to W&B calculator */
+        .wb-calculator {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-bottom: 40px;
+        }
+        
+        .wb-header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .wb-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+        
+        .input-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+        }
+        
+        .results-section {
+            background: #fff;
+            padding: 25px;
+            border-radius: 10px;
+            border: 2px solid #dee2e6;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #34495e;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #bdc3c7;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+            box-sizing: border-box;
+        }
+        
+        .input-group input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.2);
+        }
+        
+        .input-group small {
+            color: #7f8c8d;
+            font-size: 12px;
+        }
+        
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .results-table th,
+        .results-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        
+        .results-table th {
+            background: #34495e;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .results-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        .total-row {
+            font-weight: bold;
+            background: #e8f4f8 !important;
+            border-top: 2px solid #3498db;
+        }
+        
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-weight: 600;
+            text-align: center;
+        }
+        
+        .status.safe {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+        
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 2px solid #ffeaa7;
+        }
+        
+        .status.danger {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+        
+        .cg-envelope {
+            margin-top: 15px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+        }
+        
+        .cg-scale-container {
+            margin: 20px 0;
+        }
+        
+        .cg-scale {
+            position: relative;
+            height: 40px;
+            border-radius: 20px;
+            overflow: hidden;
+            margin-bottom: 10px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .scale-background {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, #e74c3c 0%, #e74c3c 15%, #27ae60 15%, #27ae60 85%, #e74c3c 85%, #e74c3c 100%);
+        }
+        
+        .safe-zone {
+            position: absolute;
+            left: 15%;
+            width: 70%;
+            height: 100%;
+            background: linear-gradient(90deg, #f39c12 0%, #27ae60 20%, #27ae60 80%, #f39c12 100%);
+        }
+        
+        .cg-indicator {
+            position: absolute;
+            top: -15px;
+            height: 70px;
+            width: 6px;
+            background: #2c3e50;
+            border: 3px solid #fff;
+            border-radius: 3px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3), 0 0 20px rgba(44,62,80,0.5);
+            transition: left 0.3s ease;
+            z-index: 15;
+        }
+        
+        .cg-pointer {
+            position: absolute;
+            top: -5px;
+            left: -12px;
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 20px solid #2c3e50;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+        
+        .cg-pointer::after {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: -3px;
+            width: 6px;
+            height: 35px;
+            background: #2c3e50;
+            border: 3px solid #fff;
+            border-top: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        
+        .cg-value {
+            position: absolute;
+            top: 60px;
+            left: -25px;
+            background: #2c3e50;
+            color: white;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: bold;
+            white-space: nowrap;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        
+        .scale-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+        
+        .flight-characteristics {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        .characteristic-forward {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+        }
+        
+        .characteristic-aft {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+        }
+        
+        .characteristic-normal {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+        }
+        
+        .characteristic-caution {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .speed-info {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .speed-info h3 {
+            margin-top: 0;
+            color: #1565c0;
+        }
+        
+        .disclaimer {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-left: 6px solid #ff6b35;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .disclaimer h4 {
+            margin-top: 0;
+            color: #856404;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .calc-button, .print-button {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.3s ease;
+        }
+        
+        .calc-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .print-button {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+        }
+        
+        .calc-button:hover, .print-button:hover {
+            opacity: 0.9;
+        }
+        
+        @media (max-width: 768px) {
+            .wb-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                padding: 20px;
+            }
+        }
+        
+        @media print {
+            .navbar, .footer, .input-section, .button-group {
+                display: none;
+            }
+            
+            .wb-content {
+                grid-template-columns: 1fr;
+            }
+            
+            body {
+                background: white;
+            }
+            
+            .wb-calculator {
+                box-shadow: none;
+            }
+        }
+    </style>
 </head>
 <body>
-  <header>
-    <h1>N7798E Weight & Balance Calculator</h1>
-  </header>
-  <main class="container">
-    <div class="grid">
-      <div>
-        <label for="front">Front Seats (lbs)</label>
-        <input type="number" id="front" placeholder="e.g. 320">
-        <label for="fuel">Fuel (usable gallons)</label>
-        <input type="number" id="fuel" placeholder="e.g. 22.5">
-        <label for="baggage">Baggage Area 1 (max 29 lbs)</label>
-        <input type="number" id="baggage" placeholder="e.g. 10">
-      </div>
-      <div class="result">
-        <h2>Calculated Results</h2>
-        <table>
-          <thead>
-            <tr><th>Item</th><th>Weight</th><th>Max</th><th>Δ</th><th>Arm</th><th>Moment</th></tr>
-          </thead>
-          <tbody id="resultsTable"></tbody>
-          <tfoot>
-            <tr><th>Total</th><th id="totalWeight">—</th><th></th><th></th><th id="cg">—</th><th id="totalMoment">—</th></tr>
-          </tfoot>
-        </table>
-        <p><strong>Va (maneuvering speed):</strong> <span id="va">—</span> MPH</p>
-        <p class="warning" id="warning"></p>
-      </div>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">PNWAV8R</a>
+            <button class="mobile-menu" onclick="toggleMobileMenu()">☰</button>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li><a href="weather.html" class="nav-link">Weather</a></li>
+                <li class="dropdown">
+                    <a href="weight-balance.html" class="nav-link active">Weight & Balance</a>
+                    <ul class="dropdown-menu">
+                        <li><a href="wb.html" class="dropdown-link">N7798E (Cessna 150)</a></li>
+                        <li><a href="#" class="dropdown-link" onclick="showComingSoon()">Future Aircraft</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <div class="wb-calculator">
+            <div class="wb-header">
+                <h1>N7798E</h1>
+                <p>Cessna 150 Weight & Balance Calculator</p>
+            </div>
+            
+            <div class="wb-content">
+                <div class="input-section">
+                    <h2 class="section-title">Loading Configuration</h2>
+                    
+                    <div class="input-group">
+                        <label for="pilot-weight">Pilot + Co-Pilot (lbs)</label>
+                        <input type="number" id="pilot-weight" value="340" min="0" max="400">
+                        <small>Station: 32.0" | Max: ~400 lbs total</small>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="baggage-weight">Baggage (lbs)</label>
+                        <input type="number" id="baggage-weight" value="0" min="0" max="120">
+                        <small>Station: 95.0" | Max: 120 lbs</small>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="fuel-gallons">Fuel (gallons)</label>
+                        <input type="number" id="fuel-gallons" value="22" min="0" max="22" step="0.1">
+                        <small>Max: 22 gal | Weight: <span id="fuel-weight-display">132.0 lbs</span> (6 lbs/gal)</small>
+                    </div>
+                    
+                    <div class="button-group">
+                        <button class="calc-button" onclick="calculate()">Calculate W&B</button>
+                        <button class="print-button" onclick="printCalculation()">Print W&B Sheet</button>
+                    </div>
+                </div>
+                
+                <div class="results-section">
+                    <h2 class="section-title">Weight & Balance Results</h2>
+                    
+                    <table class="results-table">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Weight (lbs)</th>
+                                <th>Arm (in)</th>
+                                <th>Moment (in-lbs)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Empty Weight</td>
+                                <td>1049.2</td>
+                                <td>33.23</td>
+                                <td>34865.5</td>
+                            </tr>
+                            <tr>
+                                <td>Pilot + Co-Pilot</td>
+                                <td id="pilot-display">340</td>
+                                <td>32.0</td>
+                                <td id="pilot-moment">10880</td>
+                            </tr>
+                            <tr>
+                                <td>Baggage</td>
+                                <td id="baggage-display">0</td>
+                                <td>95.0</td>
+                                <td id="baggage-moment">0</td>
+                            </tr>
+                            <tr>
+                                <td>Fuel</td>
+                                <td id="fuel-display">132.0</td>
+                                <td>31.0</td>
+                                <td id="fuel-moment">4092</td>
+                            </tr>
+                            <tr class="total-row">
+                                <td><strong>TOTAL</strong></td>
+                                <td id="total-weight"><strong>1521.2</strong></td>
+                                <td id="total-cg"><strong>33.28</strong></td>
+                                <td id="total-moment"><strong>49837.5</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <div id="status" class="status danger">OVERWEIGHT</div>
+                    
+                    <div class="cg-envelope">
+                        <h4>Center of Gravity Position</h4>
+                        <div class="cg-scale-container">
+                            <div class="cg-scale">
+                                <div class="scale-background"></div>
+                                <div class="safe-zone" id="safe-zone"></div>
+                                <div class="cg-indicator" id="cg-indicator">
+                                    <div class="cg-pointer"></div>
+                                    <span class="cg-value" id="cg-value">33.28"</span>
+                                </div>
+                            </div>
+                            <div class="scale-labels">
+                                <span class="label-forward" id="forward-label">32.20"</span>
+                                <span class="label-center">34.00"</span>
+                                <span class="label-aft" id="aft-label">36.00"</span>
+                            </div>
+                        </div>
+                        <p id="cg-limits">Forward Limit: 32.96" | Aft Limit: 36.00"</p>
+                        <p id="cg-margin">CG Position: Within limits</p>
+                    </div>
+                    
+                    <div id="flight-characteristics" class="flight-characteristics characteristic-normal">
+                        <h4>Normal CG Range</h4>
+                        <p>Aircraft exhibits normal flight characteristics with predictable handling qualities.</p>
+                    </div>
+                    
+                    <div class="speed-info">
+                        <h3>Maneuvering Speed (Va)</h3>
+                        <p id="va-speed"><strong>107 MPH</strong></p>
+                        <p><small>Va = 106 × √(Weight / 1500)</small></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="disclaimer">
+            <h4>⚠️ IMPORTANT DISCLAIMER</h4>
+            <p><strong>This calculator is designed specifically for 1959-1960 Cessna 150 aircraft.</strong></p>
+            <p>Always verify all calculations against your aircraft's official Pilot's Operating Handbook (POH) and current weight & balance documentation. The pilot in command is solely responsible for ensuring the aircraft is loaded within approved limits before flight.</p>
+        </div>
     </div>
 
-    <div class="airdata">
-      <h2>Airspeed Reference (from POH)</h2>
-      <ul>
-        <li><strong>Vr (Rotation):</strong> 55 MPH</li>
-        <li><strong>Vx (Best Angle of Climb):</strong> 60 MPH</li>
-        <li><strong>Vy (Best Rate of Climb):</strong> 71 MPH</li>
-        <li><strong>Va (Max at Gross Weight 1500 lbs):</strong> 106 MPH</li>
-        <li><strong>Va Formula:</strong> <code>Va = Va_max × √(W / Wmax)</code></li>
-      </ul>
-    </div>
+    <footer class="footer">
+        <p><strong>PNWAV8R</strong> - Pacific Northwest Aviation Resources</p>
+        <p>N7798E Weight & Balance based on official aircraft documentation</p>
+        <p><strong>Always verify with current POH before flight</strong></p>
+    </footer>
 
-    <div class="reference">
-      <h2>Reference Data</h2>
-      <table>
-        <caption>Basic Weights (lbs)</caption>
-        <thead>
-          <tr><th>Empty Weight</th><th>MGTW</th><th>MRW</th><th>MLW</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>1041.5</td><td>1500</td><td>1500</td><td>1500</td></tr>
-        </tbody>
-      </table>
-      <table>
-        <caption>CG Limits - Normal Category</caption>
-        <tr><th>Up To (lbs)</th><th>Fwd Limit</th><th>Aft Limit</th></tr>
-        <tr><td>1250</td><td>32.20</td><td>36.00</td></tr>
-        <tr><td>1500</td><td>33.40</td><td>36.00</td></tr>
-      </table>
-    </div>
-
-    <div class="actions">
-      <button onclick="calculate()">Calculate</button>
-      <button onclick="window.print()">Print</button>
-      <button onclick="location.reload()">Reset</button>
-    </div>
-
-    <div class="disclaimer">
-      This tool is for N7798E only. Always verify final W&amp;B using the official POH before flight.
-    </div>
-  </main>
-
-  <script>
-    const EMPTY_WEIGHT = 1041.5, EMPTY_ARM = 31.78, MAX_TAKEOFF_WEIGHT = 1500;
-    const arms = { front: 39.11, fuel: 42.22, baggage: 65.51 };
-    function calculate() {
-      const front = parseFloat(document.getElementById('front').value) || 0;
-      const fuelGal = parseFloat(document.getElementById('fuel').value) || 0;
-      const baggage = parseFloat(document.getElementById('baggage').value) || 0;
-      const fuel = fuelGal * 6;
-      const warningBox = document.getElementById('warning');
-      if (baggage > 29) {
-        warningBox.innerText = "Baggage exceeds max (29 lbs)";
-        warningBox.className = "warning danger";
-        return;
-      }
-      const rows = [
-        { name: "Empty Weight", weight: EMPTY_WEIGHT, max: 1500, arm: EMPTY_ARM },
-        { name: "Front Seats", weight: front, max: 340, arm: arms.front },
-        { name: "Fuel", weight: fuel, max: 135, arm: arms.fuel },
-        { name: "Baggage 1", weight: baggage, max: 29, arm: arms.baggage },
-      ];
-      let totalWeight = 0, totalMoment = 0;
-      const resultHTML = rows.map(row => {
-        const moment = row.weight * row.arm;
-        totalWeight += row.weight;
-        totalMoment += moment;
-        const delta = row.max - row.weight;
-        return `<tr><td>${row.name}</td><td>${row.weight.toFixed(1)}</td><td>${row.max}</td><td>${delta.toFixed(1)}</td><td>${row.arm.toFixed(2)}</td><td>${moment.toFixed(0)}</td></tr>`;
-      }).join('');
-      const cg = totalMoment / totalWeight;
-      const va = Math.round(Math.sqrt(totalWeight / MAX_TAKEOFF_WEIGHT) * 106);
-      document.getElementById('resultsTable').innerHTML = resultHTML;
-      document.getElementById('totalWeight').innerText = totalWeight.toFixed(1);
-      document.getElementById('cg').innerText = cg.toFixed(2);
-      document.getElementById('totalMoment').innerText = totalMoment.toFixed(0);
-      document.getElementById('va').innerText = va + " MPH";
-      const limitsStatus = checkLimits(totalWeight, cg);
-      warningBox.innerText = limitsStatus.message;
-      warningBox.className = `warning ${limitsStatus.status}`;
-    }
-    function checkLimits(weight, cg) {
-      if (weight > 1500) return { message: "Aircraft is over max gross weight.", status: "danger" };
-      const fwd = weight <= 1250 ? 32.20 : 33.40, aft = 36.00;
-      if (cg < fwd) return { message: "CG is forward of limit.", status: "danger" };
-      if (cg > aft) return { message: "CG is aft of limit.", status: "danger" };
-      return { message: "✔ Weight and CG are within limits for the Normal category.", status: "safe" };
-    }
-  </script>
-</body>
-</html>
+    <script src="js/main.js"></script>
+    <script>
+        // Weight & Balance Calculator Functions
+        function interpolateCGLimits(weight) {
+            if (weight <= 1250) {
+                return { forward: 32.20, aft: 36.00 };
+            } else if (weight >= 1500) {
+                return { forward: 33.40, aft: 36.00 };
+            } else {
+                const ratio = (weight - 1250) / (1500 - 1250);
+                const forward = 32.20 + ratio * (33.40 - 32.20);
+                return { forward: forward, aft: 36.00 };
+            }
+        }
+        
+        function calculate() {
+            const pilotWeight = parseFloat(document.getElementById('pilot-weight').value) || 0;
+            const baggageWeight = parseFloat(document.getElementById('baggage-weight').value) || 0;
+            const fuelGallons = parseFloat(document.getElementById('fuel-gallons').value) || 0;
+            
+            const fuelWeight = fuelGallons * 6.0;
+            document.getElementById('fuel-weight-display').textContent = `${fuelWeight.toFixed(1)} lbs`;
+            
+            const emptyWeight = 1049.2;
+            const emptyMoment = 34865.5;
+            
+            const pilotArm = 32.0;
+            const baggageArm = 95.0;
+            const fuelArm = 31.0;
+            
+            const pilotMoment = pilotWeight * pilotArm;
+            const baggageMoment = baggageWeight * baggageArm;
+            const fuelMoment = fuelWeight * fuelArm;
+            
+            const totalWeight = emptyWeight + pilotWeight + baggageWeight + fuelWeight;
+            const totalMoment = emptyMoment + pilotMoment + baggageMoment + fuelMoment;
+            const totalCG = totalMoment / totalWeight;
+            
+            document.getElementById('pilot-display').textContent = pilotWeight;
+            document.getElementById('baggage-display').textContent = baggageWeight;
+            document.getElementById('fuel-display').textContent = fuelWeight.toFixed(1);
+            
+            document.getElementById('pilot-moment').textContent = pilotMoment.toFixed(0);
+            document.getElementById('baggage-moment').textContent = baggageMoment.toFixed(0);
+            document.getElementById('fuel-moment').textContent = fuelMoment.toFixed(0);
+            
+            document.getElementById('total-weight').innerHTML = `<strong>${totalWeight.toFixed(1)}</strong>`;
+            document.getElementById('total-cg').innerHTML = `<strong>${totalCG.toFixed(2)}</strong>`;
+            document.getElementById('total-moment').innerHTML = `<strong>${totalMoment.toFixed(0)}</strong>`;
+            
+            const cgLimits = interpolateCGLimits(totalWeight);
+            updateCGScale(totalCG, cgLimits);
+            updateStatus(totalWeight, totalCG, cgLimits, baggageWeight, fuelGallons);
+            updateFlightCharacteristics(totalCG, cgLimits);
+            
+            const vaMax = 106;
+            const currentVa = vaMax * Math.sqrt(totalWeight / 1500);
+            document.getElementById('va-speed').innerHTML = `<strong>${currentVa.toFixed(0)} MPH</strong>`;
+        }
+        
+        function updateCGScale(currentCG, cgLimits) {
+            const scaleMin = 31.0;
+            const scaleMax = 37.0;
+            const scaleRange = scaleMax - scaleMin;
+            
+            const cgPercent = ((currentCG - scaleMin) / scaleRange) * 100;
+            const forwardLimitPercent = ((cgLimits.forward - scaleMin) / scaleRange) * 100;
+            const aftLimitPercent = ((cgLimits.aft - scaleMin) / scaleRange) * 100;
+            
+            const indicator = document.getElementById('cg-indicator');
+            indicator.style.left = `${cgPercent}%`;
+            document.getElementById('cg-value').textContent = `${currentCG.toFixed(2)}"`;
+            
+            const safeZone = document.getElementById('safe-zone');
+            safeZone.style.left = `${forwardLimitPercent}%`;
+            safeZone.style.width = `${aftLimitPercent - forwardLimitPercent}%`;
+            
+            document.getElementById('forward-label').textContent = `${cgLimits.forward.toFixed(2)}"`;
+            document.getElementById('aft-label').textContent = `${cgLimits.aft.toFixed(2)}"`;
+            
+            document.getElementById('cg-limits').textContent = 
+                `Forward Limit: ${cgLimits.forward.toFixed(2)}" | Aft Limit: ${cgLimits.aft.toFixed(2)}"`;
+            
+            const marginFromForward = currentCG - cgLimits.forward;
+            const marginFromAft = cgLimits.aft - currentCG;
+            document.getElementById('cg-margin').textContent = 
+                `${marginFromForward.toFixed(2)}" from forwar
