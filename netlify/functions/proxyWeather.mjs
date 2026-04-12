@@ -30,8 +30,9 @@ export const handler = async (event) => {
             fetch(`${base}/taf?ids=${icao}&format=json`)
         ]);
 
-        const metar = metarRes.ok ? await metarRes.json() : [];
-        const taf   = tafRes.ok  ? await tafRes.json()  : [];
+        // NOAA returns 204 No Content for airports with no data — must check before parsing
+        const metar = (metarRes.ok && metarRes.status !== 204) ? await metarRes.json() : [];
+        const taf   = (tafRes.ok  && tafRes.status  !== 204) ? await tafRes.json()  : [];
 
         return {
             statusCode: 200,

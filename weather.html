@@ -350,8 +350,10 @@
             let icao = icaoArg;
             if (!icao) {
                 const val = document.getElementById('airportInput').value.trim().toUpperCase();
-                if (!val || val.length < 3) { alert('Enter a 3 or 4 character airport code.'); return; }
-                icao = val.length === 3 ? 'K' + val : val;
+                if (!val || val.length < 2) { alert('Enter an airport identifier (e.g. KRNT, RNT, S50).'); return; }
+                // Only prepend K for pure 3-letter codes (e.g. RNT → KRNT)
+                // Leave S50, 1W1, or already 4-char codes alone
+                icao = /^[A-Z]{3}$/.test(val) ? 'K' + val : val;
             }
 
             document.getElementById('airportInput').value = icao;
@@ -371,7 +373,7 @@
                 }
 
                 if (!data.metar || !data.metar.length) {
-                    showError(icao, `No METAR data found for <strong>${icao}</strong>. Check the airport code — use the 4-letter ICAO format (e.g. KRNT, KSEA).`);
+                    showError(icao, `No weather data found for <strong>${icao}</strong>. Small and private airports often don't have a weather station (ASOS/AWOS). Try a nearby reporting airport — for example, <strong>KRNT</strong>, <strong>KBFI</strong>, or <strong>KSEA</strong>.`);
                     return;
                 }
 
