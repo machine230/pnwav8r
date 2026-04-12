@@ -2,9 +2,27 @@
 //  Auth helpers — shared across all club pages
 // ─────────────────────────────────────────────
 
+// Wait for Supabase to resolve the session (handles magic link hash in URL)
+function getSession() {
+    return new Promise((resolve) => {
+        _supabase.auth.getSession().then(({ data: { session } }) => {
+            if (session) { resolve(session); return; }
+
+            // No session yet — may still be processing the magic link token
+            const { data: { subscription } } = _supabase.auth.onAuthStateChange((event, session) => {
+                subscription.unsubscribe();
+                resolve(session);
+            });
+
+            // Fallback: if nothing fires in 4 seconds, resolve null
+            setTimeout(() => { subscription.unsubscribe(); resolve(null); }, 4000);
+        });
+    });
+}
+
 // Redirect to login if no active session
 async function requireAuth() {
-    const { data: { session } } = await _supabase.auth.getSession();
+    const session = await getSession();
     if (!session) {
         window.location.href = '/login.html';
         return null;
@@ -12,7 +30,7 @@ async function requireAuth() {
     return session;
 }
 
-// Redirect to login if no active session AND not admin
+// Redirect to dashboard if not admin
 async function requireAdmin() {
     const session = await requireAuth();
     if (!session) return null;
@@ -30,7 +48,7 @@ async function requireAdmin() {
 
 // Get the current member's full record
 async function getCurrentMember() {
-    const { data: { session } } = await _supabase.auth.getSession();
+    const session = await getSession();
     if (!session) return null;
     const { data } = await _supabase
         .from('members')
@@ -52,7 +70,7 @@ async function renderNavUser() {
     const el = document.getElementById('navUser');
     if (!el || !member) return;
     el.innerHTML = `
-        <span style="font-weight:600;color:#2c3e50">${member.name}</span>
+        <span style="font-weight:600;color:#2c3e50">${member.name || member.email}</span>
         <button onclick="signOut()" style="margin-left:12px;background:none;border:1px solid #bdc3c7;
             padding:4px 14px;border-radius:20px;cursor:pointer;font-size:0.85em;color:#7f8c8d">
             Sign out
