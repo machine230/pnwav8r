@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedule — PNWAV8R</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <style>
+        .club-nav { background:rgba(255,255,255,0.97); backdrop-filter:blur(10px); padding:0.9rem 0; position:sticky; top:0; z-index:1000; box-shadow:0 2px 20px rgba(0,0,0,0.08); }
+        .club-nav-inner { max-width:1100px; margin:0 auto; padding:0 24px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+        .club-nav-logo { font-size:1.6em; font-weight:900; letter-spacing:2px; color:#2c3e50; text-decoration:none; }
+        .club-nav-links { display:flex; gap:6px; }
+        .club-nav-links a { text-decoration:none; color:#2c3e50; font-weight:500; padding:7px 16px; border-radius:20px; font-size:0.9em; transition:all 0.2s; }
+        .club-nav-links a:hover, .club-nav-links a.active { background:linear-gradient(135deg,#667eea,#764ba2); color:white; }
+        .page-wrap { max-width:1100px; margin:0 auto; padding:32px 24px; }
+
+        /* Month tabs */
+        .month-tabs { display:flex; gap:8px; margin-bottom:24px; flex-wrap:wrap; }
+        .month-tab { padding:8px 22px; border-radius:20px; border:2px solid #e9ecef; background:white; font-weight:600; font-size:0.9em; cursor:pointer; color:#2c3e50; transition:all 0.2s; }
+        .month-tab.active { background:linear-gradient(135deg,#667eea,#764ba2); color:white; border-color:transparent; }
+
+        /* Calendar grid */
+        .cal-wrap { background:rgba(255,255,255,0.97); border-radius:16px; box-shadow:0 4px 20px rgba(0,0,0,0.07); overflow:hidden; margin-bottom:24px; }
+        .cal-header { display:grid; grid-template-columns:repeat(7,1fr); background:#f8f9fa; border-bottom:2px solid #e9ecef; }
+        .cal-dow { text-align:center; padding:12px 0; font-size:0.75em; font-weight:700; color:#95a5a6; text-transform:uppercase; letter-spacing:1px; }
+        .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); }
+        .cal-day {
+            min-height:80px; padding:8px; border-right:1px solid #f0f2f5; border-bottom:1px solid #f0f2f5;
+            cursor:pointer; transition:background 0.15s; position:relative;
+        }
+        .cal-day:hover:not(.cal-day-empty):not(.cal-day-past) { background:#f0f4ff; }
+        .cal-day.cal-day-empty { background:#fafafa; cursor:default; }
+        .cal-day.cal-day-past { background:#fafafa; cursor:default; opacity:0.5; }
+        .cal-day.cal-day-today .cal-day-num { background:linear-gradient(135deg,#667eea,#764ba2); color:white; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; }
+        .cal-day.cal-day-selected { background:#f0f4ff; outline:2px solid #667eea; outline-offset:-2px; }
+        .cal-day-num { font-size:0.9em; font-weight:600; color:#2c3e50; margin-bottom:4px; width:28px; height:28px; display:flex; align-items:center; justify-content:center; }
+        .cal-booking { font-size:0.68em; background:#667eea; color:white; border-radius:4px; padding:2px 5px; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .cal-booking.mine { background:#28a745; }
+        .cal-booking.full { background:#e9ecef; color:#7f8c8d; }
+
+        /* Time slot picker */
+        .slot-panel { background:rgba(255,255,255,0.97); border-radius:16px; box-shadow:0 4px 20px rgba(0,0,0,0.07); padding:28px 32px; }
+        .slot-panel-title { font-size:1.1em; font-weight:700; color:#2c3e50; margin-bottom:20px; }
+        .slot-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(130px,1fr)); gap:10px; margin-bottom:24px; }
+        .slot-btn {
+            padding:12px 8px; border-radius:10px; border:2px solid #e9ecef; background:white;
+            text-align:center; cursor:pointer; transition:all 0.2s; font-size:0.85em; font-weight:600; color:#2c3e50;
+        }
+        .slot-btn:hover:not(.slot-taken):not(.slot-past) { border-color:#667eea; color:#667eea; }
+        .slot-btn.slot-selected { background:linear-gradient(135deg,#667eea,#764ba2); color:white; border-color:transparent; }
+        .slot-btn.slot-taken { background:#f8f9fa; color:#adb5bd; cursor:not-allowed; border-color:#f0f2f5; }
+        .slot-btn.slot-taken .slot-who { font-size:0.75em; font-weight:400; margin-top:2px; color:#bdc3c7; }
+        .slot-btn.slot-past { opacity:0.4; cursor:not-allowed; }
+        .slot-btn.slot-mine { background:#d4edda; border-color:#c3e6cb; color:#155724; }
+
+        .book-form { border-top:2px solid #f0f2f5; padding-top:20px; }
+        .book-form h4 { font-size:0.85em; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#95a5a6; margin-bottom:14px; }
+        .book-summary { background:#f8f9fa; border-radius:10px; padding:16px; margin-bottom:16px; font-size:0.95em; color:#2c3e50; }
+        .book-summary strong { color:#667eea; }
+        .book-btn {
+            padding:13px 32px; background:linear-gradient(135deg,#667eea,#764ba2);
+            color:white; border:none; border-radius:10px; font-size:1em; font-weight:700; cursor:pointer;
+        }
+        .book-btn:disabled { opacity:0.5; cursor:not-allowed; }
+        .book-error { color:#dc3545; font-size:0.88em; margin-top:8px; }
+        .book-success { color:#28a745; font-size:0.88em; margin-top:8px; }
+    </style>
+</head>
+<body>
+    <nav class="club-nav">
+        <div class="club-nav-inner">
+            <a href="dashboard.html" class="club-nav-logo">PNWAV8R</a>
+            <div class="club-nav-links">
+                <a href="dashboard.html">Dashboard</a>
+                <a href="schedule.html" class="active">Schedule</a>
+                <a href="weather.html">Weather</a>
+                <a href="wb.html">W&amp;B</a>
+                <span id="adminLink" style="display:none"><a href="admin.html">Admin</a></span>
+            </div>
+            <div id="navUser"></div>
+        </div>
+    </nav>
+
+    <div class="page-wrap">
+        <div class="month-tabs" id="monthTabs"></div>
+        <div class="cal-wrap">
+            <div class="cal-header">
+                <div class="cal-dow">Sun</div><div class="cal-dow">Mon</div><div class="cal-dow">Tue</div>
+                <div class="cal-dow">Wed</div><div class="cal-dow">Thu</div><div class="cal-dow">Fri</div>
+                <div class="cal-dow">Sat</div>
+            </div>
+            <div class="cal-grid" id="calGrid"></div>
+        </div>
+
+        <div class="slot-panel" id="slotPanel" style="display:none">
+            <div class="slot-panel-title" id="slotPanelTitle"></div>
+            <div class="slot-grid" id="slotGrid"></div>
+            <div class="book-form" id="bookForm" style="display:none">
+                <h4>Confirm Booking</h4>
+                <div class="book-summary" id="bookSummary"></div>
+                <button class="book-btn" id="bookBtn" onclick="confirmBooking()">Confirm Reservation</button>
+                <div id="bookMsg"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        const TODAY     = new Date(); TODAY.setHours(0,0,0,0);
+        const MAX_DATE  = new Date(TODAY); MAX_DATE.setMonth(MAX_DATE.getMonth() + 3);
+        const SLOT_HRS  = [6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]; // 6am–8pm
+        const MIN_SLOTS = 2; // 2-hour minimum
+
+        let currentMonth  = new Date(TODAY.getFullYear(), TODAY.getMonth(), 1);
+        let reservations  = [];
+        let selectedDate  = null;
+        let selectedSlots = []; // array of hour integers
+        let airplaneId    = null;
+        let currentMember = null;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const session = await requireAuth();
+            if (!session) return;
+            currentMember = await getCurrentMember();
+            renderNavUser();
+            if (currentMember?.role === 'admin') document.getElementById('adminLink').style.display = 'inline';
+
+            // Get airplane id
+            const { data: plane } = await _supabase.from('airplanes').select('id').eq('tail_number', AIRPLANE_TAIL).single();
+            airplaneId = plane?.id;
+
+            buildMonthTabs();
+            await loadReservations();
+            renderCalendar();
+
+            // Real-time updates
+            _supabase.channel('res-live')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'reservations' }, async () => {
+                    await loadReservations();
+                    renderCalendar();
+                    if (selectedDate) renderSlots(selectedDate);
+                })
+                .subscribe();
+        });
+
+        function buildMonthTabs() {
+            const tabs = document.getElementById('monthTabs');
+            tabs.innerHTML = '';
+            for (let i = 0; i < 3; i++) {
+                const d = new Date(TODAY.getFullYear(), TODAY.getMonth() + i, 1);
+                const label = d.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+                const btn = document.createElement('button');
+                btn.className = 'month-tab' + (i === 0 ? ' active' : '');
+                btn.textContent = label;
+                btn.onclick = () => {
+                    currentMonth = d;
+                    document.querySelectorAll('.month-tab').forEach((b,j) => b.classList.toggle('active', j===i));
+                    selectedDate = null;
+                    document.getElementById('slotPanel').style.display = 'none';
+                    renderCalendar();
+                };
+                tabs.appendChild(btn);
+            }
+        }
+
+        async function loadReservations() {
+            const { data } = await _supabase
+                .from('reservations')
+                .select('*, members(name)')
+                .gte('end_time', TODAY.toISOString())
+                .lte('start_time', MAX_DATE.toISOString())
+                .neq('status', 'cancelled');
+            reservations = data || [];
+        }
+
+        function renderCalendar() {
+            const grid = document.getElementById('calGrid');
+            grid.innerHTML = '';
+            const year  = currentMonth.getFullYear();
+            const month = currentMonth.getMonth();
+            const first = new Date(year, month, 1).getDay();
+            const days  = new Date(year, month + 1, 0).getDate();
+
+            // Empty cells before 1st
+            for (let i = 0; i < first; i++) {
+                const el = document.createElement('div');
+                el.className = 'cal-day cal-day-empty';
+                grid.appendChild(el);
+            }
+
+            for (let d = 1; d <= days; d++) {
+                const date    = new Date(year, month, d);
+                const isPast  = date < TODAY;
+                const isFuture= date > MAX_DATE;
+                const isToday = date.toDateString() === TODAY.toDateString();
+                const isSel   = selectedDate && date.toDateString() === selectedDate.toDateString();
+
+                const cell = document.createElement('div');
+                let cls = 'cal-day';
+                if (isPast || isFuture) cls += ' cal-day-past';
+                if (isToday) cls += ' cal-day-today';
+                if (isSel)   cls += ' cal-day-selected';
+                cell.className = cls;
+
+                const numEl = document.createElement('div');
+                numEl.className = 'cal-day-num';
+                numEl.textContent = d;
+                cell.appendChild(numEl);
+
+                // Show bookings on this day
+                const dayRes = reservations.filter(r => {
+                    const s = new Date(r.start_time);
+                    return s.getFullYear()===year && s.getMonth()===month && s.getDate()===d;
+                });
+                dayRes.forEach(r => {
+                    const tag = document.createElement('div');
+                    const isMe = r.member_id === currentMember?.id;
+                    tag.className = 'cal-booking' + (isMe ? ' mine' : '');
+                    const s = new Date(r.start_time);
+                    const e = new Date(r.end_time);
+                    tag.textContent = `${fmtTime(s)}–${fmtTime(e)} ${isMe ? '(you)' : r.members?.name?.split(' ')[0] || ''}`;
+                    tag.title = r.members?.name || '';
+                    cell.appendChild(tag);
+                });
+
+                if (!isPast && !isFuture) {
+                    cell.onclick = () => {
+                        selectedDate  = date;
+                        selectedSlots = [];
+                        document.getElementById('bookForm').style.display = 'none';
+                        document.getElementById('bookMsg').textContent = '';
+                        document.querySelectorAll('.cal-day').forEach(c => c.classList.remove('cal-day-selected'));
+                        cell.classList.add('cal-day-selected');
+                        renderSlots(date);
+                    };
+                }
+                grid.appendChild(cell);
+            }
+        }
+
+        function renderSlots(date) {
+            const panel = document.getElementById('slotPanel');
+            const title = document.getElementById('slotPanelTitle');
+            const grid  = document.getElementById('slotGrid');
+            panel.style.display = 'block';
+            title.textContent = `Available times — ${date.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}`;
+            grid.innerHTML = '';
+
+            const nowHour = new Date().getHours();
+            const isToday = date.toDateString() === TODAY.toDateString();
+
+            // Build booked hour sets
+            const bookedHours = new Set();
+            const bookedByWho = {};
+            reservations.forEach(r => {
+                const s = new Date(r.start_time);
+                const e = new Date(r.end_time);
+                if (s.toDateString() !== date.toDateString()) return;
+                for (let h = s.getHours(); h < e.getHours(); h++) {
+                    bookedHours.add(h);
+                    bookedByWho[h] = r.member_id === currentMember?.id ? 'You' : (r.members?.name?.split(' ')[0] || 'Member');
+                }
+            });
+
+            SLOT_HRS.forEach(h => {
+                const btn = document.createElement('div');
+                const isPast   = isToday && h <= nowHour;
+                const isTaken  = bookedHours.has(h);
+                const isMine   = isTaken && bookedByWho[h] === 'You';
+                const isSel    = selectedSlots.includes(h);
+
+                let cls = 'slot-btn';
+                if (isPast)   cls += ' slot-past';
+                else if (isMine)  cls += ' slot-mine';
+                else if (isTaken) cls += ' slot-taken';
+                else if (isSel)   cls += ' slot-selected';
+                btn.className = cls;
+
+                const label = `${fmtHour(h)} – ${fmtHour(h+1)}`;
+                btn.innerHTML = isTaken && !isMine
+                    ? `${label}<div class="slot-who">${bookedByWho[h]}</div>`
+                    : label;
+
+                if (!isPast && !isTaken) {
+                    btn.onclick = () => toggleSlot(h, date);
+                }
+                grid.appendChild(btn);
+            });
+        }
+
+        function toggleSlot(h, date) {
+            if (selectedSlots.includes(h)) {
+                selectedSlots = selectedSlots.filter(s => s !== h);
+            } else {
+                selectedSlots.push(h);
+                selectedSlots.sort((a,b) => a-b);
+                // Keep only consecutive slots
+                selectedSlots = longestConsecutive(selectedSlots);
+            }
+            renderSlots(date);
+            updateBookForm(date);
+        }
+
+        function longestConsecutive(slots) {
+            if (!slots.length) return [];
+            // Find the group containing the last-added element
+            let groups = [], cur = [slots[0]];
+            for (let i = 1; i < slots.length; i++) {
+                if (slots[i] === slots[i-1] + 1) cur.push(slots[i]);
+                else { groups.push(cur); cur = [slots[i]]; }
+            }
+            groups.push(cur);
+            return groups.reduce((a,b) => a.length >= b.length ? a : b);
+        }
+
+        function updateBookForm(date) {
+            const form = document.getElementById('bookForm');
+            const msg  = document.getElementById('bookMsg');
+            msg.textContent = '';
+            if (selectedSlots.length < MIN_SLOTS) {
+                form.style.display = 'none';
+                return;
+            }
+            form.style.display = 'block';
+            const startH = selectedSlots[0];
+            const endH   = selectedSlots[selectedSlots.length - 1] + 1;
+            const start  = new Date(date); start.setHours(startH, 0, 0, 0);
+            const end    = new Date(date); end.setHours(endH, 0, 0, 0);
+            const hrs    = selectedSlots.length;
+            document.getElementById('bookSummary').innerHTML =
+                `<strong>N7798E</strong> on <strong>${date.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})}</strong><br>
+                 <strong>${fmtTime(start)} – ${fmtTime(end)}</strong> &nbsp;·&nbsp; ${hrs} hour${hrs>1?'s':''}`;
+        }
+
+        async function confirmBooking() {
+            const btn = document.getElementById('bookBtn');
+            const msg = document.getElementById('bookMsg');
+            if (selectedSlots.length < MIN_SLOTS) return;
+
+            const startH = selectedSlots[0];
+            const endH   = selectedSlots[selectedSlots.length - 1] + 1;
+            const start  = new Date(selectedDate); start.setHours(startH, 0, 0, 0);
+            const end    = new Date(selectedDate); end.setHours(endH, 0, 0, 0);
+
+            btn.disabled = true;
+            btn.textContent = 'Booking…';
+
+            // Double-check for conflicts
+            const conflict = reservations.some(r => {
+                if (r.status === 'cancelled') return false;
+                const rs = new Date(r.start_time), re = new Date(r.end_time);
+                return rs < end && re > start;
+            });
+
+            if (conflict) {
+                msg.className = 'book-error';
+                msg.textContent = 'That time was just booked by someone else. Please pick another slot.';
+                btn.disabled = false; btn.textContent = 'Confirm Reservation';
+                await loadReservations(); renderSlots(selectedDate);
+                return;
+            }
+
+            const { error } = await _supabase.from('reservations').insert({
+                airplane_id: airplaneId,
+                member_id:   currentMember.id,
+                start_time:  start.toISOString(),
+                end_time:    end.toISOString(),
+                status:      'scheduled'
+            });
+
+            btn.disabled = false; btn.textContent = 'Confirm Reservation';
+
+            if (error) {
+                msg.className = 'book-error';
+                msg.textContent = 'Booking failed: ' + error.message;
+            } else {
+                msg.className = 'book-success';
+                msg.textContent = 'Reservation confirmed!';
+                selectedSlots = [];
+                document.getElementById('bookForm').style.display = 'none';
+                await loadReservations();
+                renderCalendar();
+                renderSlots(selectedDate);
+            }
+        }
+
+        function fmtTime(d) { return d.toLocaleString('en-US',{hour:'numeric',minute:'2-digit',hour12:true}); }
+        function fmtHour(h) { const d = new Date(); d.setHours(h,0,0,0); return d.toLocaleString('en-US',{hour:'numeric',hour12:true}); }
+    </script>
+</body>
+</html>

@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin — PNWAV8R</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <style>
+        .club-nav { background:rgba(255,255,255,0.97); backdrop-filter:blur(10px); padding:0.9rem 0; position:sticky; top:0; z-index:1000; box-shadow:0 2px 20px rgba(0,0,0,0.08); }
+        .club-nav-inner { max-width:1100px; margin:0 auto; padding:0 24px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+        .club-nav-logo { font-size:1.6em; font-weight:900; letter-spacing:2px; color:#2c3e50; text-decoration:none; }
+        .club-nav-links { display:flex; gap:6px; }
+        .club-nav-links a { text-decoration:none; color:#2c3e50; font-weight:500; padding:7px 16px; border-radius:20px; font-size:0.9em; transition:all 0.2s; }
+        .club-nav-links a:hover, .club-nav-links a.active { background:linear-gradient(135deg,#667eea,#764ba2); color:white; }
+        .page-wrap { max-width:1100px; margin:0 auto; padding:32px 24px; }
+
+        /* Tabs */
+        .admin-tabs { display:flex; gap:4px; margin-bottom:28px; border-bottom:2px solid #e9ecef; }
+        .admin-tab { padding:10px 22px; background:none; border:none; font-size:0.95em; font-weight:600; color:#7f8c8d; cursor:pointer; border-bottom:3px solid transparent; margin-bottom:-2px; transition:all 0.2s; }
+        .admin-tab.active { color:#667eea; border-bottom-color:#667eea; }
+
+        .tab-panel { display:none; }
+        .tab-panel.active { display:block; }
+
+        /* Section card */
+        .admin-card { background:rgba(255,255,255,0.97); border-radius:14px; box-shadow:0 4px 20px rgba(0,0,0,0.07); margin-bottom:24px; overflow:hidden; }
+        .admin-card-header { padding:20px 28px; border-bottom:2px solid #f0f2f5; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+        .admin-card-header h3 { font-size:1em; font-weight:700; color:#2c3e50; margin:0; }
+        .admin-card-body { padding:0; }
+
+        /* Table */
+        .admin-table { width:100%; border-collapse:collapse; }
+        .admin-table th { background:#f8f9fa; padding:12px 20px; text-align:left; font-size:0.75em; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#95a5a6; }
+        .admin-table td { padding:14px 20px; border-top:1px solid #f0f2f5; font-size:0.9em; color:#2c3e50; vertical-align:middle; }
+        .admin-table tr:hover td { background:#fafbfc; }
+
+        /* Badges */
+        .badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:0.75em; font-weight:700; }
+        .badge-green  { background:#d4edda; color:#155724; }
+        .badge-red    { background:#f8d7da; color:#721c24; }
+        .badge-blue   { background:#cce5ff; color:#004085; }
+        .badge-grey   { background:#e9ecef; color:#6c757d; }
+        .badge-orange { background:#ffe5cc; color:#7d3c00; }
+
+        /* Action buttons */
+        .tbl-btn { padding:5px 14px; border-radius:8px; font-size:0.82em; font-weight:600; cursor:pointer; border:none; transition:all 0.2s; }
+        .tbl-btn-primary { background:#667eea; color:white; }
+        .tbl-btn-danger  { background:#f8d7da; color:#721c24; border:1px solid #f5c6cb; }
+        .tbl-btn-success { background:#d4edda; color:#155724; border:1px solid #c3e6cb; }
+        .tbl-btn-warn    { background:#fff3cd; color:#856404; border:1px solid #ffeeba; }
+        .tbl-btn + .tbl-btn { margin-left:6px; }
+
+        /* Add member form */
+        .add-member-form { padding:24px 28px; background:#f8f9fa; border-top:2px solid #e9ecef; }
+        .add-member-form h4 { font-size:0.8em; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#95a5a6; margin:0 0 16px; }
+        .form-row { display:grid; grid-template-columns:1fr 1fr 1fr auto; gap:12px; align-items:end; flex-wrap:wrap; }
+        @media(max-width:700px) { .form-row { grid-template-columns:1fr 1fr; } }
+        .form-field label { display:block; font-size:0.82em; font-weight:600; color:#495057; margin-bottom:5px; }
+        .form-field input, .form-field select {
+            width:100%; padding:10px 12px; border:2px solid #dee2e6; border-radius:8px;
+            font-size:0.9em; box-sizing:border-box; font-family:inherit;
+        }
+        .form-field input:focus, .form-field select:focus { outline:none; border-color:#667eea; }
+        .form-submit { padding:10px 20px; background:linear-gradient(135deg,#667eea,#764ba2); color:white; border:none; border-radius:8px; font-weight:700; cursor:pointer; font-size:0.9em; white-space:nowrap; }
+
+        /* Aircraft status control */
+        .status-options { display:flex; gap:10px; flex-wrap:wrap; }
+        .status-opt { padding:8px 18px; border-radius:20px; border:2px solid #e9ecef; background:white; font-size:0.85em; font-weight:600; cursor:pointer; transition:all 0.2s; color:#2c3e50; }
+        .status-opt:hover { border-color:#667eea; }
+        .status-opt.active-available    { background:#d4edda; border-color:#28a745; color:#155724; }
+        .status-opt.active-flying       { background:#cce5ff; border-color:#007bff; color:#004085; }
+        .status-opt.active-maintenance  { background:#ffe5cc; border-color:#d35400; color:#7d3c00; }
+        .status-opt.active-squawk       { background:#f8d7da; border-color:#dc3545; color:#721c24; }
+
+        /* Squawk resolve */
+        .squawk-row td:first-child { max-width:320px; }
+        .empty-row td { color:#adb5bd; text-align:center; padding:28px; }
+    </style>
+</head>
+<body>
+    <nav class="club-nav">
+        <div class="club-nav-inner">
+            <a href="dashboard.html" class="club-nav-logo">PNWAV8R</a>
+            <div class="club-nav-links">
+                <a href="dashboard.html">Dashboard</a>
+                <a href="schedule.html">Schedule</a>
+                <a href="weather.html">Weather</a>
+                <a href="wb.html">W&amp;B</a>
+                <a href="admin.html" class="active">Admin</a>
+            </div>
+            <div id="navUser"></div>
+        </div>
+    </nav>
+
+    <div class="page-wrap">
+        <div class="admin-tabs">
+            <button class="admin-tab active" onclick="showTab('members',this)">Members</button>
+            <button class="admin-tab" onclick="showTab('aircraft',this)">Aircraft</button>
+            <button class="admin-tab" onclick="showTab('squawks',this)">Squawks</button>
+            <button class="admin-tab" onclick="showTab('flights',this)">Flight Log</button>
+        </div>
+
+        <!-- ── Members ── -->
+        <div class="tab-panel active" id="tab-members">
+            <div class="admin-card">
+                <div class="admin-card-header">
+                    <h3>Club Members</h3>
+                </div>
+                <div class="admin-card-body">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Membership</th>
+                                <th>PIC Status</th>
+                                <th>Role</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="memberTableBody">
+                            <tr><td colspan="7" style="text-align:center;color:#adb5bd;padding:28px">Loading…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="add-member-form">
+                    <h4>Add New Member</h4>
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label>Full Name</label>
+                            <input type="text" id="newName" placeholder="Jane Smith">
+                        </div>
+                        <div class="form-field">
+                            <label>Email</label>
+                            <input type="email" id="newEmail" placeholder="jane@email.com">
+                        </div>
+                        <div class="form-field">
+                            <label>Phone</label>
+                            <input type="tel" id="newPhone" placeholder="(206) 555-1234">
+                        </div>
+                        <div>
+                            <button class="form-submit" onclick="addMember()">Add Member</button>
+                        </div>
+                    </div>
+                    <div id="addMemberMsg" style="margin-top:10px;font-size:0.88em"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Aircraft ── -->
+        <div class="tab-panel" id="tab-aircraft">
+            <div class="admin-card">
+                <div class="admin-card-header"><h3>N7798E — Aircraft Status</h3></div>
+                <div class="admin-card-body" style="padding:28px">
+                    <div style="margin-bottom:24px">
+                        <div style="font-size:0.8em;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#95a5a6;margin-bottom:12px">Set Status</div>
+                        <div class="status-options" id="statusOptions">
+                            <button class="status-opt" onclick="setAircraftStatus('available')">Available</button>
+                            <button class="status-opt" onclick="setAircraftStatus('flying')">In the Air</button>
+                            <button class="status-opt" onclick="setAircraftStatus('maintenance')">Maintenance</button>
+                            <button class="status-opt" onclick="setAircraftStatus('squawk')">Grounded — Squawk</button>
+                        </div>
+                    </div>
+                    <div style="margin-bottom:24px">
+                        <div style="font-size:0.8em;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#95a5a6;margin-bottom:12px">Update Tach Time</div>
+                        <div style="display:flex;gap:12px;align-items:flex-end">
+                            <div class="form-field" style="flex:0 0 180px">
+                                <label>Current Tach</label>
+                                <input type="number" id="tachUpdate" step="0.1" min="0" placeholder="e.g. 2849.6">
+                            </div>
+                            <button class="form-submit" onclick="updateTach()">Update</button>
+                        </div>
+                        <div id="tachMsg" style="margin-top:8px;font-size:0.85em"></div>
+                    </div>
+                    <div>
+                        <div style="font-size:0.8em;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#95a5a6;margin-bottom:12px">Maintenance Note</div>
+                        <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
+                            <div class="form-field" style="flex:1;min-width:200px">
+                                <label>Note (shown on dashboard)</label>
+                                <input type="text" id="maintNote" placeholder="Annual due, oil change, etc.">
+                            </div>
+                            <button class="form-submit" onclick="saveMaintNote()">Save Note</button>
+                        </div>
+                        <div id="maintMsg" style="margin-top:8px;font-size:0.85em"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Squawks ── -->
+        <div class="tab-panel" id="tab-squawks">
+            <div class="admin-card">
+                <div class="admin-card-header"><h3>Open Squawks</h3></div>
+                <div class="admin-card-body">
+                    <table class="admin-table">
+                        <thead>
+                            <tr><th>Description</th><th>Reported By</th><th>Date</th><th>Action</th></tr>
+                        </thead>
+                        <tbody id="squawkTableBody">
+                            <tr><td colspan="4" style="text-align:center;color:#adb5bd;padding:28px">Loading…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="admin-card">
+                <div class="admin-card-header"><h3>Resolved Squawks</h3></div>
+                <div class="admin-card-body">
+                    <table class="admin-table">
+                        <thead>
+                            <tr><th>Description</th><th>Reported By</th><th>Resolved By</th><th>Date</th></tr>
+                        </thead>
+                        <tbody id="resolvedTableBody">
+                            <tr><td colspan="4" style="text-align:center;color:#adb5bd;padding:28px">Loading…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Flight Log ── -->
+        <div class="tab-panel" id="tab-flights">
+            <div class="admin-card">
+                <div class="admin-card-header"><h3>Recent Flight Logs</h3></div>
+                <div class="admin-card-body">
+                    <table class="admin-table">
+                        <thead>
+                            <tr><th>Pilot</th><th>Date</th><th>Tach Start</th><th>Tach End</th><th>Time</th><th>Fuel Added</th><th>Oil Added</th><th>Notes</th></tr>
+                        </thead>
+                        <tbody id="flightTableBody">
+                            <tr><td colspan="8" style="text-align:center;color:#adb5bd;padding:28px">Loading…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        let currentMember = null;
+        let airplaneId    = null;
+        let currentAircraftStatus = 'available';
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const session = await requireAdmin();
+            if (!session) return;
+            currentMember = await getCurrentMember();
+            renderNavUser();
+            const { data: plane } = await _supabase.from('airplanes').select('*').eq('tail_number', AIRPLANE_TAIL).single();
+            airplaneId = plane?.id;
+            if (plane) {
+                currentAircraftStatus = plane.status;
+                highlightStatus(plane.status);
+                document.getElementById('tachUpdate').value = plane.current_tach || '';
+                document.getElementById('maintNote').value  = plane.notes || '';
+            }
+            await Promise.all([ loadMembers(), loadSquawks(), loadFlights() ]);
+        });
+
+        function showTab(name, btn) {
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.admin-tab').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-' + name).classList.add('active');
+            btn.classList.add('active');
+        }
+
+        // ── Members ──
+        async function loadMembers() {
+            const { data } = await _supabase.from('members').select('*').order('name');
+            const tbody = document.getElementById('memberTableBody');
+            if (!data?.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="7">No members yet.</td></tr>'; return; }
+            tbody.innerHTML = data.map(m => `
+                <tr>
+                    <td><strong>${m.name}</strong></td>
+                    <td>${m.email}</td>
+                    <td>${m.phone || '—'}</td>
+                    <td><span class="badge ${m.membership_active ? 'badge-green' : 'badge-red'}">${m.membership_active ? 'Active' : 'Inactive'}</span></td>
+                    <td><span class="badge ${m.pic_status ? 'badge-blue' : 'badge-grey'}">${m.pic_status ? 'Current' : 'Not Current'}</span></td>
+                    <td><span class="badge ${m.role === 'admin' ? 'badge-orange' : 'badge-grey'}">${m.role}</span></td>
+                    <td>
+                        <button class="tbl-btn ${m.membership_active ? 'tbl-btn-danger' : 'tbl-btn-success'}"
+                            onclick="toggleMembership('${m.id}', ${m.membership_active})">
+                            ${m.membership_active ? 'Deactivate' : 'Activate'}
+                        </button>
+                        <button class="tbl-btn ${m.pic_status ? 'tbl-btn-warn' : 'tbl-btn-primary'}"
+                            onclick="togglePIC('${m.id}', ${m.pic_status})">
+                            ${m.pic_status ? 'Remove PIC' : 'Set PIC'}
+                        </button>
+                    </td>
+                </tr>`).join('');
+        }
+
+        async function addMember() {
+            const name  = document.getElementById('newName').value.trim();
+            const email = document.getElementById('newEmail').value.trim().toLowerCase();
+            const phone = document.getElementById('newPhone').value.trim();
+            const msg   = document.getElementById('addMemberMsg');
+
+            if (!name || !email) { msg.style.color='#dc3545'; msg.textContent='Name and email are required.'; return; }
+
+            // Invite via Supabase Auth (sends magic link)
+            const { error: inviteErr } = await _supabase.auth.admin.inviteUserByEmail(email);
+            if (inviteErr && !inviteErr.message.includes('already')) {
+                msg.style.color='#dc3545'; msg.textContent='Invite error: ' + inviteErr.message; return;
+            }
+
+            // Upsert member record
+            const { error } = await _supabase.from('members').upsert({ name, email, phone: phone || null, membership_active: true, pic_status: false, role: 'member' }, { onConflict: 'email' });
+            if (error) { msg.style.color='#dc3545'; msg.textContent='Error: ' + error.message; return; }
+
+            msg.style.color='#28a745'; msg.textContent=`${name} added and invite sent to ${email}.`;
+            document.getElementById('newName').value = '';
+            document.getElementById('newEmail').value = '';
+            document.getElementById('newPhone').value = '';
+            loadMembers();
+        }
+
+        async function toggleMembership(id, current) {
+            await _supabase.from('members').update({ membership_active: !current }).eq('id', id);
+            loadMembers();
+        }
+
+        async function togglePIC(id, current) {
+            await _supabase.from('members').update({ pic_status: !current }).eq('id', id);
+            loadMembers();
+        }
+
+        // ── Aircraft ──
+        function highlightStatus(status) {
+            document.querySelectorAll('.status-opt').forEach(b => {
+                b.className = 'status-opt';
+                const val = b.textContent.trim().toLowerCase().replace(/\s.*/, '');
+                const map = { available:'available', in:'flying', maintenance:'maintenance', grounded:'squawk' };
+                if (map[val] === status) b.classList.add('active-' + status);
+            });
+        }
+
+        async function setAircraftStatus(status) {
+            await _supabase.from('airplanes').update({ status, updated_at: new Date().toISOString() }).eq('id', airplaneId);
+            currentAircraftStatus = status;
+            highlightStatus(status);
+        }
+
+        async function updateTach() {
+            const val = parseFloat(document.getElementById('tachUpdate').value);
+            const msg = document.getElementById('tachMsg');
+            if (isNaN(val)) { msg.style.color='#dc3545'; msg.textContent='Enter a valid tach number.'; return; }
+            await _supabase.from('airplanes').update({ current_tach: val, updated_at: new Date().toISOString() }).eq('id', airplaneId);
+            msg.style.color='#28a745'; msg.textContent='Tach updated.';
+            setTimeout(() => msg.textContent = '', 2000);
+        }
+
+        async function saveMaintNote() {
+            const note = document.getElementById('maintNote').value.trim();
+            const msg  = document.getElementById('maintMsg');
+            await _supabase.from('airplanes').update({ notes: note || null, updated_at: new Date().toISOString() }).eq('id', airplaneId);
+            msg.style.color='#28a745'; msg.textContent='Note saved.';
+            setTimeout(() => msg.textContent = '', 2000);
+        }
+
+        // ── Squawks ──
+        async function loadSquawks() {
+            const { data: open } = await _supabase.from('squawks').select('*, reported:members!squawks_reported_by_fkey(name)')
+                .eq('airplane_id', airplaneId).eq('status', 'open').order('reported_at', { ascending: false });
+
+            const { data: resolved } = await _supabase.from('squawks')
+                .select('*, reported:members!squawks_reported_by_fkey(name), resolver:members!squawks_resolved_by_fkey(name)')
+                .eq('airplane_id', airplaneId).eq('status', 'resolved')
+                .order('resolved_at', { ascending: false }).limit(20);
+
+            const ob = document.getElementById('squawkTableBody');
+            ob.innerHTML = open?.length ? open.map(s => `
+                <tr class="squawk-row">
+                    <td>${s.description}</td>
+                    <td>${s.reported?.name || '—'}</td>
+                    <td>${fmtDate(s.reported_at)}</td>
+                    <td><button class="tbl-btn tbl-btn-success" onclick="resolveSquawk('${s.id}')">Resolve</button></td>
+                </tr>`).join('')
+                : '<tr class="empty-row"><td colspan="4">No open squawks.</td></tr>';
+
+            const rb = document.getElementById('resolvedTableBody');
+            rb.innerHTML = resolved?.length ? resolved.map(s => `
+                <tr>
+                    <td>${s.description}</td>
+                    <td>${s.reported?.name || '—'}</td>
+                    <td>${s.resolver?.name || '—'}</td>
+                    <td>${fmtDate(s.resolved_at)}</td>
+                </tr>`).join('')
+                : '<tr class="empty-row"><td colspan="4">No resolved squawks.</td></tr>';
+        }
+
+        async function resolveSquawk(id) {
+            await _supabase.from('squawks').update({
+                status: 'resolved',
+                resolved_by: currentMember.id,
+                resolved_at: new Date().toISOString()
+            }).eq('id', id);
+
+            // If no more open squawks, restore aircraft to available
+            const { count } = await _supabase.from('squawks')
+                .select('*', { count:'exact', head:true }).eq('airplane_id', airplaneId).eq('status', 'open');
+            if (count === 0 && currentAircraftStatus === 'squawk') {
+                await setAircraftStatus('available');
+            }
+            loadSquawks();
+        }
+
+        // ── Flight Log ──
+        async function loadFlights() {
+            const { data } = await _supabase.from('flight_logs')
+                .select('*, members(name)')
+                .eq('airplane_id', airplaneId)
+                .order('completed_at', { ascending: false })
+                .limit(50);
+
+            const tbody = document.getElementById('flightTableBody');
+            if (!data?.length) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#adb5bd;padding:28px">No flight logs yet.</td></tr>'; return; }
+
+            tbody.innerHTML = data.map(f => {
+                const time = (f.tach_start && f.tach_end) ? (f.tach_end - f.tach_start).toFixed(1) + ' hr' : '—';
+                return `<tr>
+                    <td><strong>${f.members?.name || '—'}</strong></td>
+                    <td>${fmtDate(f.completed_at)}</td>
+                    <td>${f.tach_start ?? '—'}</td>
+                    <td>${f.tach_end ?? '—'}</td>
+                    <td>${time}</td>
+                    <td>${f.fuel_added ? f.fuel_added + ' gal' : '—'}</td>
+                    <td>${f.oil_quarts_added ? f.oil_quarts_added + ' qt' : '—'}</td>
+                    <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f.notes || '—'}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        function fmtDate(iso) { return new Date(iso).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }
+    </script>
+</body>
+</html>

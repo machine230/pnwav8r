@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post-Flight — PNWAV8R</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <style>
+        .club-nav { background:rgba(255,255,255,0.97); backdrop-filter:blur(10px); padding:0.9rem 0; position:sticky; top:0; z-index:1000; box-shadow:0 2px 20px rgba(0,0,0,0.08); }
+        .club-nav-inner { max-width:1100px; margin:0 auto; padding:0 24px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+        .club-nav-logo { font-size:1.6em; font-weight:900; letter-spacing:2px; color:#2c3e50; text-decoration:none; }
+        .club-nav-links { display:flex; gap:6px; }
+        .club-nav-links a { text-decoration:none; color:#2c3e50; font-weight:500; padding:7px 16px; border-radius:20px; font-size:0.9em; transition:all 0.2s; }
+        .club-nav-links a:hover, .club-nav-links a.active { background:linear-gradient(135deg,#667eea,#764ba2); color:white; }
+        .page-wrap { max-width:680px; margin:0 auto; padding:32px 24px; }
+
+        .pf-card { background:rgba(255,255,255,0.97); border-radius:16px; box-shadow:0 4px 20px rgba(0,0,0,0.08); overflow:hidden; margin-bottom:24px; }
+        .pf-card-header { background:linear-gradient(135deg,#1e3c72,#2a5298); color:white; padding:22px 28px; }
+        .pf-card-header h2 { font-size:1.3em; font-weight:700; margin:0; }
+        .pf-card-header p  { margin:4px 0 0; font-size:0.88em; opacity:0.8; }
+        .pf-body { padding:28px; }
+
+        .pf-section { margin-bottom:28px; padding-bottom:28px; border-bottom:2px solid #f0f2f5; }
+        .pf-section:last-child { margin-bottom:0; padding-bottom:0; border-bottom:none; }
+        .pf-section-title { font-size:0.75em; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; color:#95a5a6; margin-bottom:16px; }
+
+        .pf-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+        @media(max-width:500px) { .pf-row { grid-template-columns:1fr; } }
+
+        .pf-field { margin-bottom:0; }
+        .pf-field label { display:block; font-size:0.85em; font-weight:600; color:#34495e; margin-bottom:6px; }
+        .pf-field input, .pf-field select, .pf-field textarea {
+            width:100%; padding:12px 14px; border:2px solid #e9ecef; border-radius:10px;
+            font-size:0.95em; box-sizing:border-box; font-family:inherit; transition:border-color 0.2s;
+        }
+        .pf-field input:focus, .pf-field select:focus, .pf-field textarea:focus { outline:none; border-color:#667eea; }
+        .pf-field small { color:#95a5a6; font-size:0.78em; margin-top:4px; display:block; }
+
+        /* Squawk toggle */
+        .squawk-toggle { display:flex; align-items:center; gap:12px; margin-bottom:16px; cursor:pointer; }
+        .squawk-toggle input[type=checkbox] { width:18px; height:18px; cursor:pointer; }
+        .squawk-toggle span { font-weight:600; color:#2c3e50; }
+        #squawkFields { display:none; }
+        .squawk-item-row { display:flex; gap:10px; margin-bottom:10px; align-items:flex-start; }
+        .squawk-item-row textarea { flex:1; resize:vertical; min-height:60px; }
+        .squawk-remove { background:none; border:1px solid #f5c6cb; color:#dc3545; padding:8px 12px; border-radius:8px; cursor:pointer; font-size:0.85em; flex-shrink:0; }
+        .squawk-add { background:none; border:2px dashed #dee2e6; color:#7f8c8d; padding:10px; width:100%; border-radius:8px; cursor:pointer; font-size:0.88em; margin-top:4px; }
+        .squawk-add:hover { border-color:#667eea; color:#667eea; }
+
+        /* Oil indicator */
+        .oil-options { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+        .oil-opt { border:2px solid #e9ecef; border-radius:10px; padding:12px; text-align:center; cursor:pointer; transition:all 0.2s; }
+        .oil-opt:hover { border-color:#667eea; }
+        .oil-opt.selected { border-color:#667eea; background:#f0f4ff; }
+        .oil-opt input { display:none; }
+        .oil-opt-icon { font-size:1.4em; display:block; margin-bottom:4px; }
+        .oil-opt-label { font-size:0.8em; font-weight:600; color:#2c3e50; }
+
+        /* Submit */
+        .pf-submit { width:100%; padding:15px; background:linear-gradient(135deg,#667eea,#764ba2); color:white; border:none; border-radius:12px; font-size:1.05em; font-weight:700; cursor:pointer; transition:opacity 0.2s; }
+        .pf-submit:hover { opacity:0.92; }
+        .pf-submit:disabled { opacity:0.5; cursor:not-allowed; }
+        .pf-msg { margin-top:14px; padding:14px; border-radius:10px; font-size:0.9em; display:none; }
+        .pf-msg.success { background:#d4edda; color:#155724; border:1px solid #c3e6cb; display:block; }
+        .pf-msg.error   { background:#f8d7da; color:#721c24; border:1px solid #f5c6cb; display:block; }
+    </style>
+</head>
+<body>
+    <nav class="club-nav">
+        <div class="club-nav-inner">
+            <a href="dashboard.html" class="club-nav-logo">PNWAV8R</a>
+            <div class="club-nav-links">
+                <a href="dashboard.html">Dashboard</a>
+                <a href="schedule.html">Schedule</a>
+                <a href="weather.html">Weather</a>
+                <a href="wb.html">W&amp;B</a>
+                <span id="adminLink" style="display:none"><a href="admin.html">Admin</a></span>
+            </div>
+            <div id="navUser"></div>
+        </div>
+    </nav>
+
+    <div class="page-wrap">
+        <div class="pf-card">
+            <div class="pf-card-header">
+                <h2>Post-Flight Report — N7798E</h2>
+                <p>Complete this form after every flight before leaving the aircraft</p>
+            </div>
+            <div class="pf-body">
+
+                <!-- Tach times -->
+                <div class="pf-section">
+                    <div class="pf-section-title">Tach Times</div>
+                    <div class="pf-row">
+                        <div class="pf-field">
+                            <label>Tach Start</label>
+                            <input type="number" id="tachStart" step="0.1" min="0" placeholder="e.g. 2847.3">
+                            <small>Tach at engine start</small>
+                        </div>
+                        <div class="pf-field">
+                            <label>Tach End</label>
+                            <input type="number" id="tachEnd" step="0.1" min="0" placeholder="e.g. 2849.6">
+                            <small>Tach at engine shutdown</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fuel -->
+                <div class="pf-section">
+                    <div class="pf-section-title">Fuel</div>
+                    <div class="pf-row">
+                        <div class="pf-field">
+                            <label>Fuel Added (gallons)</label>
+                            <input type="number" id="fuelAdded" step="0.1" min="0" placeholder="0.0">
+                            <small>Enter 0 if none added</small>
+                        </div>
+                        <div class="pf-field">
+                            <label>Fuel Level After</label>
+                            <select id="fuelLevel">
+                                <option value="">— Select —</option>
+                                <option value="tabs">Tabs (~11 gal)</option>
+                                <option value="half">Half (~11 gal)</option>
+                                <option value="3/4">3/4 (~16.5 gal)</option>
+                                <option value="full">Full (22 gal)</option>
+                                <option value="low">Low (under tabs)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Oil -->
+                <div class="pf-section">
+                    <div class="pf-section-title">Oil</div>
+                    <div class="oil-options" id="oilOptions">
+                        <label class="oil-opt" onclick="selectOil(this,'checked_ok')">
+                            <input type="radio" name="oil" value="checked_ok">
+                            <span class="oil-opt-icon">✅</span>
+                            <span class="oil-opt-label">Checked — OK</span>
+                        </label>
+                        <label class="oil-opt" onclick="selectOil(this,'added')">
+                            <input type="radio" name="oil" value="added">
+                            <span class="oil-opt-icon">🛢️</span>
+                            <span class="oil-opt-label">Added Oil</span>
+                        </label>
+                        <label class="oil-opt" onclick="selectOil(this,'needs_attention')">
+                            <input type="radio" name="oil" value="needs_attention">
+                            <span class="oil-opt-icon">⚠️</span>
+                            <span class="oil-opt-label">Needs Attention</span>
+                        </label>
+                    </div>
+                    <div id="oilQtsField" style="display:none; margin-top:14px;">
+                        <div class="pf-field">
+                            <label>Quarts Added</label>
+                            <input type="number" id="oilQuarts" step="0.5" min="0" max="4" placeholder="e.g. 1.0">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Squawks -->
+                <div class="pf-section">
+                    <div class="pf-section-title">Squawks / Discrepancies</div>
+                    <label class="squawk-toggle">
+                        <input type="checkbox" id="hasSquawks" onchange="toggleSquawks()">
+                        <span>I have a squawk to report</span>
+                    </label>
+                    <div id="squawkFields">
+                        <div id="squawkList"></div>
+                        <button class="squawk-add" type="button" onclick="addSquawk()">+ Add another squawk</button>
+                    </div>
+                </div>
+
+                <!-- Notes -->
+                <div class="pf-section">
+                    <div class="pf-section-title">General Notes</div>
+                    <div class="pf-field">
+                        <textarea id="flightNotes" rows="3" placeholder="Any other notes about the flight or aircraft condition…"></textarea>
+                    </div>
+                </div>
+
+                <button class="pf-submit" id="submitBtn" onclick="submitReport()">Submit Post-Flight Report</button>
+                <div class="pf-msg" id="pfMsg"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        let currentMember = null;
+        let airplaneId    = null;
+        let selectedOil   = null;
+        let squawkCount   = 0;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const session = await requireAuth();
+            if (!session) return;
+            currentMember = await getCurrentMember();
+            renderNavUser();
+            if (currentMember?.role === 'admin') document.getElementById('adminLink').style.display = 'inline';
+
+            const { data: plane } = await _supabase.from('airplanes').select('id, current_tach').eq('tail_number', AIRPLANE_TAIL).single();
+            airplaneId = plane?.id;
+            if (plane?.current_tach) {
+                document.getElementById('tachStart').placeholder = `Last: ${plane.current_tach.toFixed(1)}`;
+            }
+            addSquawk(); // start with one squawk field hidden
+        });
+
+        function selectOil(el, val) {
+            document.querySelectorAll('.oil-opt').forEach(o => o.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedOil = val;
+            document.getElementById('oilQtsField').style.display = val === 'added' ? 'block' : 'none';
+        }
+
+        function toggleSquawks() {
+            const checked = document.getElementById('hasSquawks').checked;
+            document.getElementById('squawkFields').style.display = checked ? 'block' : 'none';
+        }
+
+        function addSquawk() {
+            squawkCount++;
+            const id  = `squawk_${squawkCount}`;
+            const row = document.createElement('div');
+            row.className = 'squawk-item-row';
+            row.id = id;
+            row.innerHTML = `
+                <textarea placeholder="Describe the squawk…" id="sq_text_${squawkCount}"></textarea>
+                <button class="squawk-remove" onclick="document.getElementById('${id}').remove()">Remove</button>`;
+            document.getElementById('squawkList').appendChild(row);
+        }
+
+        async function submitReport() {
+            const btn = document.getElementById('submitBtn');
+            const msg = document.getElementById('pfMsg');
+            msg.className = 'pf-msg';
+
+            const tachStart  = parseFloat(document.getElementById('tachStart').value);
+            const tachEnd    = parseFloat(document.getElementById('tachEnd').value);
+            const fuelAdded  = parseFloat(document.getElementById('fuelAdded').value) || 0;
+            const oilQuarts  = parseFloat(document.getElementById('oilQuarts').value) || 0;
+            const notes      = document.getElementById('flightNotes').value.trim();
+
+            if (isNaN(tachEnd)) {
+                msg.className = 'pf-msg error'; msg.textContent = 'Tach End is required.'; return;
+            }
+            if (!isNaN(tachStart) && tachEnd < tachStart) {
+                msg.className = 'pf-msg error'; msg.textContent = 'Tach End must be greater than Tach Start.'; return;
+            }
+            if (!selectedOil) {
+                msg.className = 'pf-msg error'; msg.textContent = 'Please check the oil status.'; return;
+            }
+
+            btn.disabled = true; btn.textContent = 'Submitting…';
+
+            // Find matching reservation
+            const now = new Date();
+            const twoHrsAgo = new Date(now - 2 * 60 * 60 * 1000);
+            const { data: res } = await _supabase
+                .from('reservations')
+                .select('id')
+                .eq('member_id', currentMember.id)
+                .eq('airplane_id', airplaneId)
+                .lte('start_time', now.toISOString())
+                .gte('end_time', twoHrsAgo.toISOString())
+                .neq('status', 'cancelled')
+                .limit(1)
+                .single();
+
+            // Insert flight log
+            const { error: logErr } = await _supabase.from('flight_logs').insert({
+                reservation_id:   res?.id || null,
+                airplane_id:      airplaneId,
+                member_id:        currentMember.id,
+                tach_start:       isNaN(tachStart) ? null : tachStart,
+                tach_end:         tachEnd,
+                fuel_added:       fuelAdded,
+                oil_quarts_added: oilQuarts,
+                notes:            notes || null
+            });
+
+            if (logErr) {
+                msg.className = 'pf-msg error'; msg.textContent = 'Error saving log: ' + logErr.message;
+                btn.disabled = false; btn.textContent = 'Submit Post-Flight Report'; return;
+            }
+
+            // Update airplane tach + status
+            await _supabase.from('airplanes').update({
+                current_tach: tachEnd,
+                status: 'available',
+                updated_at: new Date().toISOString()
+            }).eq('id', airplaneId);
+
+            // Mark reservation complete
+            if (res?.id) {
+                await _supabase.from('reservations').update({ status: 'completed' }).eq('id', res.id);
+            }
+
+            // Submit squawks
+            if (document.getElementById('hasSquawks').checked) {
+                const rows = document.querySelectorAll('[id^="sq_text_"]');
+                for (const row of rows) {
+                    const desc = row.value.trim();
+                    if (!desc) continue;
+                    await _supabase.from('squawks').insert({
+                        airplane_id:  airplaneId,
+                        reported_by:  currentMember.id,
+                        description:  desc,
+                        status:       'open'
+                    });
+                }
+                // If squawks reported, flag airplane
+                await _supabase.from('airplanes').update({ status: 'squawk' }).eq('id', airplaneId);
+            }
+
+            btn.disabled = false; btn.textContent = 'Submit Post-Flight Report';
+            msg.className = 'pf-msg success';
+            msg.textContent = 'Post-flight report submitted. Thank you!';
+
+            setTimeout(() => window.location.href = '/dashboard.html', 2000);
+        }
+    </script>
+</body>
+</html>
