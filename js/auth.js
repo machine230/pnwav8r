@@ -8,14 +8,17 @@ function getSession() {
         _supabase.auth.getSession().then(({ data: { session } }) => {
             if (session) { resolve(session); return; }
 
-            // No session yet — may still be processing the magic link token
+            // No session yet — wait for SIGNED_IN event (INITIAL_SESSION with null must be ignored)
             const { data: { subscription } } = _supabase.auth.onAuthStateChange((event, session) => {
-                subscription.unsubscribe();
-                resolve(session);
+                if (session) {
+                    subscription.unsubscribe();
+                    resolve(session);
+                }
+                // Don't resolve null here — INITIAL_SESSION fires with null before storage loads
             });
 
-            // Fallback: if nothing fires in 4 seconds, resolve null
-            setTimeout(() => { subscription.unsubscribe(); resolve(null); }, 4000);
+            // Fallback: if no session established in 5 seconds, resolve null
+            setTimeout(() => { subscription.unsubscribe(); resolve(null); }, 5000);
         });
     });
 }
