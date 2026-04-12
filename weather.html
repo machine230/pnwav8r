@@ -346,49 +346,39 @@
 
     <script src="js/main.js"></script>
     <script>
-        const AVWX_TOKEN = 'Ld0Z9WEaR9yaouqCqIFqJnaIxQRXIGQ5oyFLJ6_DeD4';
+        // NOAA Aviation Weather API — free, no token required
+        const NOAA_BASE = 'https://aviationweather.gov/api/data';
 
         async function lookupWeather(icaoArg) {
             let icao = icaoArg;
             if (!icao) {
                 const val = document.getElementById('airportInput').value.trim().toUpperCase();
-                if (!val || val.length < 3) {
-                    alert('Enter a 3 or 4 character airport code.');
-                    return;
-                }
+                if (!val || val.length < 3) { alert('Enter a 3 or 4 character airport code.'); return; }
                 icao = val.length === 3 ? 'K' + val : val;
             }
 
-            // Update input and highlight active button
             document.getElementById('airportInput').value = icao;
-            document.querySelectorAll('.airport-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.airport-btn').forEach(b => {
-                if (b.textContent === icao) b.classList.add('active');
+                b.classList.toggle('active', b.textContent === icao);
             });
-
-            // Update URL without reload
             history.replaceState(null, '', `weather.html?airport=${icao}`);
-
             showLoading();
 
             try {
-                const headers = { 'Authorization': `TOKEN ${AVWX_TOKEN}` };
-
                 const [metarRes, tafRes] = await Promise.all([
-                    fetch(`https://avwx.rest/api/metar/${icao}?options=info`, { headers }),
-                    fetch(`https://avwx.rest/api/taf/${icao}`, { headers })
+                    fetch(`${NOAA_BASE}/metar?ids=${icao}&format=json&hours=2`),
+                    fetch(`${NOAA_BASE}/taf?ids=${icao}&format=json`)
                 ]);
 
-                if (!metarRes.ok) {
-                    const err = await metarRes.json().catch(() => ({}));
-                    showError(icao, err.error || `No METAR data found for ${icao}. Check the airport code and try again.`);
+                const metarArr = metarRes.ok ? await metarRes.json() : [];
+                const tafArr   = tafRes.ok  ? await tafRes.json()  : [];
+
+                if (!metarArr.length) {
+                    showError(icao, `No METAR data found for <strong>${icao}</strong>. Check the airport code — use the 4-letter ICAO format (e.g. KRNT, KSEA).`);
                     return;
                 }
 
-                const metar = await metarRes.json();
-                const taf   = tafRes.ok ? await tafRes.json() : null;
-
-                renderResults(icao, metar, taf);
+                renderResults(icao, metarArr[0], tafArr[0] || null);
 
             } catch (e) {
                 showError(icao, 'Network error — check your connection and try again.');
@@ -404,21 +394,21 @@
         function showError(icao, msg) {
             const el = document.getElementById('weatherResults');
             el.style.display = 'block';
-            el.innerHTML = `<div class="wx-card"><div class="wx-error"><strong>${icao}</strong> — ${msg}</div></div>`;
+            el.innerHTML = `<div class="wx-card"><div class="wx-error">${msg}</div></div>`;
         }
 
-        function renderResults(icao, metar, taf) {
-            const el = document.getElementById('weatherResults');
+        function renderResults(icao, m, taf) {
+            const el   = document.getElementById('weatherResults');
             el.style.display = 'block';
 
-            const airportName = metar.info?.name || icao;
-            const fr          = metar.flight_rules || '—';
-            const obsTime     = formatObsTime(metar.time);
+            const name    = m.name  || icao;
+            const fr      = m.fltCat || computeFlightRules(m);
+            const obsTime = formatObsTime(m.obsTime);
 
             let html = `
                 <div class="wx-airport-header">
                     <div>
-                        <div class="wx-airport-name">${airportName}</div>
+                        <div class="wx-airport-name">${name}</div>
                         <div class="wx-airport-meta">
                             <span class="wx-icao">${icao}</span>
                             <span class="wx-obs-time">${obsTime}</span>
@@ -432,26 +422,25 @@
                         METAR
                         <span class="fr-pill fr-${fr}">${fr}</span>
                     </div>
-                    <div class="raw-string">${metar.raw || '—'}</div>
+                    <div class="raw-string">${m.rawOb || '—'}</div>
                     <div class="decoded-grid">
-                        ${decodedItem('Wind',       decodeWind(metar))}
-                        ${decodedItem('Visibility', decodeVisibility(metar))}
-                        ${decodedItem('Sky',        decodeSky(metar))}
-                        ${decodedItem('Temperature',decodeTemp(metar))}
-                        ${decodedItem('Dewpoint',   decodeDew(metar))}
-                        ${decodedItem('Altimeter',  decodeAltimeter(metar))}
+                        ${decodedItem('Wind',        decodeWind(m))}
+                        ${decodedItem('Visibility',  decodeVisibility(m))}
+                        ${decodedItem('Sky',         decodeSky(m.clouds))}
+                        ${decodedItem('Temperature', decodeTemp(m.temp))}
+                        ${decodedItem('Dewpoint',    decodeTemp(m.dewp))}
+                        ${decodedItem('Altimeter',   decodeAltimeter(m.altim))}
                     </div>
-                </div>
-            `;
+                </div>`;
 
-            if (taf) {
-                html += renderTAF(taf);
-            } else {
-                html += `<div class="wx-card"><div class="wx-card-title">TAF</div><p style="color:#7f8c8d">No TAF available for ${icao}.</p></div>`;
-            }
+            html += taf ? renderTAF(taf) :
+                `<div class="wx-card"><div class="wx-card-title">TAF</div>
+                 <p style="color:#7f8c8d;margin-top:8px">No TAF available for ${icao}.</p></div>`;
 
             el.innerHTML = html;
         }
+
+        // ── Decode helpers ──
 
         function decodedItem(label, value) {
             return `<div class="decoded-item">
@@ -461,101 +450,109 @@
         }
 
         function decodeWind(m) {
-            if (!m.wind_speed) return 'Calm';
-            const spd  = m.wind_speed.value;
-            if (spd === 0) return 'Calm';
-            const dir  = m.wind_direction?.repr || '—';
-            const gust = m.wind_gust ? ` G${m.wind_gust.value}` : '';
-            return `${dir}° @ ${spd}${gust} kt`;
+            if (m.wspd == null) return 'Calm';
+            if (m.wspd === 0)   return 'Calm';
+            const dir  = m.wdir === 0 ? 'VRB' : `${m.wdir}°`;
+            const gust = m.wgst ? ` G${m.wgst}` : '';
+            return `${dir} @ ${m.wspd}${gust} kt`;
         }
 
         function decodeVisibility(m) {
-            if (!m.visibility) return '—';
-            return `${m.visibility.repr} sm`;
+            if (m.visib == null) return '—';
+            const v = String(m.visib);
+            return v === '10+' ? '10+ sm' : `${v} sm`;
         }
 
-        function decodeSky(m) {
-            if (!m.clouds || m.clouds.length === 0) return 'Clear';
-            const labels = { FEW:'Few', SCT:'Scattered', BKN:'Broken', OVC:'Overcast', CLR:'Clear', SKC:'Clear' };
-            return m.clouds.map(c => {
-                const type = labels[c.type] || c.type;
-                const alt  = c.altitude ? ` @ ${(c.altitude * 100).toLocaleString()} ft` : '';
-                return `${type}${alt}`;
+        function decodeSky(clouds) {
+            if (!clouds || clouds.length === 0) return 'Clear';
+            const labels = { FEW:'Few', SCT:'Scattered', BKN:'Broken', OVC:'Overcast', CLR:'Clear', SKC:'Clear', CAVOK:'Clear' };
+            return clouds.map(c => {
+                const lbl = labels[c.cover] || c.cover;
+                const alt = c.base != null ? ` @ ${c.base.toLocaleString()} ft` : '';
+                return `${lbl}${alt}`;
             }).join('<br>');
         }
 
-        function decodeTemp(m) {
-            if (!m.temperature) return '—';
-            const c = m.temperature.value;
+        function decodeTemp(c) {
+            if (c == null) return '—';
             const f = Math.round(c * 9/5 + 32);
-            return `${c}°C / ${f}°F`;
+            return `${c.toFixed(1)}°C / ${f}°F`;
         }
 
-        function decodeDew(m) {
-            if (!m.dewpoint) return '—';
-            const c = m.dewpoint.value;
-            const f = Math.round(c * 9/5 + 32);
-            return `${c}°C / ${f}°F`;
+        function decodeAltimeter(mb) {
+            if (mb == null) return '—';
+            const inHg = (mb / 33.8639).toFixed(2);
+            return `${inHg} inHg`;
         }
 
-        function decodeAltimeter(m) {
-            if (!m.altimeter) return '—';
-            return `${m.altimeter.value.toFixed(2)} inHg`;
+        function formatObsTime(unixSec) {
+            if (!unixSec) return '';
+            const obs  = new Date(unixSec * 1000);
+            const now  = new Date();
+            const mins = Math.round((now - obs) / 60000);
+            const utc  = obs.toISOString().slice(11, 16) + 'Z';
+            if (mins < 0 || mins > 240) return `Observed ${utc}`;
+            if (mins < 2) return `Observed just now (${utc})`;
+            return `Observed ${mins} min ago (${utc})`;
         }
 
-        function formatObsTime(timeObj) {
-            if (!timeObj?.dt) return '';
-            try {
-                const obs  = new Date(timeObj.dt);
-                const now  = new Date();
-                const mins = Math.round((now - obs) / 60000);
-                const utc  = obs.toISOString().slice(11, 16) + 'Z';
-                if (mins < 0 || mins > 180) return `Observed ${utc}`;
-                if (mins < 2) return `Observed just now (${utc})`;
-                return `Observed ${mins} min ago (${utc})`;
-            } catch { return ''; }
+        function computeFlightRules(m) {
+            const vis  = parseFloat(m.visib) || 10;
+            const ceil = m.clouds ? getCeiling(m.clouds) : 9999;
+            if (ceil < 500  || vis < 1)   return 'LIFR';
+            if (ceil < 1000 || vis < 3)   return 'IFR';
+            if (ceil < 3000 || vis < 5)   return 'MVFR';
+            return 'VFR';
         }
+
+        function getCeiling(clouds) {
+            const ceil = clouds.filter(c => ['BKN','OVC','VV'].includes(c.cover));
+            return ceil.length ? Math.min(...ceil.map(c => c.base || 9999)) : 9999;
+        }
+
+        // ── TAF renderer ──
 
         function renderTAF(taf) {
-            const typeClass = { FROM:'FM', BECMG:'BECMG', TEMPO:'TEMPO', PROB30:'PROB', PROB40:'PROB' };
+            const periods = (taf.fcsts || []).map(p => {
+                const type   = p.fcstChange || 'INITIAL';
+                const typeCs = type === 'INITIAL' ? '' : type;
+                const prob   = p.probability ? `PROB${p.probability} ` : '';
+                const label  = prob + (type === 'INITIAL' ? 'INITIAL' : type);
 
-            const periods = (taf.forecast || []).map(p => {
-                const type  = p.type || 'FROM';
-                const cls   = typeClass[type] || type;
-                const start = p.start_time?.repr || '';
-                const end   = p.end_time?.repr   || '';
-                const fr    = p.flight_rules || '';
+                const from = p.timeFrom ? formatUTC(p.timeFrom) : '';
+                const to   = p.timeTo   ? formatUTC(p.timeTo)   : '';
+                const timeStr = from && to ? `${from}Z – ${to}Z` : '';
 
-                const wind  = p.wind_speed ? (() => {
-                    const spd  = p.wind_speed.value;
-                    const dir  = p.wind_direction?.repr || '—';
-                    const gust = p.wind_gust ? ` G${p.wind_gust.value}` : '';
-                    return spd === 0 ? 'Calm' : `${dir}° @ ${spd}${gust} kt`;
+                const wind = p.wspd != null ? (() => {
+                    if (p.wspd === 0) return 'Calm';
+                    const dir  = p.wdir === 0 ? 'VRB' : `${p.wdir}°`;
+                    const gust = p.wgst ? ` G${p.wgst}` : '';
+                    return `${dir} @ ${p.wspd}${gust} kt`;
                 })() : null;
 
-                const vis   = p.visibility ? `${p.visibility.repr} sm` : null;
+                const vis = p.visib != null ? (() => {
+                    const v = String(p.visib);
+                    return (v === '6+' || v === '10+') ? `${v} sm` : `${v} sm`;
+                })() : null;
 
-                const sky   = p.clouds && p.clouds.length > 0
-                    ? p.clouds.map(c => {
-                        const labels = { FEW:'Few', SCT:'Scattered', BKN:'Broken', OVC:'Overcast' };
-                        const alt = c.altitude ? ` @ ${(c.altitude * 100).toLocaleString()} ft` : '';
-                        return (labels[c.type] || c.type) + alt;
-                    }).join(', ')
-                    : null;
+                const sky = p.clouds && p.clouds.length ? p.clouds.map(c => {
+                    const labels = { FEW:'Few', SCT:'Scattered', BKN:'Broken', OVC:'Overcast' };
+                    const alt = c.base != null ? ` @ ${c.base.toLocaleString()} ft` : '';
+                    return (labels[c.cover] || c.cover) + alt;
+                }).join(', ') : null;
 
+                const fr = p.clouds ? computeFlightRules(p) : null;
                 const frBadge = fr ? `<span class="fr-pill fr-${fr}" style="font-size:0.7em;padding:2px 8px;border-radius:10px;color:white;">${fr}</span>` : '';
 
-                const timeStr = start && end ? `${start}Z – ${end}Z` : (start ? `From ${start}Z` : '');
-
                 const details = [
-                    wind  ? `<div class="taf-detail"><span class="taf-detail-label">Wind</span> ${wind}</div>`  : '',
-                    vis   ? `<div class="taf-detail"><span class="taf-detail-label">Vis</span> ${vis}</div>`    : '',
-                    sky   ? `<div class="taf-detail"><span class="taf-detail-label">Sky</span> ${sky}</div>`    : '',
+                    wind ? `<div class="taf-detail"><span class="taf-detail-label">Wind</span> ${wind}</div>` : '',
+                    vis  ? `<div class="taf-detail"><span class="taf-detail-label">Vis</span> ${vis}</div>`   : '',
+                    sky  ? `<div class="taf-detail"><span class="taf-detail-label">Sky</span> ${sky}</div>`   : '',
                 ].join('');
 
                 return `<div class="taf-period">
                     <div class="taf-period-header">
-                        <span class="taf-type-label taf-type-${cls}">${type}</span>
+                        <span class="taf-type-label taf-type-${typeCs}">${label}</span>
                         <span class="taf-period-time">${timeStr}</span>
                         ${frBadge}
                     </div>
@@ -565,18 +562,19 @@
 
             return `<div class="wx-card">
                 <div class="wx-card-title">TAF</div>
-                <div class="raw-string">${taf.raw || '—'}</div>
+                <div class="raw-string">${taf.rawTAF || '—'}</div>
                 ${periods}
             </div>`;
         }
 
+        function formatUTC(unixSec) {
+            return new Date(unixSec * 1000).toISOString().slice(11, 16);
+        }
+
         // On load — check URL param
         document.addEventListener('DOMContentLoaded', () => {
-            const params = new URLSearchParams(window.location.search);
-            const airport = params.get('airport');
-            if (airport) {
-                lookupWeather(airport.toUpperCase());
-            }
+            const airport = new URLSearchParams(window.location.search).get('airport');
+            if (airport) lookupWeather(airport.toUpperCase());
         });
     </script>
 </body>
