@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather - PNWAV8R</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <style>
+        /* ── Search card ── */
+        .wx-search-card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 16px;
+            padding: 36px 40px 30px;
+            margin-bottom: 28px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .wx-search-card h2 {
+            font-size: 2em;
+            color: #2c3e50;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        .wx-search-row {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        .wx-search-row input {
+            padding: 14px 22px;
+            border: 2px solid #bdc3c7;
+            border-radius: 30px;
+            font-size: 1.1em;
+            width: 220px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            transition: border-color 0.2s;
+        }
+        .wx-search-row input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.15);
+        }
+        .wx-search-row button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 30px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .wx-search-row button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(102,126,234,0.4);
+        }
+        .quick-airports {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+        .airport-btn {
+            background: #f0f2f5;
+            border: 2px solid #e0e4ea;
+            color: #2c3e50;
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 700;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Courier New', monospace;
+        }
+        .airport-btn:hover {
+            background: #667eea;
+            border-color: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+        .airport-btn.active {
+            background: #667eea;
+            border-color: #667eea;
+            color: white;
+        }
+
+        /* ── Results ── */
+        #weatherResults { display: none; }
+
+        /* Airport header */
+        .wx-airport-header {
+            background: rgba(255,255,255,0.95);
+            border-radius: 16px;
+            padding: 28px 36px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .wx-airport-name {
+            font-size: 1.6em;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+        .wx-airport-meta {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-top: 6px;
+        }
+        .wx-icao {
+            font-family: 'Courier New', monospace;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #667eea;
+            background: #f0f2ff;
+            padding: 4px 12px;
+            border-radius: 8px;
+        }
+        .wx-obs-time {
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+
+        /* Flight rules badge */
+        .fr-badge {
+            font-size: 1.3em;
+            font-weight: 800;
+            padding: 10px 24px;
+            border-radius: 30px;
+            letter-spacing: 2px;
+            color: white;
+        }
+        .fr-VFR  { background: #28a745; }
+        .fr-MVFR { background: #007bff; }
+        .fr-IFR  { background: #dc3545; }
+        .fr-LIFR { background: #6f42c1; }
+
+        /* Cards */
+        .wx-card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 16px;
+            padding: 28px 36px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .wx-card-title {
+            font-size: 1.2em;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 14px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f2f5;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .wx-card-title .fr-pill {
+            font-size: 0.75em;
+            font-weight: 700;
+            padding: 3px 12px;
+            border-radius: 20px;
+            color: white;
+            letter-spacing: 1px;
+        }
+
+        /* Raw string box */
+        .raw-string {
+            background: #1e2d3d;
+            color: #a8d8ea;
+            padding: 16px 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95em;
+            line-height: 1.6;
+            word-break: break-all;
+            margin-bottom: 20px;
+        }
+
+        /* Decoded grid */
+        .decoded-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 14px;
+        }
+        .decoded-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 14px 16px;
+            border-left: 4px solid #667eea;
+        }
+        .decoded-label {
+            font-size: 0.75em;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #95a5a6;
+            margin-bottom: 4px;
+        }
+        .decoded-value {
+            font-size: 1em;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        /* TAF periods */
+        .taf-period {
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 14px 18px;
+            margin-bottom: 10px;
+            background: #fafbfc;
+        }
+        .taf-period:last-child { margin-bottom: 0; }
+        .taf-period-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+        .taf-type-label {
+            font-size: 0.75em;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 6px;
+            background: #e9ecef;
+            color: #495057;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .taf-type-FM    { background: #cce5ff; color: #004085; }
+        .taf-type-BECMG { background: #fff3cd; color: #856404; }
+        .taf-type-TEMPO { background: #d4edda; color: #155724; }
+        .taf-type-PROB  { background: #f8d7da; color: #721c24; }
+        .taf-period-time {
+            font-size: 0.85em;
+            color: #7f8c8d;
+            font-family: 'Courier New', monospace;
+        }
+        .taf-period-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            font-size: 0.9em;
+            color: #2c3e50;
+        }
+        .taf-detail { display: flex; gap: 5px; }
+        .taf-detail-label { color: #95a5a6; font-size: 0.85em; }
+
+        /* Loading / error */
+        .wx-loading {
+            text-align: center;
+            padding: 50px;
+            color: #7f8c8d;
+            font-size: 1.1em;
+        }
+        .wx-loading .spinner {
+            width: 36px; height: 36px;
+            border: 4px solid #e9ecef;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            margin: 0 auto 16px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .wx-error {
+            background: #fff5f5;
+            border: 1px solid #feb2b2;
+            border-left: 4px solid #dc3545;
+            border-radius: 10px;
+            padding: 20px 24px;
+            color: #721c24;
+        }
+
+        @media (max-width: 768px) {
+            .wx-search-card { padding: 24px 20px; }
+            .wx-card { padding: 20px; }
+            .wx-airport-header { padding: 20px; }
+            .decoded-grid { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">PNWAV8R</a>
+            <button class="mobile-menu" onclick="toggleMobileMenu()">☰</button>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li><a href="weather.html" class="nav-link active">Weather</a></li>
+                <li class="dropdown">
+                    <a href="weight-balance.html" class="nav-link">Weight & Balance</a>
+                    <ul class="dropdown-menu">
+                        <li><a href="wb.html" class="dropdown-link">N7798E (Cessna 150)</a></li>
+                        <li><a href="#" class="dropdown-link" onclick="alert('Coming soon!')">Future Aircraft</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="main-content">
+
+        <div class="wx-search-card">
+            <h2>Aviation Weather</h2>
+            <div class="wx-search-row">
+                <input type="text" id="airportInput" placeholder="KRNT" maxlength="4"
+                       onkeydown="if(event.key==='Enter') lookupWeather()">
+                <button onclick="lookupWeather()">Get Weather</button>
+            </div>
+            <div class="quick-airports">
+                <button class="airport-btn" onclick="lookupWeather('KRNT')">KRNT</button>
+                <button class="airport-btn" onclick="lookupWeather('KBFI')">KBFI</button>
+                <button class="airport-btn" onclick="lookupWeather('KSEA')">KSEA</button>
+                <button class="airport-btn" onclick="lookupWeather('KPAE')">KPAE</button>
+                <button class="airport-btn" onclick="lookupWeather('KAWO')">KAWO</button>
+                <button class="airport-btn" onclick="lookupWeather('KBVS')">KBVS</button>
+                <button class="airport-btn" onclick="lookupWeather('KOLM')">KOLM</button>
+                <button class="airport-btn" onclick="lookupWeather('KTCM')">KTCM</button>
+                <button class="airport-btn" onclick="lookupWeather('KTIW')">KTIW</button>
+                <button class="airport-btn" onclick="lookupWeather('KPDX')">KPDX</button>
+            </div>
+        </div>
+
+        <div id="weatherResults"></div>
+
+    </div>
+
+    <footer class="footer">
+        <p><strong>PNWAV8R</strong> - Pacific Northwest Aviation</p>
+        <p>Weather data via AVWX / NOAA. For flight planning reference only — always verify with official sources.</p>
+        <p>The pilot in command is solely responsible for all preflight decisions.</p>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script>
+        const AVWX_TOKEN = 'Ld0Z9WEaR9yaouqCqIFqJnaIxQRXIGQ5oyFLJ6_DeD4';
+
+        async function lookupWeather(icaoArg) {
+            let icao = icaoArg;
+            if (!icao) {
+                const val = document.getElementById('airportInput').value.trim().toUpperCase();
+                if (!val || val.length < 3) {
+                    alert('Enter a 3 or 4 character airport code.');
+                    return;
+                }
+                icao = val.length === 3 ? 'K' + val : val;
+            }
+
+            // Update input and highlight active button
+            document.getElementById('airportInput').value = icao;
+            document.querySelectorAll('.airport-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.airport-btn').forEach(b => {
+                if (b.textContent === icao) b.classList.add('active');
+            });
+
+            // Update URL without reload
+            history.replaceState(null, '', `weather.html?airport=${icao}`);
+
+            showLoading();
+
+            try {
+                const headers = { 'Authorization': `TOKEN ${AVWX_TOKEN}` };
+
+                const [metarRes, tafRes] = await Promise.all([
+                    fetch(`https://avwx.rest/api/metar/${icao}?options=info`, { headers }),
+                    fetch(`https://avwx.rest/api/taf/${icao}`, { headers })
+                ]);
+
+                if (!metarRes.ok) {
+                    const err = await metarRes.json().catch(() => ({}));
+                    showError(icao, err.error || `No METAR data found for ${icao}. Check the airport code and try again.`);
+                    return;
+                }
+
+                const metar = await metarRes.json();
+                const taf   = tafRes.ok ? await tafRes.json() : null;
+
+                renderResults(icao, metar, taf);
+
+            } catch (e) {
+                showError(icao, 'Network error — check your connection and try again.');
+            }
+        }
+
+        function showLoading() {
+            const el = document.getElementById('weatherResults');
+            el.style.display = 'block';
+            el.innerHTML = `<div class="wx-card wx-loading"><div class="spinner"></div>Fetching weather data…</div>`;
+        }
+
+        function showError(icao, msg) {
+            const el = document.getElementById('weatherResults');
+            el.style.display = 'block';
+            el.innerHTML = `<div class="wx-card"><div class="wx-error"><strong>${icao}</strong> — ${msg}</div></div>`;
+        }
+
+        function renderResults(icao, metar, taf) {
+            const el = document.getElementById('weatherResults');
+            el.style.display = 'block';
+
+            const airportName = metar.info?.name || icao;
+            const fr          = metar.flight_rules || '—';
+            const obsTime     = formatObsTime(metar.time);
+
+            let html = `
+                <div class="wx-airport-header">
+                    <div>
+                        <div class="wx-airport-name">${airportName}</div>
+                        <div class="wx-airport-meta">
+                            <span class="wx-icao">${icao}</span>
+                            <span class="wx-obs-time">${obsTime}</span>
+                        </div>
+                    </div>
+                    <div class="fr-badge fr-${fr}">${fr}</div>
+                </div>
+
+                <div class="wx-card">
+                    <div class="wx-card-title">
+                        METAR
+                        <span class="fr-pill fr-${fr}">${fr}</span>
+                    </div>
+                    <div class="raw-string">${metar.raw || '—'}</div>
+                    <div class="decoded-grid">
+                        ${decodedItem('Wind',       decodeWind(metar))}
+                        ${decodedItem('Visibility', decodeVisibility(metar))}
+                        ${decodedItem('Sky',        decodeSky(metar))}
+                        ${decodedItem('Temperature',decodeTemp(metar))}
+                        ${decodedItem('Dewpoint',   decodeDew(metar))}
+                        ${decodedItem('Altimeter',  decodeAltimeter(metar))}
+                    </div>
+                </div>
+            `;
+
+            if (taf) {
+                html += renderTAF(taf);
+            } else {
+                html += `<div class="wx-card"><div class="wx-card-title">TAF</div><p style="color:#7f8c8d">No TAF available for ${icao}.</p></div>`;
+            }
+
+            el.innerHTML = html;
+        }
+
+        function decodedItem(label, value) {
+            return `<div class="decoded-item">
+                <div class="decoded-label">${label}</div>
+                <div class="decoded-value">${value}</div>
+            </div>`;
+        }
+
+        function decodeWind(m) {
+            if (!m.wind_speed) return 'Calm';
+            const spd  = m.wind_speed.value;
+            if (spd === 0) return 'Calm';
+            const dir  = m.wind_direction?.repr || '—';
+            const gust = m.wind_gust ? ` G${m.wind_gust.value}` : '';
+            return `${dir}° @ ${spd}${gust} kt`;
+        }
+
+        function decodeVisibility(m) {
+            if (!m.visibility) return '—';
+            return `${m.visibility.repr} sm`;
+        }
+
+        function decodeSky(m) {
+            if (!m.clouds || m.clouds.length === 0) return 'Clear';
+            const labels = { FEW:'Few', SCT:'Scattered', BKN:'Broken', OVC:'Overcast', CLR:'Clear', SKC:'Clear' };
+            return m.clouds.map(c => {
+                const type = labels[c.type] || c.type;
+                const alt  = c.altitude ? ` @ ${(c.altitude * 100).toLocaleString()} ft` : '';
+                return `${type}${alt}`;
+            }).join('<br>');
+        }
+
+        function decodeTemp(m) {
+            if (!m.temperature) return '—';
+            const c = m.temperature.value;
+            const f = Math.round(c * 9/5 + 32);
+            return `${c}°C / ${f}°F`;
+        }
+
+        function decodeDew(m) {
+            if (!m.dewpoint) return '—';
+            const c = m.dewpoint.value;
+            const f = Math.round(c * 9/5 + 32);
+            return `${c}°C / ${f}°F`;
+        }
+
+        function decodeAltimeter(m) {
+            if (!m.altimeter) return '—';
+            return `${m.altimeter.value.toFixed(2)} inHg`;
+        }
+
+        function formatObsTime(timeObj) {
+            if (!timeObj?.dt) return '';
+            try {
+                const obs  = new Date(timeObj.dt);
+                const now  = new Date();
+                const mins = Math.round((now - obs) / 60000);
+                const utc  = obs.toISOString().slice(11, 16) + 'Z';
+                if (mins < 0 || mins > 180) return `Observed ${utc}`;
+                if (mins < 2) return `Observed just now (${utc})`;
+                return `Observed ${mins} min ago (${utc})`;
+            } catch { return ''; }
+        }
+
+        function renderTAF(taf) {
+            const typeClass = { FROM:'FM', BECMG:'BECMG', TEMPO:'TEMPO', PROB30:'PROB', PROB40:'PROB' };
+
+            const periods = (taf.forecast || []).map(p => {
+                const type  = p.type || 'FROM';
+                const cls   = typeClass[type] || type;
+                const start = p.start_time?.repr || '';
+                const end   = p.end_time?.repr   || '';
+                const fr    = p.flight_rules || '';
+
+                const wind  = p.wind_speed ? (() => {
+                    const spd  = p.wind_speed.value;
+                    const dir  = p.wind_direction?.repr || '—';
+                    const gust = p.wind_gust ? ` G${p.wind_gust.value}` : '';
+                    return spd === 0 ? 'Calm' : `${dir}° @ ${spd}${gust} kt`;
+                })() : null;
+
+                const vis   = p.visibility ? `${p.visibility.repr} sm` : null;
+
+                const sky   = p.clouds && p.clouds.length > 0
+                    ? p.clouds.map(c => {
+                        const labels = { FEW:'Few', SCT:'Scattered', BKN:'Broken', OVC:'Overcast' };
+                        const alt = c.altitude ? ` @ ${(c.altitude * 100).toLocaleString()} ft` : '';
+                        return (labels[c.type] || c.type) + alt;
+                    }).join(', ')
+                    : null;
+
+                const frBadge = fr ? `<span class="fr-pill fr-${fr}" style="font-size:0.7em;padding:2px 8px;border-radius:10px;color:white;">${fr}</span>` : '';
+
+                const timeStr = start && end ? `${start}Z – ${end}Z` : (start ? `From ${start}Z` : '');
+
+                const details = [
+                    wind  ? `<div class="taf-detail"><span class="taf-detail-label">Wind</span> ${wind}</div>`  : '',
+                    vis   ? `<div class="taf-detail"><span class="taf-detail-label">Vis</span> ${vis}</div>`    : '',
+                    sky   ? `<div class="taf-detail"><span class="taf-detail-label">Sky</span> ${sky}</div>`    : '',
+                ].join('');
+
+                return `<div class="taf-period">
+                    <div class="taf-period-header">
+                        <span class="taf-type-label taf-type-${cls}">${type}</span>
+                        <span class="taf-period-time">${timeStr}</span>
+                        ${frBadge}
+                    </div>
+                    <div class="taf-period-details">${details || '<span style="color:#95a5a6">See raw TAF</span>'}</div>
+                </div>`;
+            }).join('');
+
+            return `<div class="wx-card">
+                <div class="wx-card-title">TAF</div>
+                <div class="raw-string">${taf.raw || '—'}</div>
+                ${periods}
+            </div>`;
+        }
+
+        // On load — check URL param
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const airport = params.get('airport');
+            if (airport) {
+                lookupWeather(airport.toUpperCase());
+            }
+        });
+    </script>
+</body>
+</html>
