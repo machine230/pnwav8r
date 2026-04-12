@@ -298,10 +298,6 @@
                 indicator.style.background = '#e74c3c';
                 cgPointer.style.borderTopColor = '#e74c3c';
                 cgValue.style.background = '#e74c3c';
-            } else if (Math.abs(currentCG - cgLimits.forward) < 0.5 || Math.abs(currentCG - cgLimits.aft) < 0.5) {
-                indicator.style.background = '#f39c12';
-                cgPointer.style.borderTopColor = '#f39c12';
-                cgValue.style.background = '#f39c12';
             } else {
                 indicator.style.background = '#2c3e50';
                 cgPointer.style.borderTopColor = '#2c3e50';
@@ -327,9 +323,6 @@
             } else if (cg > cgLimits.aft) {
                 statusElement.className = 'status danger';
                 statusElement.textContent = 'CG TOO AFT - ' + (cg - cgLimits.aft).toFixed(2) + '" beyond limit';
-            } else if (weight > 1450 || Math.abs(cg - cgLimits.forward) < 0.5 || Math.abs(cg - cgLimits.aft) < 0.5) {
-                statusElement.className = 'status warning';
-                statusElement.textContent = 'APPROACHING LIMITS - Use caution';
             } else {
                 statusElement.className = 'status safe';
                 statusElement.textContent = 'WITHIN LIMITS - Safe for flight';
@@ -338,9 +331,6 @@
         
         function updateFlightCharacteristics(cg, cgLimits) {
             const characteristicsElement = document.getElementById('flight-characteristics');
-            const cgRange = cgLimits.aft - cgLimits.forward;
-            const cgPosition = (cg - cgLimits.forward) / cgRange;
-            
             if (cg < cgLimits.forward) {
                 characteristicsElement.className = 'flight-characteristics char-danger';
                 characteristicsElement.innerHTML = 
@@ -351,21 +341,11 @@
                 characteristicsElement.innerHTML = 
                     '<h4>AFT CG - DANGEROUS</h4>' +
                     '<p>Light elevator forces, tendency to pitch up, difficult stall/spin recovery, reduced stability. DO NOT FLY.</p>';
-            } else if (cgPosition < 0.3) {
-                characteristicsElement.className = 'flight-characteristics char-caution';
-                characteristicsElement.innerHTML = 
-                    '<h4>Forward CG - Within Limits</h4>' +
-                    '<p>Heavier elevator forces, more stable in cruise, higher approach speeds may be needed, requires more back pressure during flare.</p>';
-            } else if (cgPosition > 0.7) {
-                characteristicsElement.className = 'flight-characteristics char-caution';
-                characteristicsElement.innerHTML = 
-                    '<h4>Aft CG - Within Limits</h4>' +
-                    '<p>Lighter elevator forces, less stable in cruise, reduced stall warning, more sensitive to elevator inputs.</p>';
             } else {
                 characteristicsElement.className = 'flight-characteristics char-normal';
-                characteristicsElement.innerHTML = 
-                    '<h4>Normal CG Range</h4>' +
-                    '<p>Aircraft exhibits normal flight characteristics with predictable handling qualities and standard techniques.</p>';
+                characteristicsElement.innerHTML =
+                    '<h4>CG Within Limits</h4>' +
+                    '<p>Aircraft is within approved CG envelope. Normal flight characteristics apply.</p>';
             }
         }
         
