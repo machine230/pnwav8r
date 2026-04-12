@@ -51,32 +51,48 @@
             const params = new URLSearchParams(window.location.search);
             const code = params.get('code');
 
+            let session = null;
+
             if (code) {
-                // PKCE flow — explicitly exchange the code for a session
                 const { data, error } = await _supabase.auth.exchangeCodeForSession(code);
-                if (data && data.session) {
-                    window.location.replace('/dashboard.html');
-                    return;
-                } else {
-                    document.getElementById('cbMsg').textContent = '';
-                    document.getElementById('cbError').textContent =
-                        'Sign-in failed: ' + (error ? error.message : 'unknown error') + '. Redirecting…';
-                    setTimeout(() => window.location.replace('/login.html'), 3000);
+                if (error || !data.session) {
+                    showError('Sign-in failed: ' + (error ? error.message : 'unknown error'));
                     return;
                 }
+                session = data.session;
+            } else {
+                const { data } = await _supabase.auth.getSession();
+                session = data.session;
             }
 
-            // No code param — check if session already exists (e.g. page refresh)
-            const { data: { session } } = await _supabase.auth.getSession();
-            if (session) {
-                window.location.replace('/dashboard.html');
+            if (!session) {
+                showError('No sign-in token found. Redirecting to login…');
                 return;
             }
 
-            // Nothing to work with — go back to login
-            document.getElementById('cbMsg').textContent = '';
-            document.getElementById('cbError').textContent = 'No sign-in token found. Redirecting to login…';
-            setTimeout(() => window.location.replace('/login.html'), 2000);
+            // Check membership — only active members allowed
+            const { data: member } = await _supabase
+                .from('members')
+                .select('membership_active')
+                .eq('id', session.user.id)
+                .single();
+
+            if (!member || !member.membership_active) {
+                await _supabase.auth.signOut();
+                document.getElementById('cbMsg').textContent = '';
+                document.getElementById('cbError').innerHTML =
+                    'Access denied. Your account is pending approval.<br>' +
+                    'Contact your club admin to request access.';
+                return; // Stay on this page — no redirect
+            }
+
+            window.location.replace('/dashboard.html');
+
+            function showError(msg) {
+                document.getElementById('cbMsg').textContent = '';
+                document.getElementById('cbError').textContent = msg + ' Redirecting…';
+                setTimeout(() => window.location.replace('/login.html'), 3000);
+            }
         })();
     </script>
 </body>
