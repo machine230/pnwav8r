@@ -51,12 +51,11 @@
         _supabase.auth.onAuthStateChange((event, session) => {
             if (event === 'SIGNED_IN' && session) {
                 window.location.replace('/dashboard.html');
-            } else if (event === 'SIGNED_OUT') {
-                window.location.replace('/login.html');
             }
+            // Do NOT redirect on SIGNED_OUT here — that fires on initial load before exchange
         });
 
-        // Also check if a session already exists (e.g. refresh)
+        // Trigger the code exchange by calling getSession (SDK auto-detects ?code= in URL)
         _supabase.auth.getSession().then(({ data: { session }, error }) => {
             if (session) {
                 window.location.replace('/dashboard.html');
