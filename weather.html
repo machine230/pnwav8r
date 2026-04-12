@@ -259,6 +259,55 @@
         .taf-detail { display: flex; gap: 5px; }
         .taf-detail-label { color: #95a5a6; font-size: 0.85em; }
 
+        /* Pressure / Density Altitude box */
+        .pa-box {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            border-radius: 16px;
+            padding: 24px 36px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            color: white;
+        }
+        .pa-box-title {
+            font-size: 0.8em;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 16px;
+        }
+        .pa-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 20px;
+        }
+        .pa-item { text-align: center; }
+        .pa-value {
+            font-size: 2.2em;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+        .pa-label {
+            font-size: 0.75em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255,255,255,0.65);
+        }
+        .pa-divider {
+            width: 1px;
+            background: rgba(255,255,255,0.2);
+            align-self: stretch;
+        }
+        .pa-note {
+            font-size: 0.75em;
+            color: rgba(255,255,255,0.5);
+            margin-top: 16px;
+            border-top: 1px solid rgba(255,255,255,0.15);
+            padding-top: 12px;
+        }
+
         /* Loading / error */
         .wx-loading {
             text-align: center;
@@ -431,13 +480,59 @@
                         ${decodedItem('Dewpoint',    decodeTemp(m.dewp))}
                         ${decodedItem('Altimeter',   decodeAltimeter(m.altim))}
                     </div>
-                </div>`;
+                </div>
+                ${renderPressureAltitude(m)}`;
 
             html += taf ? renderTAF(taf) :
                 `<div class="wx-card"><div class="wx-card-title">TAF</div>
                  <p style="color:#7f8c8d;margin-top:8px">No TAF available for ${icao}.</p></div>`;
 
             el.innerHTML = html;
+        }
+
+        // ── Pressure & Density Altitude ──
+
+        function renderPressureAltitude(m) {
+            if (m.altim == null || m.elev == null) return '';
+
+            const altInHg   = m.altim / 33.8639;
+            const elevFt    = Math.round(m.elev * 3.28084);
+            const pa        = Math.round((29.92 - altInHg) * 1000 + elevFt);
+
+            // Density altitude (needs OAT)
+            let daHtml = '';
+            if (m.temp != null) {
+                const isaTempC = 15 - (1.98 * pa / 1000);
+                const da       = Math.round(pa + 120 * (m.temp - isaTempC));
+                const daColor  = da > elevFt + 2000 ? '#ff6b6b' : da > elevFt + 1000 ? '#ffd93d' : 'white';
+                daHtml = `
+                    <div class="pa-divider"></div>
+                    <div class="pa-item">
+                        <div class="pa-value" style="color:${daColor}">${da.toLocaleString()}<span style="font-size:0.45em;font-weight:400"> ft</span></div>
+                        <div class="pa-label">Density Altitude</div>
+                    </div>`;
+            }
+
+            return `
+                <div class="pa-box">
+                    <div class="pa-box-title">Performance Altitudes</div>
+                    <div class="pa-grid">
+                        <div class="pa-item">
+                            <div class="pa-value">${elevFt.toLocaleString()}<span style="font-size:0.45em;font-weight:400"> ft</span></div>
+                            <div class="pa-label">Field Elevation</div>
+                        </div>
+                        <div class="pa-divider"></div>
+                        <div class="pa-item">
+                            <div class="pa-value">${pa.toLocaleString()}<span style="font-size:0.45em;font-weight:400"> ft</span></div>
+                            <div class="pa-label">Pressure Altitude</div>
+                        </div>
+                        ${daHtml}
+                    </div>
+                    <div class="pa-note">
+                        PA = field elevation ± (29.92 − ${altInHg.toFixed(2)} inHg) × 1000
+                        ${m.temp != null ? `&nbsp;·&nbsp; DA uses OAT ${m.temp.toFixed(1)}°C` : ''}
+                    </div>
+                </div>`;
         }
 
         // ── Decode helpers ──
