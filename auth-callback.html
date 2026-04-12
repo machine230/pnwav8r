@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signing in — PNWAV8R</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .cb-wrap {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .cb-card {
+            background: white;
+            border-radius: 20px;
+            padding: 50px 44px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            min-width: 280px;
+        }
+        .cb-logo { font-size: 2em; font-weight: 900; letter-spacing: 3px; color: #2c3e50; margin-bottom: 24px; }
+        .spinner {
+            width: 40px; height: 40px;
+            border: 4px solid #e9ecef;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .cb-msg { color: #7f8c8d; font-size: 0.95em; }
+        .cb-error { color: #dc3545; font-size: 0.9em; margin-top: 12px; }
+    </style>
+</head>
+<body>
+    <div class="cb-wrap">
+        <div class="cb-card">
+            <div class="cb-logo">PNWAV8R</div>
+            <div class="spinner"></div>
+            <div class="cb-msg" id="cbMsg">Signing you in…</div>
+            <div class="cb-error" id="cbError"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script>
+        // onAuthStateChange fires once the code has been exchanged for a session
+        _supabase.auth.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_IN' && session) {
+                window.location.replace('/dashboard.html');
+            } else if (event === 'SIGNED_OUT') {
+                window.location.replace('/login.html');
+            }
+        });
+
+        // Also check if a session already exists (e.g. refresh)
+        _supabase.auth.getSession().then(({ data: { session }, error }) => {
+            if (session) {
+                window.location.replace('/dashboard.html');
+            } else if (error) {
+                document.getElementById('cbMsg').textContent = '';
+                document.getElementById('cbError').textContent = 'Sign-in failed: ' + error.message + '. Redirecting…';
+                setTimeout(() => window.location.replace('/login.html'), 3000);
+            }
+        });
+
+        // Safety fallback — if nothing happens in 10s, go back to login
+        setTimeout(() => {
+            document.getElementById('cbMsg').textContent = '';
+            document.getElementById('cbError').textContent = 'Sign-in timed out. Redirecting to login…';
+            setTimeout(() => window.location.replace('/login.html'), 2000);
+        }, 10000);
+    </script>
+</body>
+</html>
