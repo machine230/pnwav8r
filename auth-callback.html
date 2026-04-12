@@ -47,31 +47,37 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js"></script>
     <script>
-        // onAuthStateChange fires once the code has been exchanged for a session
-        _supabase.auth.onAuthStateChange((event, session) => {
-            if (event === 'SIGNED_IN' && session) {
-                window.location.replace('/dashboard.html');
-            }
-            // Do NOT redirect on SIGNED_OUT here — that fires on initial load before exchange
-        });
+        (async function () {
+            const params = new URLSearchParams(window.location.search);
+            const code = params.get('code');
 
-        // Trigger the code exchange by calling getSession (SDK auto-detects ?code= in URL)
-        _supabase.auth.getSession().then(({ data: { session }, error }) => {
+            if (code) {
+                // PKCE flow — explicitly exchange the code for a session
+                const { data, error } = await _supabase.auth.exchangeCodeForSession(code);
+                if (data && data.session) {
+                    window.location.replace('/dashboard.html');
+                    return;
+                } else {
+                    document.getElementById('cbMsg').textContent = '';
+                    document.getElementById('cbError').textContent =
+                        'Sign-in failed: ' + (error ? error.message : 'unknown error') + '. Redirecting…';
+                    setTimeout(() => window.location.replace('/login.html'), 3000);
+                    return;
+                }
+            }
+
+            // No code param — check if session already exists (e.g. page refresh)
+            const { data: { session } } = await _supabase.auth.getSession();
             if (session) {
                 window.location.replace('/dashboard.html');
-            } else if (error) {
-                document.getElementById('cbMsg').textContent = '';
-                document.getElementById('cbError').textContent = 'Sign-in failed: ' + error.message + '. Redirecting…';
-                setTimeout(() => window.location.replace('/login.html'), 3000);
+                return;
             }
-        });
 
-        // Safety fallback — if nothing happens in 10s, go back to login
-        setTimeout(() => {
+            // Nothing to work with — go back to login
             document.getElementById('cbMsg').textContent = '';
-            document.getElementById('cbError').textContent = 'Sign-in timed out. Redirecting to login…';
+            document.getElementById('cbError').textContent = 'No sign-in token found. Redirecting to login…';
             setTimeout(() => window.location.replace('/login.html'), 2000);
-        }, 10000);
+        })();
     </script>
 </body>
 </html>
