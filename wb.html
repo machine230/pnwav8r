@@ -55,10 +55,17 @@
     <nav class="navbar">
         <div class="nav-container">
             <a href="index.html" class="logo">PNWAV8R</a>
-            <ul class="nav-menu">
+            <button class="mobile-menu" onclick="toggleMobileMenu()">☰</button>
+            <ul class="nav-menu" id="navMenu">
                 <li><a href="index.html" class="nav-link">Home</a></li>
                 <li><a href="weather.html" class="nav-link">Weather</a></li>
-                <li><a href="weight-balance.html" class="nav-link active">Weight & Balance</a></li>
+                <li class="dropdown">
+                    <a href="weight-balance.html" class="nav-link active">Weight & Balance</a>
+                    <ul class="dropdown-menu">
+                        <li><a href="wb.html" class="dropdown-link">N7798E (Cessna 150)</a></li>
+                        <li><a href="#" class="dropdown-link" onclick="showComingSoon()">Future Aircraft</a></li>
+                    </ul>
+                </li>
             </ul>
         </div>
     </nav>
@@ -72,7 +79,7 @@
             
             <div class="wb-content">
                 <div class="input-section">
-                    <h2>Loading Configuration</h2>
+                    <h2>Aircraft Configuration</h2>
                     
                     <div class="input-group">
                         <label for="pilot-weight">Pilot + Co-Pilot (lbs)</label>
@@ -187,7 +194,12 @@
         </div>
     </div>
 
+    <script src="js/main.js"></script>
     <script>
+        function showComingSoon() {
+            alert('Additional aircraft calculators coming soon!');
+        }
+
         function interpolateCGLimits(weight) {
             if (weight <= 1250) {
                 return { forward: 32.20, aft: 36.00 };
