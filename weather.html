@@ -350,10 +350,11 @@
             let icao = icaoArg;
             if (!icao) {
                 const val = document.getElementById('airportInput').value.trim().toUpperCase();
-                if (!val || val.length < 2) { alert('Enter an airport identifier (e.g. KRNT, RNT, S50).'); return; }
-                // Only prepend K for pure 3-letter codes (e.g. RNT → KRNT)
-                // Leave S50, 1W1, or already 4-char codes alone
-                icao = /^[A-Z]{3}$/.test(val) ? 'K' + val : val;
+                if (!val || val.length < 2 || val.length > 4 || !/^[A-Z0-9]+$/.test(val)) {
+                    alert('Enter a valid airport identifier (2–4 alphanumeric characters, e.g. KRNT, S50, 1W1).');
+                    return;
+                }
+                icao = val;
             }
 
             document.getElementById('airportInput').value = icao;
