@@ -162,15 +162,16 @@
     <script src="js/config.js"></script>
     <script src="js/auth.js"></script>
     <script>
-        const SLOT_HRS  = [6,7,8,9,10,11,12,13,14,15,16,17,18,19,20];
+        const SLOT_HRS  = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23];
         const MIN_SLOTS = 2;
+        const MAX_SLOTS = 48;
         const DAYS      = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
         let weekStart    = getWeekStart(new Date());
         let reservations = [];
         let airplaneId   = null;
         let currentMember= null;
-        let selecting    = { col: null, hours: [] }; // active selection
+        let selecting    = { start: null, end: null }; // absolute Date objects
 
         const TODAY = new Date(); TODAY.setHours(0,0,0,0);
         const MAX_DATE = new Date(TODAY); MAX_DATE.setMonth(MAX_DATE.getMonth() + 3);
@@ -283,7 +284,11 @@
 
                     const isPast     = slotStart < now;
                     const isDisabled = day < TODAY || day > MAX_DATE;
-                    const isSelecting = selecting.col === c && selecting.hours.includes(h);
+                    const isSelecting = selecting.start && (
+                        selecting.end
+                            ? slotStart >= selecting.start && slotStart < selecting.end
+                            : slotStart.getTime() === selecting.start.getTime()
+                    );
 
                     // Find reservation covering this slot
                     const res = reservations.find(r => {
@@ -318,7 +323,7 @@
                     }
 
                     if (!isPast && !isDisabled && !res) {
-                        cell.onclick = () => toggleCell(c, h, day);
+                        cell.onclick = () => toggleCell(slotStart);
                     }
 
                     grid.appendChild(cell);
@@ -326,85 +331,80 @@
             });
         }
 
-        function toggleCell(col, hour, day) {
-            // If clicking a different column, reset
-            if (selecting.col !== null && selecting.col !== col) {
-                clearSelection(false);
-            }
-
-            selecting.col = col;
-
-            if (selecting.hours.includes(hour)) {
-                selecting.hours = selecting.hours.filter(h => h !== hour);
-                if (selecting.hours.length === 0) selecting.col = null;
+        function toggleCell(slotStart) {
+            // First click = set start, second click = set end
+            if (!selecting.start || (selecting.start && selecting.end)) {
+                // Start fresh
+                selecting = { start: slotStart, end: null };
             } else {
-                selecting.hours.push(hour);
-                selecting.hours.sort((a, b) => a - b);
-                // Keep only consecutive block
-                selecting.hours = longestConsecutive(selecting.hours);
+                // Second click — set end (must be after start)
+                const end = new Date(slotStart); end.setHours(end.getHours() + 1);
+                if (end <= selecting.start) {
+                    // Clicked before start — restart
+                    selecting = { start: slotStart, end: null };
+                } else {
+                    const hrs = (end - selecting.start) / 3600000;
+                    if (hrs > MAX_SLOTS) {
+                        document.getElementById('bookMsg').className = 'book-msg error';
+                        document.getElementById('bookMsg').textContent = `Maximum booking is ${MAX_SLOTS} hours.`;
+                        document.getElementById('bookPanel').style.display = 'block';
+                        return;
+                    }
+                    selecting.end = end;
+                }
             }
-
             renderWeek();
-            updateBookPanel(day);
+            updateBookPanel();
         }
 
-        function longestConsecutive(slots) {
-            if (!slots.length) return [];
-            let groups = [], cur = [slots[0]];
-            for (let i = 1; i < slots.length; i++) {
-                if (slots[i] === slots[i-1] + 1) cur.push(slots[i]);
-                else { groups.push(cur); cur = [slots[i]]; }
-            }
-            groups.push(cur);
-            return groups.reduce((a, b) => a.length >= b.length ? a : b);
-        }
-
-        function updateBookPanel(day) {
+        function updateBookPanel() {
             const panel = document.getElementById('bookPanel');
             const msg   = document.getElementById('bookMsg');
             msg.textContent = '';
             msg.className   = 'book-msg';
 
-            if (!selecting.hours.length || selecting.col === null) {
-                panel.style.display = 'none';
+            if (!selecting.start) { panel.style.display = 'none'; return; }
+
+            if (!selecting.end) {
+                // Show hint while waiting for second click
+                document.getElementById('bookSummary').innerHTML =
+                    `<strong>Start:</strong> ${fmtDateTime(selecting.start)}<br>
+                     <span style="color:#7f8c8d;font-size:0.9em">Now click the end time (min 2 hrs, max 48 hrs)</span>`;
+                panel.style.display = 'block';
+                document.getElementById('bookBtn').style.display = 'none';
                 return;
             }
 
-            if (selecting.hours.length < MIN_SLOTS) {
-                panel.style.display = 'none';
+            const hrs = (selecting.end - selecting.start) / 3600000;
+            if (hrs < MIN_SLOTS) {
+                document.getElementById('bookSummary').innerHTML =
+                    `<span style="color:#dc3545">Minimum booking is ${MIN_SLOTS} hours. Please select a later end time.</span>`;
+                panel.style.display = 'block';
+                document.getElementById('bookBtn').style.display = 'none';
                 return;
             }
 
-            const startH = selecting.hours[0];
-            const endH   = selecting.hours[selecting.hours.length - 1] + 1;
-            const start  = new Date(day); start.setHours(startH, 0, 0, 0);
-            const end    = new Date(day); end.setHours(endH, 0, 0, 0);
-            const hrs    = selecting.hours.length;
-
+            document.getElementById('bookBtn').style.display = '';
             document.getElementById('bookSummary').innerHTML =
-                `<strong>N7798E</strong> &nbsp;·&nbsp;
-                 <strong>${day.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}</strong><br>
-                 ${fmtTime(start)} – ${fmtTime(end)} &nbsp;·&nbsp; ${hrs} hour${hrs > 1 ? 's' : ''}`;
-
+                `<strong>N7798E</strong><br>
+                 ${fmtDateTime(selecting.start)} – ${fmtDateTime(selecting.end)}<br>
+                 <strong style="color:#667eea">${hrs} hour${hrs !== 1 ? 's' : ''}</strong>`;
             panel.style.display = 'block';
         }
 
         function clearSelection(rerender = true) {
-            selecting = { col: null, hours: [] };
+            selecting = { start: null, end: null };
             document.getElementById('bookPanel').style.display = 'none';
             document.getElementById('bookMsg').textContent = '';
+            const btn = document.getElementById('bookBtn');
+            if (btn) btn.style.display = '';
             if (rerender) renderWeek();
         }
 
         async function confirmBooking() {
-            if (selecting.hours.length < MIN_SLOTS || selecting.col === null) return;
-
-            const col  = selecting.col;
-            const day  = new Date(weekStart); day.setDate(day.getDate() + col);
-            const startH = selecting.hours[0];
-            const endH   = selecting.hours[selecting.hours.length - 1] + 1;
-            const start  = new Date(day); start.setHours(startH, 0, 0, 0);
-            const end    = new Date(day); end.setHours(endH, 0, 0, 0);
+            if (!selecting.start || !selecting.end) return;
+            const start = selecting.start;
+            const end   = selecting.end;
 
             const btn = document.getElementById('bookBtn');
             const msg = document.getElementById('bookMsg');
@@ -445,8 +445,9 @@
             }
         }
 
-        function fmtTime(d) { return d.toLocaleString('en-US',{hour:'numeric',minute:'2-digit',hour12:true}); }
-        function fmtHour(h) { const d = new Date(); d.setHours(h,0,0,0); return d.toLocaleString('en-US',{hour:'numeric',hour12:true}); }
+        function fmtTime(d)     { return d.toLocaleString('en-US',{hour:'numeric',minute:'2-digit',hour12:true}); }
+        function fmtHour(h)     { const d = new Date(); d.setHours(h,0,0,0); return d.toLocaleString('en-US',{hour:'numeric',hour12:true}); }
+        function fmtDateTime(d) { return d.toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',hour12:true}); }
     </script>
 </body>
 </html>
