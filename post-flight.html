@@ -365,6 +365,12 @@
                 for (const row of rows) {
                     const desc = row.value.trim();
                     if (!desc) continue;
+                    if (desc.length > 500) {
+                        msg.className = 'pf-msg error';
+                        msg.textContent = 'Squawk description must be 500 characters or less.';
+                        btn.disabled = false; btn.textContent = 'Submit Post-Flight Report';
+                        return;
+                    }
                     await _supabase.from('squawks').insert({
                         airplane_id: airplaneId,
                         reported_by: currentMember.id,
@@ -379,10 +385,9 @@
                         body: JSON.stringify({
                             description: desc,
                             reporter:    currentMember.name || currentMember.email,
-                            go_no_go:    selectedGoNoGo,
                             tail:        AIRPLANE_TAIL
                         })
-                    });
+                    }).catch(err => console.error('Squawk notification failed:', err));
                 }
                 // Ground plane only if pilot explicitly chose to ground
                 if (selectedGround) {

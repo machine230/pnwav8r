@@ -1,5 +1,17 @@
 // Auth helpers
 
+// ── Security: HTML escaping to prevent XSS ──────────────────────────────────
+function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#x27;');
+}
+
+// ── Auth ─────────────────────────────────────────────────────────────────────
 async function getSession() {
     const { data: { session } } = await _supabase.auth.getSession();
     return session;
@@ -43,14 +55,30 @@ async function renderNavUser() {
     const member = await getCurrentMember();
     const el = document.getElementById('navUser');
     if (!el || !member) return;
-    const roleBadge = member.role === 'admin'
-        ? `<span style="margin-left:8px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;font-size:0.7em;font-weight:700;padding:2px 8px;border-radius:10px;letter-spacing:0.5px;text-transform:uppercase">Admin</span>`
-        : `<span style="margin-left:8px;background:#e9ecef;color:#6c757d;font-size:0.7em;font-weight:700;padding:2px 8px;border-radius:10px;letter-spacing:0.5px;text-transform:uppercase">Member</span>`;
-    el.innerHTML = `
-        <span style="font-weight:600;color:#2c3e50">${member.name || member.email}</span>
-        ${roleBadge}
-        <button onclick="signOut()" style="margin-left:12px;background:none;border:1px solid #bdc3c7;
-            padding:4px 14px;border-radius:20px;cursor:pointer;font-size:0.85em;color:#7f8c8d">
-            Sign out
-        </button>`;
+
+    const isAdmin   = member.role === 'admin';
+    const badgeText = isAdmin ? 'Admin' : 'Member';
+    const badgeBg   = isAdmin
+        ? 'background:linear-gradient(135deg,#667eea,#764ba2);color:white'
+        : 'background:#e9ecef;color:#6c757d';
+
+    // Use DOM construction to safely insert user name (XSS prevention)
+    el.innerHTML = '';
+
+    const nameSpan = document.createElement('span');
+    nameSpan.style.cssText = 'font-weight:600;color:#2c3e50';
+    nameSpan.textContent = member.name || member.email;
+
+    const badgeSpan = document.createElement('span');
+    badgeSpan.setAttribute('style', `margin-left:8px;${badgeBg};font-size:0.7em;font-weight:700;padding:2px 8px;border-radius:10px;letter-spacing:0.5px;text-transform:uppercase`);
+    badgeSpan.textContent = badgeText;
+
+    const signOutBtn = document.createElement('button');
+    signOutBtn.setAttribute('style', 'margin-left:12px;background:none;border:1px solid #bdc3c7;padding:4px 14px;border-radius:20px;cursor:pointer;font-size:0.85em;color:#7f8c8d');
+    signOutBtn.textContent = 'Sign out';
+    signOutBtn.onclick = signOut;
+
+    el.appendChild(nameSpan);
+    el.appendChild(badgeSpan);
+    el.appendChild(signOutBtn);
 }

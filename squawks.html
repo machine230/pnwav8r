@@ -216,6 +216,7 @@
             el.innerHTML = list.map(s => {
                 const gng     = goNoGoMap[s.go_no_go] || null;
                 const isOpen  = s.status === 'open';
+                const safeId  = escapeHtml(s.id);
 
                 return `<div class="squawk-card ${isOpen ? 'open' : 'resolved'} ${s.go_no_go || ''}">
                     <div class="sq-header">
@@ -225,23 +226,23 @@
                         </div>
                         <div class="sq-meta">${fmtDate(s.reported_at)}</div>
                     </div>
-                    <div class="sq-description">${s.description}</div>
-                    <div class="sq-meta">Reported by ${s.reporter?.name || '—'}</div>
+                    <div class="sq-description">${escapeHtml(s.description)}</div>
+                    <div class="sq-meta">Reported by ${escapeHtml(s.reporter?.name) || '—'}</div>
 
                     ${s.admin_response ? `
                         <div class="sq-response">
                             <div class="sq-response-label">Admin Response</div>
-                            <div class="sq-response-text">${s.admin_response}</div>
-                            <div class="sq-response-meta">${s.responder?.name || 'Admin'} · ${s.admin_response_at ? fmtDate(s.admin_response_at) : ''}</div>
+                            <div class="sq-response-text">${escapeHtml(s.admin_response)}</div>
+                            <div class="sq-response-meta">${escapeHtml(s.responder?.name) || 'Admin'} · ${s.admin_response_at ? fmtDate(s.admin_response_at) : ''}</div>
                         </div>` : ''}
 
                     ${isAdmin && isOpen ? `
-                        <span class="sq-admin-toggle" onclick="toggleRespond('${s.id}')">+ Respond / Update</span>
-                        <div class="sq-respond-form" id="form_${s.id}">
-                            <textarea id="resp_${s.id}" placeholder="Your response or action taken…">${s.admin_response || ''}</textarea>
+                        <span class="sq-admin-toggle" onclick="toggleRespond('${safeId}')">+ Respond / Update</span>
+                        <div class="sq-respond-form" id="form_${safeId}">
+                            <textarea id="resp_${safeId}" placeholder="Your response or action taken…">${escapeHtml(s.admin_response) || ''}</textarea>
                             <div class="sq-respond-actions">
-                                <button class="sq-btn sq-btn-primary" onclick="saveResponse('${s.id}', false)">Save Response</button>
-                                <button class="sq-btn sq-btn-success" onclick="saveResponse('${s.id}', true)">Resolve & Clear</button>
+                                <button class="sq-btn sq-btn-primary" onclick="saveResponse('${safeId}', false)">Save Response</button>
+                                <button class="sq-btn sq-btn-success" onclick="saveResponse('${safeId}', true)">Resolve & Clear</button>
                                 <button class="sq-btn sq-btn-danger"  onclick="groundPlane()">Ground Plane</button>
                                 <button class="sq-btn sq-btn-outline" onclick="ungroundPlane()">Clear to Fly</button>
                             </div>

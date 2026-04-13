@@ -1,28 +1,68 @@
 // Netlify function — sends email to admin when a squawk is reported
 // Requires RESEND_API_KEY and ADMIN_EMAIL environment variables in Netlify
 
-const CORS = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Content-Type': 'application/json'
-};
+const ALLOWED_ORIGINS = [
+    'https://pnwav8r.com',
+    'https://www.pnwav8r.com',
+    'http://localhost:8888',
+    'http://localhost:3000'
+];
+
+function getCorsHeaders(event) {
+    const origin = event.headers?.origin || '';
+    const allowed = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+    return {
+        'Access-Control-Allow-Origin': allowed,
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Content-Type': 'application/json'
+    };
+}
+
+// Escape HTML to prevent injection in email body
+function esc(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#x27;');
+}
 
 export const handler = async (event) => {
-    if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers: CORS, body: '' };
-    if (event.httpMethod !== 'POST') return { statusCode: 405, headers: CORS, body: 'Method not allowed' };
+    const cors = getCorsHeaders(event);
+
+    if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers: cors, body: '' };
+    if (event.httpMethod !== 'POST')    return { statusCode: 405, headers: cors, body: 'Method not allowed' };
 
     const RESEND_API_KEY = process.env.RESEND_API_KEY;
     const ADMIN_EMAIL    = process.env.ADMIN_EMAIL;
 
     if (!RESEND_API_KEY || !ADMIN_EMAIL) {
-        return { statusCode: 200, headers: CORS, body: JSON.stringify({ ok: true, skipped: 'Email not configured' }) };
+        return { statusCode: 200, headers: cors, body: JSON.stringify({ ok: true, skipped: 'Email not configured' }) };
     }
 
-    const { description, reporter, go_no_go, tail } = JSON.parse(event.body || '{}');
+    let body;
+    try {
+        body = JSON.parse(event.body || '{}');
+    } catch {
+        return { statusCode: 400, headers: cors, body: JSON.stringify({ error: 'Invalid JSON' }) };
+    }
 
-    const goNoGoLabel = { go: '✅ GO — Safe to fly', no_go: '🛑 NO-GO — Recommend grounding', caution: '⚠️ CAUTION — Use judgement' };
-    const label = goNoGoLabel[go_no_go] || 'Not specified';
+    const { description, reporter, tail } = body;
+
+    // Validate inputs
+    if (!description || typeof description !== 'string' || description.trim().length === 0) {
+        return { statusCode: 400, headers: cors, body: JSON.stringify({ error: 'Description required' }) };
+    }
+    if (description.length > 1000) {
+        return { statusCode: 400, headers: cors, body: JSON.stringify({ error: 'Description too long' }) };
+    }
+
+    const safeDesc     = esc(description.trim());
+    const safeReporter = esc(reporter || 'Unknown');
+    const safeTail     = esc(tail || 'N/A');
 
     const res = await fetch('https://api.resend.com/emails', {
         method: 'POST',
@@ -30,20 +70,20 @@ export const handler = async (event) => {
         body: JSON.stringify({
             from:    'PNWAV8R <onboarding@resend.dev>',
             to:      [ADMIN_EMAIL],
-            subject: `🛩️ New Squawk Reported — ${tail}`,
+            subject: `🛩️ New Squawk Reported — ${safeTail}`,
             html:    `
                 <div style="font-family:sans-serif;max-width:500px;margin:0 auto">
-                    <h2 style="color:#2c3e50">New Squawk — ${tail}</h2>
-                    <p><strong>Reported by:</strong> ${reporter || 'Unknown'}</p>
-                    <p><strong>Description:</strong><br>${description}</p>
-                    <p><strong>Pilot recommendation:</strong><br>${label}</p>
+                    <h2 style="color:#2c3e50">New Squawk — ${safeTail}</h2>
+                    <p><strong>Reported by:</strong> ${safeReporter}</p>
+                    <p><strong>Description:</strong><br>${safeDesc}</p>
                     <hr>
-                    <a href="https://pnwav8r.com/admin.html" style="background:#667eea;color:white;padding:10px 20px;border-radius:8px;text-decoration:none;display:inline-block;margin-top:8px">
-                        View in Admin Panel
+                    <a href="https://pnwav8r.com/squawks.html"
+                       style="background:#667eea;color:white;padding:10px 20px;border-radius:8px;text-decoration:none;display:inline-block;margin-top:8px">
+                        View Squawk Board
                     </a>
                 </div>`
         })
     });
 
-    return { statusCode: 200, headers: CORS, body: JSON.stringify({ ok: res.ok }) };
+    return { statusCode: 200, headers: cors, body: JSON.stringify({ ok: res.ok }) };
 };

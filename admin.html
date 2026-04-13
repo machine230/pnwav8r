@@ -84,8 +84,8 @@
             <a href="dashboard.html" class="club-nav-logo">PNWAV8R</a>
             <div class="club-nav-links">
                 <a href="dashboard.html">Dashboard</a>
-                <a href="dashboard.html">Dashboard</a>
                 <a href="schedule.html">Schedule</a>
+                <a href="squawks.html">Squawks</a>
                 <a href="post-flight.html">Post-Flight</a>
                 <a href="admin.html" class="active">Admin</a>
             </div>
@@ -289,19 +289,19 @@
             if (!data?.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="7">No members yet.</td></tr>'; return; }
             tbody.innerHTML = data.map(m => `
                 <tr>
-                    <td><strong>${m.name}</strong></td>
-                    <td>${m.email}</td>
-                    <td>${m.phone || '—'}</td>
+                    <td><strong>${escapeHtml(m.name)}</strong></td>
+                    <td>${escapeHtml(m.email)}</td>
+                    <td>${escapeHtml(m.phone) || '—'}</td>
                     <td><span class="badge ${m.membership_active ? 'badge-green' : 'badge-red'}">${m.membership_active ? 'Active' : 'Inactive'}</span></td>
                     <td><span class="badge ${m.pic_status ? 'badge-blue' : 'badge-grey'}">${m.pic_status ? 'Current' : 'Not Current'}</span></td>
-                    <td><span class="badge ${m.role === 'admin' ? 'badge-orange' : 'badge-grey'}">${m.role}</span></td>
+                    <td><span class="badge ${m.role === 'admin' ? 'badge-orange' : 'badge-grey'}">${escapeHtml(m.role)}</span></td>
                     <td>
                         <button class="tbl-btn ${m.membership_active ? 'tbl-btn-danger' : 'tbl-btn-success'}"
-                            onclick="toggleMembership('${m.id}', ${m.membership_active})">
+                            onclick="toggleMembership('${escapeHtml(m.id)}', ${!!m.membership_active})">
                             ${m.membership_active ? 'Deactivate' : 'Activate'}
                         </button>
                         <button class="tbl-btn ${m.pic_status ? 'tbl-btn-warn' : 'tbl-btn-primary'}"
-                            onclick="togglePIC('${m.id}', ${m.pic_status})">
+                            onclick="togglePIC('${escapeHtml(m.id)}', ${!!m.pic_status})">
                             ${m.pic_status ? 'Remove PIC' : 'Set PIC'}
                         </button>
                     </td>
@@ -314,7 +314,9 @@
             const phone = document.getElementById('newPhone').value.trim();
             const msg   = document.getElementById('addMemberMsg');
 
-            if (!name || !email) { msg.style.color='#dc3545'; msg.textContent='Name and email are required.'; return; }
+            if (!name || name.length < 2 || name.length > 100) { msg.style.color='#dc3545'; msg.textContent='Name must be 2–100 characters.'; return; }
+            if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { msg.style.color='#dc3545'; msg.textContent='Enter a valid email address.'; return; }
+            if (phone && phone.replace(/\D/g,'').length > 15) { msg.style.color='#dc3545'; msg.textContent='Phone number is too long.'; return; }
 
             // Pre-create the member record — member will be linked when they sign in
             // Admin must also create their auth account in Supabase → Authentication → Users
@@ -363,7 +365,8 @@
         async function updateTach() {
             const val = parseFloat(document.getElementById('tachUpdate').value);
             const msg = document.getElementById('tachMsg');
-            if (isNaN(val)) { msg.style.color='#dc3545'; msg.textContent='Enter a valid tach number.'; return; }
+            if (isNaN(val) || val < 0 || val > 99999) { msg.style.color='#dc3545'; msg.textContent='Enter a valid tach number (0–99999).'; return; }
+            if (!airplaneId) { msg.style.color='#dc3545'; msg.textContent='Aircraft not loaded.'; return; }
             await _supabase.from('airplanes').update({ current_tach: val, updated_at: new Date().toISOString() }).eq('id', airplaneId);
             msg.style.color='#28a745'; msg.textContent='Tach updated.';
             setTimeout(() => msg.textContent = '', 2000);
@@ -372,6 +375,8 @@
         async function saveMaintNote() {
             const note = document.getElementById('maintNote').value.trim();
             const msg  = document.getElementById('maintMsg');
+            if (note.length > 1000) { msg.style.color='#dc3545'; msg.textContent='Note must be 1000 characters or less.'; return; }
+            if (!airplaneId) { msg.style.color='#dc3545'; msg.textContent='Aircraft not loaded.'; return; }
             await _supabase.from('airplanes').update({ notes: note || null, updated_at: new Date().toISOString() }).eq('id', airplaneId);
             msg.style.color='#28a745'; msg.textContent='Note saved.';
             setTimeout(() => msg.textContent = '', 2000);
@@ -390,19 +395,19 @@
             const ob = document.getElementById('squawkTableBody');
             ob.innerHTML = open?.length ? open.map(s => `
                 <tr class="squawk-row">
-                    <td>${s.description}</td>
-                    <td>${s.reported?.name || '—'}</td>
+                    <td>${escapeHtml(s.description)}</td>
+                    <td>${escapeHtml(s.reported?.name) || '—'}</td>
                     <td>${fmtDate(s.reported_at)}</td>
-                    <td><button class="tbl-btn tbl-btn-success" onclick="resolveSquawk('${s.id}')">Resolve</button></td>
+                    <td><button class="tbl-btn tbl-btn-success" onclick="resolveSquawk('${escapeHtml(s.id)}')">Resolve</button></td>
                 </tr>`).join('')
                 : '<tr class="empty-row"><td colspan="4">No open squawks.</td></tr>';
 
             const rb = document.getElementById('resolvedTableBody');
             rb.innerHTML = resolved?.length ? resolved.map(s => `
                 <tr>
-                    <td>${s.description}</td>
-                    <td>${s.reported?.name || '—'}</td>
-                    <td>${s.resolver?.name || '—'}</td>
+                    <td>${escapeHtml(s.description)}</td>
+                    <td>${escapeHtml(s.reported?.name) || '—'}</td>
+                    <td>${escapeHtml(s.resolver?.name) || '—'}</td>
                     <td>${fmtDate(s.resolved_at)}</td>
                 </tr>`).join('')
                 : '<tr class="empty-row"><td colspan="4">No resolved squawks.</td></tr>';
@@ -438,14 +443,14 @@
             tbody.innerHTML = data.map(f => {
                 const time = (f.tach_start && f.tach_end) ? (f.tach_end - f.tach_start).toFixed(1) + ' hr' : '—';
                 return `<tr>
-                    <td><strong>${f.members?.name || '—'}</strong></td>
+                    <td><strong>${escapeHtml(f.members?.name) || '—'}</strong></td>
                     <td>${fmtDate(f.completed_at)}</td>
                     <td>${f.tach_start ?? '—'}</td>
                     <td>${f.tach_end ?? '—'}</td>
                     <td>${time}</td>
                     <td>${f.fuel_added ? f.fuel_added + ' gal' : '—'}</td>
                     <td>${f.oil_quarts_added ? f.oil_quarts_added + ' qt' : '—'}</td>
-                    <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f.notes || '—'}</td>
+                    <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(f.notes) || '—'}</td>
                 </tr>`;
             }).join('');
         }

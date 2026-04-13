@@ -331,9 +331,10 @@
 
             await Promise.all([loadAirplane(), loadReservations(), loadSquawks(), loadInspections()]);
 
-            _supabase.channel('reservations').on('postgres_changes', { event:'*', schema:'public', table:'reservations' }, async () => { await loadReservations(); renderMiniCal(); }).subscribe();
-            _supabase.channel('airplanes').on('postgres_changes',    { event:'*', schema:'public', table:'airplanes'    }, loadAirplane).subscribe();
-            _supabase.channel('squawks').on('postgres_changes',      { event:'*', schema:'public', table:'squawks'      }, loadSquawks).subscribe();
+            const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
+            _supabase.channel('reservations').on('postgres_changes', { event:'*', schema:'public', table:'reservations' }, debounce(async () => { await loadReservations(); renderMiniCal(); }, 500)).subscribe();
+            _supabase.channel('airplanes').on('postgres_changes',    { event:'*', schema:'public', table:'airplanes'    }, debounce(loadAirplane, 500)).subscribe();
+            _supabase.channel('squawks').on('postgres_changes',      { event:'*', schema:'public', table:'squawks'      }, debounce(loadSquawks, 500)).subscribe();
         });
 
         function getWeekStart(d) {
@@ -402,9 +403,9 @@
                     </div>
                     <div class="res-info">
                         <div class="res-time">${fmtTime(start)} – ${fmtTime(end)}</div>
-                        <div class="res-who">${r.members?.name || '—'}${isMe ? ' <strong>(you)</strong>' : ''}</div>
+                        <div class="res-who">${escapeHtml(r.members?.name) || '—'}${isMe ? ' <strong>(you)</strong>' : ''}</div>
                     </div>
-                    ${isMe ? `<button class="res-cancel-btn" onclick="cancelReservation('${r.id}')">Cancel</button>` : ''}
+                    ${isMe ? `<button class="res-cancel-btn" onclick="cancelReservation('${escapeHtml(r.id)}')">Cancel</button>` : ''}
                 </div>`;
             }).join('');
 
@@ -447,7 +448,7 @@
                     else if (res) {
                         const isMe = res.member_id === currentMember?.id;
                         cls   = isMe ? 'wc-slot mine' : 'wc-slot taken';
-                        label = isMe ? 'You' : (res.members?.name?.split(' ')[0] || '');
+                        label = isMe ? 'You' : escapeHtml(res.members?.name?.split(' ')[0] || '');
                     }
 
                     html += `<td><div class="${cls}">${label}</div></td>`;
@@ -566,10 +567,10 @@
                 const gng = s.go_no_go;
                 const num = `SQ-${String(i + 1).padStart(3, '0')}`;
                 return `<div class="sq-alert-card ${gng || ''}">
-                    <div class="sq-alert-num">${num}</div>
+                    <div class="sq-alert-num">${escapeHtml(num)}</div>
                     ${gng ? `<div class="sq-alert-badges"><span class="sq-alert-badge ${gng}">${gngLabel[gng]}</span></div>` : ''}
-                    <div class="sq-alert-desc">${s.description}</div>
-                    <div class="sq-alert-meta">${s.members?.name || '—'} &middot; ${fmtDate(s.reported_at)}</div>
+                    <div class="sq-alert-desc">${escapeHtml(s.description)}</div>
+                    <div class="sq-alert-meta">${escapeHtml(s.members?.name) || '—'} &middot; ${fmtDate(s.reported_at)}</div>
                 </div>`;
             }).join('');
         }

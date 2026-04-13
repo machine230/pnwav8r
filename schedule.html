@@ -318,7 +318,7 @@
                             block.style.top    = '2px';
                             block.style.height = (durHrs * 48 - 4) + 'px';
                             const name = isMe ? 'You' : (res.members?.name?.split(' ')[0] || 'Member');
-                            block.innerHTML = `<div>${name}</div><div style="font-weight:400;opacity:0.85">${fmtTime(rs)}–${fmtTime(re)}</div>`;
+                            block.innerHTML = `<div>${escapeHtml(name)}</div><div style="font-weight:400;opacity:0.85">${fmtTime(rs)}–${fmtTime(re)}</div>`;
                             cell.appendChild(block);
                         }
                     }
