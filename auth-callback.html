@@ -47,30 +47,13 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js"></script>
     <script>
-        (async function () {
-            const params = new URLSearchParams(window.location.search);
-            const code = params.get('code');
+        let done = false;
 
-            let session = null;
+        async function checkAndRedirect(session) {
+            if (done) return;
+            done = true;
 
-            if (code) {
-                const { data, error } = await _supabase.auth.exchangeCodeForSession(code);
-                if (error || !data.session) {
-                    showError('Sign-in failed: ' + (error ? error.message : 'unknown error'));
-                    return;
-                }
-                session = data.session;
-            } else {
-                const { data } = await _supabase.auth.getSession();
-                session = data.session;
-            }
-
-            if (!session) {
-                showError('No sign-in token found. Redirecting to login…');
-                return;
-            }
-
-            // Check membership — only active members allowed
+            // Check membership — only active members get in
             const { data: member } = await _supabase
                 .from('members')
                 .select('membership_active')
@@ -83,17 +66,34 @@
                 document.getElementById('cbError').innerHTML =
                     'Access denied. Your account is pending approval.<br>' +
                     'Contact your club admin to request access.';
-                return; // Stay on this page — no redirect
+                return;
             }
 
             window.location.replace('/dashboard.html');
+        }
 
-            function showError(msg) {
-                document.getElementById('cbMsg').textContent = '';
-                document.getElementById('cbError').textContent = msg + ' Redirecting…';
-                setTimeout(() => window.location.replace('/login.html'), 3000);
+        // Let the SDK handle everything (PKCE code exchange + hash tokens)
+        // and fire SIGNED_IN when the session is ready
+        _supabase.auth.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_IN' && session) {
+                checkAndRedirect(session);
             }
-        })();
+        });
+
+        // Also check immediately in case session is already established
+        _supabase.auth.getSession().then(({ data: { session } }) => {
+            if (session) checkAndRedirect(session);
+        });
+
+        // Timeout fallback after 15 seconds
+        setTimeout(() => {
+            if (!done) {
+                done = true;
+                document.getElementById('cbMsg').textContent = '';
+                document.getElementById('cbError').textContent = 'Sign-in timed out. Redirecting to login…';
+                setTimeout(() => window.location.replace('/login.html'), 2000);
+            }
+        }, 15000);
     </script>
 </body>
 </html>

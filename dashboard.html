@@ -258,7 +258,12 @@
             if (!session) return;
 
             currentMember = await getCurrentMember();
-            if (!currentMember) { window.location.href = '/login.html'; return; }
+            if (!currentMember) {
+                // Sign out so login.html doesn't bounce them back here
+                await _supabase.auth.signOut();
+                window.location.href = '/login.html';
+                return;
+            }
 
             renderNavUser();
 
