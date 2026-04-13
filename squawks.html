@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Squawk Board — PNWAV8R</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <style>
+        .club-nav { background:rgba(255,255,255,0.97); backdrop-filter:blur(10px); padding:0.9rem 0; position:sticky; top:0; z-index:1000; box-shadow:0 2px 20px rgba(0,0,0,0.08); }
+        .club-nav-inner { max-width:1100px; margin:0 auto; padding:0 24px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+        .club-nav-logo { font-size:1.6em; font-weight:900; letter-spacing:2px; color:#2c3e50; text-decoration:none; }
+        .club-nav-links { display:flex; gap:6px; }
+        .club-nav-links a { text-decoration:none; color:#2c3e50; font-weight:500; padding:7px 16px; border-radius:20px; font-size:0.9em; transition:all 0.2s; }
+        .club-nav-links a:hover, .club-nav-links a.active { background:linear-gradient(135deg,#667eea,#764ba2); color:white; }
+        .page-wrap { max-width:900px; margin:0 auto; padding:32px 24px; }
+
+        /* Status banner */
+        .plane-status-bar {
+            border-radius:14px; padding:16px 24px; margin-bottom:28px;
+            display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;
+        }
+        .plane-status-bar.available   { background:#d4edda; border:1px solid #c3e6cb; }
+        .plane-status-bar.squawk      { background:#f8d7da; border:1px solid #f5c6cb; }
+        .plane-status-bar.maintenance { background:#ffe5cc; border:1px solid #ffd0a0; }
+        .plane-status-bar.flying      { background:#cce5ff; border:1px solid #b8daff; }
+        .status-left { display:flex; align-items:center; gap:12px; }
+        .status-dot { width:14px; height:14px; border-radius:50%; flex-shrink:0; }
+        .available .status-dot   { background:#28a745; }
+        .squawk .status-dot      { background:#dc3545; }
+        .maintenance .status-dot { background:#d35400; }
+        .flying .status-dot      { background:#007bff; }
+        .status-tail { font-size:1.2em; font-weight:900; color:#2c3e50; letter-spacing:2px; }
+        .status-label { font-weight:700; font-size:0.9em; }
+        .available .status-label   { color:#155724; }
+        .squawk .status-label      { color:#721c24; }
+        .maintenance .status-label { color:#843910; }
+        .flying .status-label      { color:#004085; }
+
+        /* Filter tabs */
+        .filter-tabs { display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap; }
+        .filter-tab { padding:7px 18px; border-radius:20px; border:2px solid #e9ecef; background:white; font-weight:600; font-size:0.85em; cursor:pointer; color:#7f8c8d; transition:all 0.2s; }
+        .filter-tab.active { background:linear-gradient(135deg,#667eea,#764ba2); color:white; border-color:transparent; }
+
+        /* Squawk cards */
+        .squawk-card {
+            background:white; border-radius:14px; padding:24px 28px;
+            box-shadow:0 4px 16px rgba(0,0,0,0.07); margin-bottom:16px;
+            border-left:5px solid #e9ecef;
+        }
+        .squawk-card.open.no_go   { border-left-color:#dc3545; }
+        .squawk-card.open.caution { border-left-color:#ffc107; }
+        .squawk-card.open.go      { border-left-color:#28a745; }
+        .squawk-card.resolved     { border-left-color:#28a745; opacity:0.8; }
+
+        .sq-header { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
+        .sq-badges { display:flex; gap:8px; flex-wrap:wrap; }
+        .sq-badge { font-size:0.72em; font-weight:700; padding:4px 12px; border-radius:20px; white-space:nowrap; }
+        .sq-badge.open      { background:#f8d7da; color:#721c24; }
+        .sq-badge.resolved  { background:#d4edda; color:#155724; }
+        .sq-badge.no_go     { background:#dc3545; color:white; }
+        .sq-badge.caution   { background:#fff3cd; color:#856404; }
+        .sq-badge.go        { background:#d4edda; color:#155724; }
+
+        .sq-description { font-size:0.97em; color:#2c3e50; font-weight:600; margin-bottom:8px; line-height:1.5; }
+        .sq-meta { font-size:0.8em; color:#7f8c8d; }
+
+        /* Admin response */
+        .sq-response {
+            margin-top:14px; padding:14px 18px; border-radius:10px;
+            background:#f8f9fa; border-left:3px solid #667eea;
+        }
+        .sq-response-label { font-size:0.72em; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#667eea; margin-bottom:4px; }
+        .sq-response-text { font-size:0.9em; color:#2c3e50; line-height:1.5; }
+        .sq-response-meta { font-size:0.78em; color:#adb5bd; margin-top:4px; }
+
+        /* Admin respond form */
+        .sq-respond-form { margin-top:14px; display:none; }
+        .sq-respond-form textarea { width:100%; padding:10px 14px; border:2px solid #e9ecef; border-radius:8px; font-size:0.9em; box-sizing:border-box; resize:vertical; min-height:70px; font-family:inherit; }
+        .sq-respond-form textarea:focus { outline:none; border-color:#667eea; }
+        .sq-respond-actions { display:flex; gap:8px; margin-top:8px; flex-wrap:wrap; }
+        .sq-btn { padding:8px 16px; border-radius:8px; font-size:0.82em; font-weight:700; cursor:pointer; border:none; }
+        .sq-btn-primary  { background:#667eea; color:white; }
+        .sq-btn-danger   { background:#dc3545; color:white; }
+        .sq-btn-success  { background:#28a745; color:white; }
+        .sq-btn-outline  { background:white; color:#7f8c8d; border:2px solid #dee2e6; }
+        .sq-admin-toggle { font-size:0.8em; color:#667eea; cursor:pointer; font-weight:600; margin-top:10px; display:inline-block; }
+
+        .empty-state { color:#adb5bd; font-size:0.95em; text-align:center; padding:48px 0; }
+    </style>
+</head>
+<body>
+    <nav class="club-nav">
+        <div class="club-nav-inner">
+            <a href="dashboard.html" class="club-nav-logo">PNWAV8R</a>
+            <div class="club-nav-links">
+                <a href="dashboard.html">Dashboard</a>
+                <a href="schedule.html">Schedule</a>
+                <a href="squawks.html" class="active">Squawks</a>
+                <a href="post-flight.html">Post-Flight</a>
+                <span id="adminLink" style="display:none"><a href="admin.html">Admin</a></span>
+            </div>
+            <div id="navUser"></div>
+        </div>
+    </nav>
+
+    <div class="page-wrap">
+        <div id="planeStatusBar" class="plane-status-bar available">
+            <div class="status-left">
+                <div class="status-dot"></div>
+                <div>
+                    <div class="status-tail">N7798E</div>
+                    <div class="status-label" id="planeStatusLabel">Loading…</div>
+                </div>
+            </div>
+            <div style="font-size:0.82em;color:#7f8c8d" id="planeStatusNote"></div>
+        </div>
+
+        <div class="filter-tabs">
+            <button class="filter-tab active" onclick="setFilter('open',this)">Open</button>
+            <button class="filter-tab" onclick="setFilter('all',this)">All</button>
+            <button class="filter-tab" onclick="setFilter('resolved',this)">Resolved</button>
+        </div>
+
+        <div id="squawkList"><div class="empty-state">Loading…</div></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        let currentMember = null;
+        let allSquawks    = [];
+        let currentFilter = 'open';
+        let airplaneId    = null;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const session = await requireAuth();
+            if (!session) return;
+            currentMember = await getCurrentMember();
+            renderNavUser();
+            if (currentMember?.role === 'admin') document.getElementById('adminLink').style.display = 'inline';
+
+            const { data: plane } = await _supabase.from('airplanes').select('id,status').eq('tail_number', AIRPLANE_TAIL).single();
+            airplaneId = plane?.id;
+            renderPlaneStatus(plane?.status);
+
+            await loadSquawks();
+
+            _supabase.channel('squawks-live')
+                .on('postgres_changes', { event:'*', schema:'public', table:'squawks' }, async () => {
+                    await loadSquawks();
+                })
+                .subscribe();
+
+            _supabase.channel('plane-live')
+                .on('postgres_changes', { event:'*', schema:'public', table:'airplanes' }, async () => {
+                    const { data: p } = await _supabase.from('airplanes').select('status').eq('tail_number', AIRPLANE_TAIL).single();
+                    renderPlaneStatus(p?.status);
+                })
+                .subscribe();
+        });
+
+        function renderPlaneStatus(status) {
+            const bar   = document.getElementById('planeStatusBar');
+            const label = document.getElementById('planeStatusLabel');
+            const note  = document.getElementById('planeStatusNote');
+            const map   = {
+                available:   { cls:'available',   text:'Available — Cleared to fly',     note:'' },
+                flying:      { cls:'flying',       text:'In the Air',                     note:'' },
+                maintenance: { cls:'maintenance',  text:'In Maintenance — Not available', note:'Contact admin for details' },
+                squawk:      { cls:'squawk',       text:'GROUNDED — Open squawk',         note:'Do not fly until admin clears' }
+            };
+            const s = map[status] || map.available;
+            bar.className   = `plane-status-bar ${s.cls}`;
+            label.textContent = s.text;
+            note.textContent  = s.note;
+        }
+
+        async function loadSquawks() {
+            const { data } = await _supabase
+                .from('squawks')
+                .select('*, reporter:members!squawks_reported_by_fkey(name), responder:members!squawks_resolved_by_fkey(name)')
+                .eq('airplane_id', airplaneId)
+                .order('reported_at', { ascending: false });
+
+            allSquawks = data || [];
+            renderSquawks();
+        }
+
+        function setFilter(f, btn) {
+            currentFilter = f;
+            document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderSquawks();
+        }
+
+        function renderSquawks() {
+            const el = document.getElementById('squawkList');
+            let list = allSquawks;
+            if (currentFilter === 'open')     list = allSquawks.filter(s => s.status === 'open');
+            if (currentFilter === 'resolved') list = allSquawks.filter(s => s.status === 'resolved');
+
+            if (!list.length) {
+                el.innerHTML = `<div class="empty-state">${currentFilter === 'open' ? 'No open squawks — airplane is good to go!' : 'No squawks found.'}</div>`;
+                return;
+            }
+
+            const goNoGoMap = {
+                no_go:   { cls:'no_go',   label:'🛑 NO-GO' },
+                caution: { cls:'caution', label:'⚠️ CAUTION' },
+                go:      { cls:'go',      label:'✅ GO' }
+            };
+            const isAdmin = currentMember?.role === 'admin';
+
+            el.innerHTML = list.map(s => {
+                const gng     = goNoGoMap[s.go_no_go] || null;
+                const isOpen  = s.status === 'open';
+
+                return `<div class="squawk-card ${isOpen ? 'open' : 'resolved'} ${s.go_no_go || ''}">
+                    <div class="sq-header">
+                        <div class="sq-badges">
+                            <span class="sq-badge ${isOpen ? 'open' : 'resolved'}">${isOpen ? 'Open' : 'Resolved'}</span>
+                            ${gng ? `<span class="sq-badge ${gng.cls}">${gng.label}</span>` : ''}
+                        </div>
+                        <div class="sq-meta">${fmtDate(s.reported_at)}</div>
+                    </div>
+                    <div class="sq-description">${s.description}</div>
+                    <div class="sq-meta">Reported by ${s.reporter?.name || '—'}</div>
+
+                    ${s.admin_response ? `
+                        <div class="sq-response">
+                            <div class="sq-response-label">Admin Response</div>
+                            <div class="sq-response-text">${s.admin_response}</div>
+                            <div class="sq-response-meta">${s.responder?.name || 'Admin'} · ${s.admin_response_at ? fmtDate(s.admin_response_at) : ''}</div>
+                        </div>` : ''}
+
+                    ${isAdmin && isOpen ? `
+                        <span class="sq-admin-toggle" onclick="toggleRespond('${s.id}')">+ Respond / Update</span>
+                        <div class="sq-respond-form" id="form_${s.id}">
+                            <textarea id="resp_${s.id}" placeholder="Your response or action taken…">${s.admin_response || ''}</textarea>
+                            <div class="sq-respond-actions">
+                                <button class="sq-btn sq-btn-primary" onclick="saveResponse('${s.id}', false)">Save Response</button>
+                                <button class="sq-btn sq-btn-success" onclick="saveResponse('${s.id}', true)">Resolve & Clear</button>
+                                <button class="sq-btn sq-btn-danger"  onclick="groundPlane()">Ground Plane</button>
+                                <button class="sq-btn sq-btn-outline" onclick="ungroundPlane()">Clear to Fly</button>
+                            </div>
+                        </div>` : ''}
+                </div>`;
+            }).join('');
+        }
+
+        function toggleRespond(id) {
+            const form = document.getElementById(`form_${id}`);
+            form.style.display = form.style.display === 'block' ? 'none' : 'block';
+        }
+
+        async function saveResponse(id, resolve) {
+            const text = document.getElementById(`resp_${id}`).value.trim();
+            const update = {
+                admin_response:    text || null,
+                admin_response_at: new Date().toISOString(),
+                admin_response_by: currentMember.id  // uses resolved_by column
+            };
+            if (resolve) {
+                update.status      = 'resolved';
+                update.resolved_at = new Date().toISOString();
+                update.resolved_by = currentMember.id;
+            }
+            await _supabase.from('squawks').update(update).eq('id', id);
+            if (resolve) {
+                // If no more open squawks, unground
+                const { count } = await _supabase.from('squawks')
+                    .select('*', { count:'exact', head:true })
+                    .eq('airplane_id', airplaneId).eq('status','open');
+                if (count === 0) await ungroundPlane();
+            }
+            await loadSquawks();
+        }
+
+        async function groundPlane() {
+            await _supabase.from('airplanes').update({ status:'squawk', updated_at: new Date().toISOString() }).eq('id', airplaneId);
+            renderPlaneStatus('squawk');
+        }
+
+        async function ungroundPlane() {
+            await _supabase.from('airplanes').update({ status:'available', updated_at: new Date().toISOString() }).eq('id', airplaneId);
+            renderPlaneStatus('available');
+        }
+
+        function fmtDate(iso) { return new Date(iso).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit',hour12:true}); }
+    </script>
+</body>
+</html>

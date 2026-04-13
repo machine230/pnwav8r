@@ -73,6 +73,7 @@
             <div class="club-nav-links">
                 <a href="dashboard.html">Dashboard</a>
                 <a href="schedule.html">Schedule</a>
+                <a href="squawks.html">Squawks</a>
                 <a href="post-flight.html" class="active">Post-Flight</a>
                 <span id="adminLink" style="display:none"><a href="admin.html">Admin</a></span>
             </div>
@@ -166,6 +167,43 @@
                     <div id="squawkFields">
                         <div id="squawkList"></div>
                         <button class="squawk-add" type="button" onclick="addSquawk()">+ Add another squawk</button>
+
+                        <div style="margin-top:20px">
+                            <div class="pf-section-title">Pilot Go / No-Go Recommendation</div>
+                            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+                                <label class="oil-opt" onclick="selectGoNoGo(this,'go')">
+                                    <input type="radio" name="gonogo" value="go">
+                                    <span class="oil-opt-icon">✅</span>
+                                    <span class="oil-opt-label">GO — Safe to fly</span>
+                                </label>
+                                <label class="oil-opt" onclick="selectGoNoGo(this,'caution')">
+                                    <input type="radio" name="gonogo" value="caution">
+                                    <span class="oil-opt-icon">⚠️</span>
+                                    <span class="oil-opt-label">Caution — Use judgement</span>
+                                </label>
+                                <label class="oil-opt" onclick="selectGoNoGo(this,'no_go')">
+                                    <input type="radio" name="gonogo" value="no_go">
+                                    <span class="oil-opt-icon">🛑</span>
+                                    <span class="oil-opt-label">NO-GO — Ground it</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div style="margin-top:20px">
+                            <div class="pf-section-title">Ground the Airplane?</div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                                <label class="oil-opt" onclick="selectGround(this, true)">
+                                    <input type="radio" name="groundplane" value="yes">
+                                    <span class="oil-opt-icon">🔒</span>
+                                    <span class="oil-opt-label">Yes — Ground until cleared</span>
+                                </label>
+                                <label class="oil-opt" onclick="selectGround(this, false)">
+                                    <input type="radio" name="groundplane" value="no">
+                                    <span class="oil-opt-icon">✈️</span>
+                                    <span class="oil-opt-label">No — Airplane remains flyable</span>
+                                </label>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -189,7 +227,9 @@
     <script>
         let currentMember = null;
         let airplaneId    = null;
-        let selectedOil   = null;
+        let selectedOil    = null;
+        let selectedGoNoGo = null;
+        let selectedGround = null;
         let squawkCount   = 0;
 
         document.addEventListener('DOMContentLoaded', async () => {
@@ -208,10 +248,22 @@
         });
 
         function selectOil(el, val) {
-            document.querySelectorAll('.oil-opt').forEach(o => o.classList.remove('selected'));
+            document.querySelectorAll('#oilOptions .oil-opt').forEach(o => o.classList.remove('selected'));
             el.classList.add('selected');
             selectedOil = val;
             document.getElementById('oilQtsField').style.display = val === 'added' ? 'block' : 'none';
+        }
+
+        function selectGoNoGo(el, val) {
+            document.querySelectorAll('[name=gonogo]').forEach(r => r.closest('.oil-opt').classList.remove('selected'));
+            el.classList.add('selected');
+            selectedGoNoGo = val;
+        }
+
+        function selectGround(el, val) {
+            document.querySelectorAll('[name=groundplane]').forEach(r => r.closest('.oil-opt').classList.remove('selected'));
+            el.classList.add('selected');
+            selectedGround = val;
         }
 
         function toggleSquawks() {
@@ -299,19 +351,45 @@
 
             // Submit squawks
             if (document.getElementById('hasSquawks').checked) {
+                if (!selectedGoNoGo) {
+                    msg.className = 'pf-msg error';
+                    msg.textContent = 'Please select a Go / No-Go recommendation for your squawk.';
+                    btn.disabled = false; btn.textContent = 'Submit Post-Flight Report';
+                    return;
+                }
+                if (selectedGround === null) {
+                    msg.className = 'pf-msg error';
+                    msg.textContent = 'Please select whether to ground the airplane.';
+                    btn.disabled = false; btn.textContent = 'Submit Post-Flight Report';
+                    return;
+                }
                 const rows = document.querySelectorAll('[id^="sq_text_"]');
                 for (const row of rows) {
                     const desc = row.value.trim();
                     if (!desc) continue;
                     await _supabase.from('squawks').insert({
-                        airplane_id:  airplaneId,
-                        reported_by:  currentMember.id,
-                        description:  desc,
-                        status:       'open'
+                        airplane_id: airplaneId,
+                        reported_by: currentMember.id,
+                        description: desc,
+                        go_no_go:    selectedGoNoGo,
+                        status:      'open'
+                    });
+                    // Email admin
+                    fetch('/.netlify/functions/notifySquawk', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            description: desc,
+                            reporter:    currentMember.name || currentMember.email,
+                            go_no_go:    selectedGoNoGo,
+                            tail:        AIRPLANE_TAIL
+                        })
                     });
                 }
-                // If squawks reported, flag airplane
-                await _supabase.from('airplanes').update({ status: 'squawk' }).eq('id', airplaneId);
+                // Ground plane only if pilot explicitly chose to ground
+                if (selectedGround) {
+                    await _supabase.from('airplanes').update({ status: 'squawk' }).eq('id', airplaneId);
+                }
             }
 
             btn.disabled = false; btn.textContent = 'Submit Post-Flight Report';

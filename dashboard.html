@@ -116,6 +116,33 @@
         .insp-meta { font-size:0.78em; color:#7f8c8d; margin-top:2px; }
         .insp-edit { font-size:0.78em; background:none; border:1px solid #dee2e6; border-radius:12px; padding:3px 10px; cursor:pointer; color:#7f8c8d; margin-left:auto; flex-shrink:0; display:none; }
 
+        /* Squawk alert cards (below airplane card) */
+        .squawk-alert-section { display:none; margin-bottom:20px; }
+        .squawk-alert-section.has-squawks { display:block; }
+        .squawk-alert-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+        .squawk-alert-title { font-size:0.75em; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; color:#dc3545; display:flex; align-items:center; gap:8px; }
+        .squawk-alert-title::before { content:''; display:inline-block; width:8px; height:8px; border-radius:50%; background:#dc3545; animation:pulse 1.5s infinite; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+        .squawk-alert-link { font-size:0.82em; color:#667eea; font-weight:600; text-decoration:none; }
+        .squawk-alert-link:hover { text-decoration:underline; }
+        .squawk-cards-row { display:flex; gap:12px; flex-wrap:wrap; }
+        .sq-alert-card {
+            background:white; border-radius:12px; padding:16px 20px;
+            box-shadow:0 3px 12px rgba(0,0,0,0.09); flex:1; min-width:220px; max-width:320px;
+            border-top:4px solid #e9ecef; position:relative;
+        }
+        .sq-alert-card.no_go   { border-top-color:#dc3545; }
+        .sq-alert-card.caution { border-top-color:#ffc107; }
+        .sq-alert-card.go      { border-top-color:#28a745; }
+        .sq-alert-num { font-size:0.7em; font-weight:700; color:#95a5a6; letter-spacing:1px; margin-bottom:6px; }
+        .sq-alert-badges { display:flex; gap:6px; margin-bottom:8px; flex-wrap:wrap; }
+        .sq-alert-badge { font-size:0.68em; font-weight:700; padding:3px 10px; border-radius:20px; }
+        .sq-alert-badge.no_go   { background:#dc3545; color:white; }
+        .sq-alert-badge.caution { background:#fff3cd; color:#856404; }
+        .sq-alert-badge.go      { background:#d4edda; color:#155724; }
+        .sq-alert-desc { font-size:0.88em; font-weight:600; color:#2c3e50; line-height:1.4; margin-bottom:8px; }
+        .sq-alert-meta { font-size:0.75em; color:#adb5bd; }
+
         /* Profile modal */
         .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:2000; align-items:center; justify-content:center; }
         .modal-overlay.open { display:flex; }
@@ -141,6 +168,7 @@
             <div class="club-nav-links">
                 <a href="dashboard.html" class="active">Dashboard</a>
                 <a href="schedule.html">Schedule</a>
+                <a href="squawks.html">Squawks</a>
                 <a href="post-flight.html">Post-Flight</a>
                 <a href="#" onclick="openProfile(); return false;">Profile</a>
                 <span id="adminLink" style="display:none"><a href="admin.html">Admin</a></span>
@@ -179,6 +207,15 @@
                 <a href="schedule.html" class="ac-btn primary">Book Flight</a>
                 <a href="post-flight.html" class="ac-btn">Post-Flight</a>
             </div>
+        </div>
+
+        <!-- Squawk alert cards -->
+        <div class="squawk-alert-section" id="squawkAlertSection">
+            <div class="squawk-alert-header">
+                <div class="squawk-alert-title">Open Squawks</div>
+                <a href="squawks.html" class="squawk-alert-link">View all &rarr;</a>
+            </div>
+            <div class="squawk-cards-row" id="squawkAlertCards"></div>
         </div>
 
         <!-- Airworthy banner -->
@@ -505,8 +542,14 @@
             const { data: plane } = await _supabase.from('airplanes').select('id').eq('tail_number', AIRPLANE_TAIL).single();
             if (!plane) return;
             const { data } = await _supabase.from('squawks').select('*, members(name)').eq('airplane_id', plane.id).eq('status','open').order('reported_at', { ascending: false });
+
+            // Sidebar list
             const el = document.getElementById('squawkList');
-            if (!data || !data.length) { el.innerHTML = '<div class="empty-state">No open squawks.</div>'; return; }
+            if (!data || !data.length) {
+                el.innerHTML = '<div class="empty-state">No open squawks.</div>';
+                document.getElementById('squawkAlertSection').classList.remove('has-squawks');
+                return;
+            }
             el.innerHTML = data.map(s => `
                 <div class="squawk-item">
                     <div class="squawk-dot"></div>
@@ -515,6 +558,20 @@
                         <div class="squawk-meta">Reported by ${s.members?.name || '—'} · ${fmtDate(s.reported_at)}</div>
                     </div>
                 </div>`).join('');
+
+            // Alert cards below airplane card
+            const gngLabel = { no_go:'🛑 NO-GO', caution:'⚠️ CAUTION', go:'✅ GO' };
+            document.getElementById('squawkAlertSection').classList.add('has-squawks');
+            document.getElementById('squawkAlertCards').innerHTML = data.map((s, i) => {
+                const gng = s.go_no_go;
+                const num = `SQ-${String(i + 1).padStart(3, '0')}`;
+                return `<div class="sq-alert-card ${gng || ''}">
+                    <div class="sq-alert-num">${num}</div>
+                    ${gng ? `<div class="sq-alert-badges"><span class="sq-alert-badge ${gng}">${gngLabel[gng]}</span></div>` : ''}
+                    <div class="sq-alert-desc">${s.description}</div>
+                    <div class="sq-alert-meta">${s.members?.name || '—'} &middot; ${fmtDate(s.reported_at)}</div>
+                </div>`;
+            }).join('');
         }
 
         async function cancelReservation(id) {
