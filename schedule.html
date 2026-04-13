@@ -112,13 +112,44 @@
         /* Legend */
         .legend { display:flex; gap:20px; flex-wrap:wrap; margin-bottom:16px; font-size:0.82em; color:#7f8c8d; align-items:center; }
         .legend-dot { width:12px; height:12px; border-radius:3px; display:inline-block; margin-right:5px; vertical-align:middle; }
+
+        /* Hamburger nav */
+        .hamburger-btn { display:none; background:none; border:none; cursor:pointer; padding:8px; flex-shrink:0; }
+        .hamburger-btn span { display:block; width:22px; height:2px; background:#2c3e50; border-radius:2px; margin:5px 0; }
+
+        /* Mobile */
+        @media(max-width:680px) {
+            .hamburger-btn { display:block; }
+            .club-nav-inner { position:relative; flex-wrap:nowrap; }
+            .club-nav-links { display:none; position:absolute; top:100%; left:0; right:0; flex-direction:column; background:white; padding:8px 24px 16px; box-shadow:0 8px 24px rgba(0,0,0,0.12); z-index:999; border-top:1px solid #f0f2f5; }
+            .club-nav-links.nav-open { display:flex; }
+            .club-nav-links a { padding:12px 4px; border-bottom:1px solid #f0f2f5; border-radius:0; font-size:1em; }
+            .club-nav-links span { display:block; }
+            #navUser { font-size:0.85em; }
+
+            /* Calendar scrolls horizontally — all JS works the same */
+            .cal-outer { overflow-x:auto; -webkit-overflow-scrolling:touch; border-radius:16px; }
+            .cal-grid { min-width:640px; }
+            .slot-cell { height:44px; }
+            .time-label { height:44px; }
+
+            /* Week nav stacks */
+            .week-nav { flex-direction:column; align-items:stretch; gap:10px; }
+            .week-nav-center { justify-content:space-between; }
+            .legend { gap:12px; }
+
+            /* Booking panel */
+            .book-panel { padding:20px; }
+            .book-actions { flex-direction:column; }
+            .book-btn, .cancel-btn { width:100%; text-align:center; padding:14px; }
+        }
     </style>
 </head>
 <body>
     <nav class="club-nav">
         <div class="club-nav-inner">
             <a href="dashboard.html" class="club-nav-logo">PNWAV8R</a>
-            <div class="club-nav-links">
+            <div id="navLinks" class="club-nav-links">
                 <a href="dashboard.html">Dashboard</a>
                 <a href="schedule.html" class="active">Schedule</a>
                 <a href="squawks.html">Squawks</a>
@@ -126,6 +157,9 @@
                 <span id="adminLink" style="display:none"><a href="admin.html">Admin</a></span>
             </div>
             <div id="navUser"></div>
+            <button class="hamburger-btn" onclick="toggleNav()" aria-label="Menu">
+                <span></span><span></span><span></span>
+            </button>
         </div>
     </nav>
 
@@ -449,6 +483,7 @@
         function fmtTime(d)     { return d.toLocaleString('en-US',{hour:'numeric',minute:'2-digit',hour12:true}); }
         function fmtHour(h)     { const d = new Date(); d.setHours(h,0,0,0); return d.toLocaleString('en-US',{hour:'numeric',hour12:true}); }
         function fmtDateTime(d) { return d.toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',hour12:true}); }
+        function toggleNav()    { document.getElementById('navLinks').classList.toggle('nav-open'); }
     </script>
 </body>
 </html>

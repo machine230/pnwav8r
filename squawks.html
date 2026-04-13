@@ -15,6 +15,30 @@
         .club-nav-links a:hover, .club-nav-links a.active { background:linear-gradient(135deg,#667eea,#764ba2); color:white; }
         .page-wrap { max-width:900px; margin:0 auto; padding:32px 24px; }
 
+        /* Hamburger nav */
+        .hamburger-btn { display:none; background:none; border:none; cursor:pointer; padding:8px; flex-shrink:0; }
+        .hamburger-btn span { display:block; width:22px; height:2px; background:#2c3e50; border-radius:2px; margin:5px 0; }
+
+        @media(max-width:680px) {
+            .hamburger-btn { display:block; }
+            .club-nav-inner { position:relative; flex-wrap:nowrap; }
+            .club-nav-links { display:none; position:absolute; top:100%; left:0; right:0; flex-direction:column; background:white; padding:8px 24px 16px; box-shadow:0 8px 24px rgba(0,0,0,0.12); z-index:999; border-top:1px solid #f0f2f5; }
+            .club-nav-links.nav-open { display:flex; }
+            .club-nav-links a { padding:12px 4px; border-bottom:1px solid #f0f2f5; border-radius:0; font-size:1em; }
+            .club-nav-links span { display:block; }
+            #navUser { font-size:0.85em; }
+            .page-wrap { padding:16px; }
+
+            /* Squawk cards */
+            .squawk-card { padding:18px; }
+            /* Admin action buttons stack on mobile */
+            .sq-respond-actions { flex-direction:column; gap:8px; }
+            .sq-btn { width:100%; text-align:center; padding:12px; min-height:44px; }
+            /* Filter tabs wrap */
+            .filter-tabs { gap:6px; }
+            .filter-tab { padding:9px 16px; min-height:44px; }
+        }
+
         /* Status banner */
         .plane-status-bar {
             border-radius:14px; padding:16px 24px; margin-bottom:28px;
@@ -93,7 +117,7 @@
     <nav class="club-nav">
         <div class="club-nav-inner">
             <a href="dashboard.html" class="club-nav-logo">PNWAV8R</a>
-            <div class="club-nav-links">
+            <div id="navLinks" class="club-nav-links">
                 <a href="dashboard.html">Dashboard</a>
                 <a href="schedule.html">Schedule</a>
                 <a href="squawks.html" class="active">Squawks</a>
@@ -101,6 +125,9 @@
                 <span id="adminLink" style="display:none"><a href="admin.html">Admin</a></span>
             </div>
             <div id="navUser"></div>
+            <button class="hamburger-btn" onclick="toggleNav()" aria-label="Menu">
+                <span></span><span></span><span></span>
+            </button>
         </div>
     </nav>
 
@@ -290,6 +317,7 @@
         }
 
         function fmtDate(iso) { return new Date(iso).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit',hour12:true}); }
+        function toggleNav()  { document.getElementById('navLinks').classList.toggle('nav-open'); }
     </script>
 </body>
 </html>

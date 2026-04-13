@@ -143,10 +143,48 @@
         .sq-alert-desc { font-size:0.88em; font-weight:600; color:#2c3e50; line-height:1.4; margin-bottom:8px; }
         .sq-alert-meta { font-size:0.75em; color:#adb5bd; }
 
+        /* Hamburger nav */
+        .hamburger-btn { display:none; background:none; border:none; cursor:pointer; padding:8px; flex-shrink:0; }
+        .hamburger-btn span { display:block; width:22px; height:2px; background:#2c3e50; border-radius:2px; margin:5px 0; }
+
+        @media(max-width:680px) {
+            .hamburger-btn { display:block; }
+            .club-nav-inner { position:relative; flex-wrap:nowrap; }
+            .club-nav-links { display:none; position:absolute; top:100%; left:0; right:0; flex-direction:column; background:white; padding:8px 24px 16px; box-shadow:0 8px 24px rgba(0,0,0,0.12); z-index:999; border-top:1px solid #f0f2f5; }
+            .club-nav-links.nav-open { display:flex; }
+            .club-nav-links a { padding:12px 4px; border-bottom:1px solid #f0f2f5; border-radius:0; font-size:1em; }
+            .club-nav-links span { display:block; }
+            #navUser { font-size:0.85em; }
+
+            /* Airplane card */
+            .airplane-card { grid-template-columns:1fr; }
+            .ac-actions { flex-direction:row; align-items:flex-start; flex-wrap:wrap; }
+            .ac-btn { flex:1; min-width:120px; }
+
+            /* Docs row */
+            .docs-row { flex-direction:column; }
+            .doc-tile { min-width:unset; }
+
+            /* Grid stacks to single column */
+            .dash-grid { grid-template-columns:1fr !important; }
+
+            /* Squawk alert cards stack */
+            .squawk-cards-row { flex-direction:column; }
+            .sq-alert-card { max-width:100%; }
+
+            /* Mini calendar scrolls */
+            .week-cal { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+            .week-cal table { min-width:480px; }
+            .wk-btn { padding:8px 16px; min-height:44px; }
+
+            /* Profile modal */
+            .modal-box { padding:24px; margin:16px; max-width:calc(100vw - 32px); box-sizing:border-box; }
+        }
+
         /* Profile modal */
-        .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:2000; align-items:center; justify-content:center; }
+        .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:2000; align-items:center; justify-content:center; padding:16px; box-sizing:border-box; }
         .modal-overlay.open { display:flex; }
-        .modal-box { background:white; border-radius:20px; padding:40px; width:100%; max-width:440px; box-shadow:0 20px 60px rgba(0,0,0,0.2); }
+        .modal-box { background:white; border-radius:20px; padding:40px; width:100%; max-width:440px; box-shadow:0 20px 60px rgba(0,0,0,0.2); box-sizing:border-box; }
         .modal-box h2 { font-size:1.2em; font-weight:700; color:#2c3e50; margin-bottom:24px; }
         .form-group { margin-bottom:16px; }
         .form-label { font-size:0.8em; font-weight:700; color:#7f8c8d; text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:6px; }
@@ -165,7 +203,7 @@
     <nav class="club-nav">
         <div class="club-nav-inner">
             <a href="dashboard.html" class="club-nav-logo">PNWAV8R</a>
-            <div class="club-nav-links">
+            <div id="navLinks" class="club-nav-links">
                 <a href="dashboard.html" class="active">Dashboard</a>
                 <a href="schedule.html">Schedule</a>
                 <a href="squawks.html">Squawks</a>
@@ -174,6 +212,9 @@
                 <span id="adminLink" style="display:none"><a href="admin.html">Admin</a></span>
             </div>
             <div id="navUser"></div>
+            <button class="hamburger-btn" onclick="toggleNav()" aria-label="Menu">
+                <span></span><span></span><span></span>
+            </button>
         </div>
     </nav>
 
@@ -613,6 +654,7 @@
         function fmtTime(d)  { return d.toLocaleString('en-US',{hour:'numeric',minute:'2-digit',hour12:true}); }
         function fmtHour(h)  { const d = new Date(); d.setHours(h,0,0,0); return d.toLocaleString('en-US',{hour:'numeric',hour12:true}); }
         function fmtDate(iso){ return new Date(iso).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }
+        function toggleNav() { document.getElementById('navLinks').classList.toggle('nav-open'); }
     </script>
 </body>
 </html>

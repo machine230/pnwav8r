@@ -76,13 +76,49 @@
         /* Squawk resolve */
         .squawk-row td:first-child { max-width:320px; }
         .empty-row td { color:#adb5bd; text-align:center; padding:28px; }
+
+        /* Table scroll wrapper for mobile */
+        .table-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+
+        /* Hamburger nav */
+        .hamburger-btn { display:none; background:none; border:none; cursor:pointer; padding:8px; flex-shrink:0; }
+        .hamburger-btn span { display:block; width:22px; height:2px; background:#2c3e50; border-radius:2px; margin:5px 0; }
+
+        @media(max-width:680px) {
+            .hamburger-btn { display:block; }
+            .club-nav-inner { position:relative; flex-wrap:nowrap; }
+            .club-nav-links { display:none; position:absolute; top:100%; left:0; right:0; flex-direction:column; background:white; padding:8px 24px 16px; box-shadow:0 8px 24px rgba(0,0,0,0.12); z-index:999; border-top:1px solid #f0f2f5; }
+            .club-nav-links.nav-open { display:flex; }
+            .club-nav-links a { padding:12px 4px; border-bottom:1px solid #f0f2f5; border-radius:0; font-size:1em; }
+            .club-nav-links span { display:block; }
+            #navUser { font-size:0.85em; }
+            .page-wrap { padding:16px; }
+
+            /* Tabs wrap on small screens */
+            .admin-tabs { flex-wrap:wrap; gap:2px; }
+            .admin-tab { font-size:0.82em; padding:8px 12px; }
+
+            /* Add member form: single column */
+            .form-row { grid-template-columns:1fr !important; }
+
+            /* Action buttons larger touch targets */
+            .tbl-btn { padding:8px 14px; min-height:36px; }
+            .form-submit { padding:12px 20px; min-height:44px; }
+
+            /* Status options wrap */
+            .status-options { flex-direction:column; }
+            .status-opt { width:100%; text-align:center; padding:12px; }
+
+            /* Tach + maint note fields */
+            .admin-card-body div[style*="display:flex"] { flex-wrap:wrap !important; }
+        }
     </style>
 </head>
 <body>
     <nav class="club-nav">
         <div class="club-nav-inner">
             <a href="dashboard.html" class="club-nav-logo">PNWAV8R</a>
-            <div class="club-nav-links">
+            <div id="navLinks" class="club-nav-links">
                 <a href="dashboard.html">Dashboard</a>
                 <a href="schedule.html">Schedule</a>
                 <a href="squawks.html">Squawks</a>
@@ -90,6 +126,9 @@
                 <a href="admin.html" class="active">Admin</a>
             </div>
             <div id="navUser"></div>
+            <button class="hamburger-btn" onclick="toggleNav()" aria-label="Menu">
+                <span></span><span></span><span></span>
+            </button>
         </div>
     </nav>
 
@@ -109,6 +148,7 @@
                     <h3>Club Members</h3>
                 </div>
                 <div class="admin-card-body">
+                    <div class="table-scroll">
                     <table class="admin-table">
                         <thead>
                             <tr>
@@ -125,6 +165,7 @@
                             <tr><td colspan="7" style="text-align:center;color:#adb5bd;padding:28px">Loading…</td></tr>
                         </tbody>
                     </table>
+                    </div>
                 </div>
                 <div class="add-member-form">
                     <h4>Add New Member</h4>
@@ -195,6 +236,7 @@
             <div class="admin-card">
                 <div class="admin-card-header"><h3>Open Squawks</h3></div>
                 <div class="admin-card-body">
+                    <div class="table-scroll">
                     <table class="admin-table">
                         <thead>
                             <tr><th>Description</th><th>Reported By</th><th>Date</th><th>Action</th></tr>
@@ -203,11 +245,13 @@
                             <tr><td colspan="4" style="text-align:center;color:#adb5bd;padding:28px">Loading…</td></tr>
                         </tbody>
                     </table>
+                    </div>
                 </div>
             </div>
             <div class="admin-card">
                 <div class="admin-card-header"><h3>Resolved Squawks</h3></div>
                 <div class="admin-card-body">
+                    <div class="table-scroll">
                     <table class="admin-table">
                         <thead>
                             <tr><th>Description</th><th>Reported By</th><th>Resolved By</th><th>Date</th></tr>
@@ -216,6 +260,7 @@
                             <tr><td colspan="4" style="text-align:center;color:#adb5bd;padding:28px">Loading…</td></tr>
                         </tbody>
                     </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -225,10 +270,12 @@
             <div class="admin-card">
                 <div class="admin-card-header"><h3>FAA Required Inspections — N7798E</h3></div>
                 <div class="admin-card-body">
+                    <div class="table-scroll">
                     <table class="admin-table">
                         <thead><tr><th>Inspection</th><th>Interval</th><th>Last Completed</th><th>Next Due</th><th>Status</th><th>Action</th></tr></thead>
                         <tbody id="inspTableBody"><tr><td colspan="6" style="text-align:center;padding:28px;color:#adb5bd">Loading…</td></tr></tbody>
                     </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -238,6 +285,7 @@
             <div class="admin-card">
                 <div class="admin-card-header"><h3>Recent Flight Logs</h3></div>
                 <div class="admin-card-body">
+                    <div class="table-scroll">
                     <table class="admin-table">
                         <thead>
                             <tr><th>Pilot</th><th>Date</th><th>Tach Start</th><th>Tach End</th><th>Time</th><th>Fuel Added</th><th>Oil Added</th><th>Notes</th></tr>
@@ -246,6 +294,7 @@
                             <tr><td colspan="8" style="text-align:center;color:#adb5bd;padding:28px">Loading…</td></tr>
                         </tbody>
                     </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -456,6 +505,7 @@
         }
 
         function fmtDate(iso) { return new Date(iso).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }
+        function toggleNav()  { document.getElementById('navLinks').classList.toggle('nav-open'); }
 
         // ── Inspections ──
         async function loadInspections() {
@@ -530,8 +580,8 @@
     </script>
 
     <!-- Inspection edit modal -->
-    <div style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2000;align-items:center;justify-content:center" id="inspModal" class="">
-        <div style="background:white;border-radius:20px;padding:40px;width:100%;max-width:440px;box-shadow:0 20px 60px rgba(0,0,0,0.2)">
+    <div style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2000;align-items:center;justify-content:center;padding:16px;box-sizing:border-box" id="inspModal" class="">
+        <div style="background:white;border-radius:20px;padding:32px;width:100%;max-width:440px;box-shadow:0 20px 60px rgba(0,0,0,0.2);box-sizing:border-box">
             <h2 style="font-size:1.1em;font-weight:700;color:#2c3e50;margin-bottom:6px">Update Inspection</h2>
             <div id="inspEditName" style="font-size:0.9em;color:#7f8c8d;margin-bottom:24px"></div>
             <div style="margin-bottom:16px">
