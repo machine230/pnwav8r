@@ -15,7 +15,7 @@
         .club-nav-links a:hover, .club-nav-links a.active { background:linear-gradient(135deg,#667eea,#764ba2); color:white; }
         .page-wrap { max-width:680px; margin:0 auto; padding:32px 24px; }
 
-        /* Hamburger nav */
+        /* Hamburger */
         .hamburger-btn { display:none; background:none; border:none; cursor:pointer; padding:8px; flex-shrink:0; }
         .hamburger-btn span { display:block; width:22px; height:2px; background:#2c3e50; border-radius:2px; margin:5px 0; }
 
@@ -29,12 +29,8 @@
             #navUser { font-size:0.85em; }
             .page-wrap { padding:16px; }
             .pf-body { padding:20px; }
-            /* Oil options: 2 per row on mobile instead of 3 */
-            .oil-options { grid-template-columns:repeat(2,1fr) !important; }
-            /* Ground options already 2-col, fine */
-            /* Bigger touch targets on oil/ground buttons */
-            .oil-opt { padding:14px 8px; min-height:60px; }
-            /* Flight cost box stacks */
+            .pf-row { grid-template-columns:1fr !important; }
+            .fuel-options { grid-template-columns:1fr !important; }
             #flightCostBox { flex-direction:column; gap:8px; }
         }
 
@@ -49,7 +45,6 @@
         .pf-section-title { font-size:0.75em; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; color:#95a5a6; margin-bottom:16px; }
 
         .pf-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
-        @media(max-width:500px) { .pf-row { grid-template-columns:1fr; } }
 
         .pf-field { margin-bottom:0; }
         .pf-field label { display:block; font-size:0.85em; font-weight:600; color:#34495e; margin-bottom:6px; }
@@ -59,6 +54,28 @@
         }
         .pf-field input:focus, .pf-field select:focus, .pf-field textarea:focus { outline:none; border-color:#667eea; }
         .pf-field small { color:#95a5a6; font-size:0.78em; margin-top:4px; display:block; }
+        .pf-field input.invalid, .pf-field textarea.invalid { border-color:#dc3545; }
+
+        /* Fuel option cards */
+        .fuel-options { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
+        .fuel-opt {
+            border:2px solid #e9ecef; border-radius:12px; padding:16px 18px;
+            cursor:pointer; transition:all 0.2s; background:white;
+        }
+        .fuel-opt:hover { border-color:#667eea; }
+        .fuel-opt.selected { border-color:#667eea; background:#f0f4ff; }
+        .fuel-opt input[type=radio] { display:none; }
+        .fuel-opt-title { font-weight:700; color:#2c3e50; font-size:0.95em; margin-bottom:4px; }
+        .fuel-opt-sub   { font-size:0.78em; color:#7f8c8d; }
+        .fuel-opt-icon  { font-size:1.5em; margin-bottom:6px; }
+        .fuel-details   { display:none; margin-top:14px; border-top:1px solid #e9ecef; padding-top:14px; }
+        .fuel-details.show { display:block; }
+
+        /* Oil calc box */
+        .oil-calc-box { background:#f0f4ff; border-radius:10px; padding:12px 18px; margin-top:12px; display:flex; align-items:center; gap:20px; flex-wrap:wrap; }
+        .oil-calc-item { text-align:center; }
+        .oil-calc-label { font-size:0.7em; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#667eea; }
+        .oil-calc-value { font-size:1.3em; font-weight:900; color:#2c3e50; }
 
         /* Squawk toggle */
         .squawk-toggle { display:flex; align-items:center; gap:12px; margin-bottom:16px; cursor:pointer; }
@@ -71,14 +88,15 @@
         .squawk-add { background:none; border:2px dashed #dee2e6; color:#7f8c8d; padding:10px; width:100%; border-radius:8px; cursor:pointer; font-size:0.88em; margin-top:4px; }
         .squawk-add:hover { border-color:#667eea; color:#667eea; }
 
-        /* Oil indicator */
-        .oil-options { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
-        .oil-opt { border:2px solid #e9ecef; border-radius:10px; padding:12px; text-align:center; cursor:pointer; transition:all 0.2s; }
-        .oil-opt:hover { border-color:#667eea; }
-        .oil-opt.selected { border-color:#667eea; background:#f0f4ff; }
-        .oil-opt input { display:none; }
-        .oil-opt-icon { font-size:1.4em; display:block; margin-bottom:4px; }
-        .oil-opt-label { font-size:0.8em; font-weight:600; color:#2c3e50; }
+        /* Ground options */
+        .ground-options { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+        .ground-opt { border:2px solid #e9ecef; border-radius:10px; padding:14px; text-align:center; cursor:pointer; transition:all 0.2s; }
+        .ground-opt:hover { border-color:#667eea; }
+        .ground-opt.selected { border-color:#667eea; background:#f0f4ff; }
+        .ground-opt.selected-red { border-color:#dc3545; background:#fff0f0; }
+        .ground-opt input { display:none; }
+        .ground-opt-icon  { font-size:1.4em; display:block; margin-bottom:4px; }
+        .ground-opt-label { font-size:0.82em; font-weight:600; color:#2c3e50; }
 
         /* Submit */
         .pf-submit { width:100%; padding:15px; background:linear-gradient(135deg,#667eea,#764ba2); color:white; border:none; border-radius:12px; font-size:1.05em; font-weight:700; cursor:pointer; transition:opacity 0.2s; }
@@ -115,7 +133,7 @@
             </div>
             <div class="pf-body">
 
-                <!-- Tach times -->
+                <!-- Tach Times -->
                 <div class="pf-section">
                     <div class="pf-section-title">Tach Times</div>
                     <div class="pf-row">
@@ -125,7 +143,7 @@
                             <small>Tach at engine start</small>
                         </div>
                         <div class="pf-field">
-                            <label>Tach End</label>
+                            <label>Tach End <span style="color:#dc3545">*</span></label>
                             <input type="number" id="tachEnd" step="0.1" min="0" placeholder="e.g. 2849.6" oninput="calcFlight()">
                             <small>Tach at engine shutdown</small>
                         </div>
@@ -145,52 +163,81 @@
 
                 <!-- Fuel -->
                 <div class="pf-section">
-                    <div class="pf-section-title">Fuel</div>
-                    <div class="pf-row">
+                    <div class="pf-section-title">Fuel After Flight <span style="color:#dc3545">*</span></div>
+                    <div class="fuel-options">
+                        <label class="fuel-opt" id="fuelOptA" onclick="selectFuelOption('fueled')">
+                            <input type="radio" name="fueloption" value="fueled">
+                            <div class="fuel-opt-icon">⛽</div>
+                            <div class="fuel-opt-title">I Added Fuel</div>
+                            <div class="fuel-opt-sub">Enter gallons added</div>
+                        </label>
+                        <label class="fuel-opt" id="fuelOptB" onclick="selectFuelOption('needs')">
+                            <input type="radio" name="fueloption" value="needs">
+                            <div class="fuel-opt-icon">🪣</div>
+                            <div class="fuel-opt-title">Needs Fuel</div>
+                            <div class="fuel-opt-sub">Did not fuel — report remaining</div>
+                        </label>
+                    </div>
+
+                    <!-- Fueled details -->
+                    <div class="fuel-details" id="fuelDetailsFueled">
                         <div class="pf-field">
-                            <label>Fuel Added (gallons)</label>
-                            <input type="number" id="fuelAdded" step="0.1" min="0" placeholder="0.0">
-                            <small>Enter 0 if none added</small>
+                            <label>Gallons Added <span style="color:#dc3545">*</span></label>
+                            <input type="number" id="fuelAddedGallons" step="0.1" min="0" placeholder="e.g. 10.5">
+                            <small>Enter 0 if tanks were not filled</small>
+                        </div>
+                    </div>
+
+                    <!-- Needs fuel details -->
+                    <div class="fuel-details" id="fuelDetailsNeeds">
+                        <div class="pf-row" style="margin-bottom:12px">
+                            <div class="pf-field">
+                                <label>Left Tank Remaining (gal) <span style="color:#dc3545">*</span></label>
+                                <input type="number" id="fuelLeftTank" step="0.5" min="0" placeholder="e.g. 5.0">
+                            </div>
+                            <div class="pf-field">
+                                <label>Right Tank Remaining (gal) <span style="color:#dc3545">*</span></label>
+                                <input type="number" id="fuelRightTank" step="0.5" min="0" placeholder="e.g. 4.5">
+                            </div>
                         </div>
                         <div class="pf-field">
-                            <label>Fuel Level After</label>
-                            <select id="fuelLevel">
-                                <option value="">— Select —</option>
-                                <option value="tabs">Tabs (~11 gal)</option>
-                                <option value="half">Half (~11 gal)</option>
-                                <option value="3/4">3/4 (~16.5 gal)</option>
-                                <option value="full">Full (22 gal)</option>
-                                <option value="low">Low (under tabs)</option>
-                            </select>
+                            <label>Fuel Note <span style="color:#dc3545">*</span></label>
+                            <textarea id="fuelComment" rows="2" placeholder="Explain fuel condition — e.g. 'Ran low on return leg, left tank below tabs'"></textarea>
                         </div>
                     </div>
                 </div>
 
                 <!-- Oil -->
                 <div class="pf-section">
-                    <div class="pf-section-title">Oil</div>
-                    <div class="oil-options" id="oilOptions">
-                        <label class="oil-opt" onclick="selectOil(this,'checked_ok')">
-                            <input type="radio" name="oil" value="checked_ok">
-                            <span class="oil-opt-icon">✅</span>
-                            <span class="oil-opt-label">Checked — OK</span>
-                        </label>
-                        <label class="oil-opt" onclick="selectOil(this,'added')">
-                            <input type="radio" name="oil" value="added">
-                            <span class="oil-opt-icon">🛢️</span>
-                            <span class="oil-opt-label">Added Oil</span>
-                        </label>
-                        <label class="oil-opt" onclick="selectOil(this,'needs_attention')">
-                            <input type="radio" name="oil" value="needs_attention">
-                            <span class="oil-opt-icon">⚠️</span>
-                            <span class="oil-opt-label">Needs Attention</span>
-                        </label>
-                    </div>
-                    <div id="oilQtsField" style="display:none; margin-top:14px;">
+                    <div class="pf-section-title">Oil Status <span style="color:#dc3545">*</span></div>
+                    <div class="pf-row">
                         <div class="pf-field">
-                            <label>Quarts Added</label>
-                            <input type="number" id="oilQuarts" step="0.5" min="0" max="4" placeholder="e.g. 1.0">
+                            <label>Oil at Start (quarts) <span style="color:#dc3545">*</span></label>
+                            <input type="number" id="oilStart" step="0.5" min="0" max="8" placeholder="e.g. 6.0" oninput="calcOil()">
+                            <small>Quarts before engine start</small>
                         </div>
+                        <div class="pf-field">
+                            <label>Oil Added (quarts)</label>
+                            <input type="number" id="oilAdded" step="0.5" min="0" max="4" placeholder="0" oninput="calcOil()">
+                            <small>Enter 0 if no oil was added</small>
+                        </div>
+                    </div>
+                    <div class="oil-calc-box" id="oilCalcBox" style="display:none">
+                        <div class="oil-calc-item">
+                            <div class="oil-calc-label">Start</div>
+                            <div class="oil-calc-value" id="oilStartDisplay">—</div>
+                        </div>
+                        <div style="font-size:1.2em;color:#667eea;font-weight:700">+</div>
+                        <div class="oil-calc-item">
+                            <div class="oil-calc-label">Added</div>
+                            <div class="oil-calc-value" id="oilAddedDisplay">—</div>
+                        </div>
+                        <div style="font-size:1.2em;color:#667eea;font-weight:700">=</div>
+                        <div class="oil-calc-item">
+                            <div class="oil-calc-label">Oil at End</div>
+                            <div class="oil-calc-value" id="oilEndDisplay" style="color:#667eea">—</div>
+                        </div>
+                        <div id="oilWarning" style="font-size:0.8em;color:#dc3545;font-weight:600;display:none">⚠️ Low oil</div>
                     </div>
                 </div>
 
@@ -204,19 +251,18 @@
                     <div id="squawkFields">
                         <div id="squawkList"></div>
                         <button class="squawk-add" type="button" onclick="addSquawk()">+ Add another squawk</button>
-
                         <div style="margin-top:20px">
                             <div class="pf-section-title">Ground the Airplane?</div>
-                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-                                <label class="oil-opt" onclick="selectGround(this, true)">
+                            <div class="ground-options">
+                                <label class="ground-opt" id="groundYes" onclick="selectGround(this, true)">
                                     <input type="radio" name="groundplane" value="yes">
-                                    <span class="oil-opt-icon">🔒</span>
-                                    <span class="oil-opt-label">Yes — Ground until cleared</span>
+                                    <span class="ground-opt-icon">🔒</span>
+                                    <span class="ground-opt-label">Yes — Ground until cleared</span>
                                 </label>
-                                <label class="oil-opt" onclick="selectGround(this, false)">
+                                <label class="ground-opt" id="groundNo" onclick="selectGround(this, false)">
                                     <input type="radio" name="groundplane" value="no">
-                                    <span class="oil-opt-icon">✈️</span>
-                                    <span class="oil-opt-label">No — Airplane remains flyable</span>
+                                    <span class="ground-opt-icon">✈️</span>
+                                    <span class="ground-opt-label">No — Airplane remains flyable</span>
                                 </label>
                             </div>
                         </div>
@@ -241,32 +287,32 @@
     <script src="js/config.js"></script>
     <script src="js/auth.js"></script>
     <script>
-        let currentMember = null;
-        let airplaneId    = null;
-        let selectedOil    = null;
-        let selectedGoNoGo = null;
+        let currentMember  = null;
+        let airplaneId     = null;
+        let selectedFuel   = null; // 'fueled' | 'needs'
         let selectedGround = null;
-        let squawkCount   = 0;
+        let squawkCount    = 0;
+        const DRY_RATE     = 65;
+        const OIL_LOW_QTS  = 4;
 
         document.addEventListener('DOMContentLoaded', async () => {
             const session = await requireAuth();
             if (!session) return;
             currentMember = await getCurrentMember();
             renderNavUser();
-            if (currentMember?.role === 'admin') document.getElementById('adminLink').style.display = 'inline';
+            if (isAdmin(currentMember)) document.getElementById('adminLink').style.display = 'inline';
 
             const { data: plane } = await _supabase.from('airplanes').select('id, current_tach').eq('tail_number', AIRPLANE_TAIL).single();
             airplaneId = plane?.id;
             if (plane?.current_tach) {
                 document.getElementById('tachStart').placeholder = `Last: ${plane.current_tach.toFixed(1)}`;
             }
-            addSquawk(); // start with one squawk field hidden
+            addSquawk();
         });
-
-        const DRY_RATE = 65;
 
         function toggleNav() { document.getElementById('navLinks').classList.toggle('nav-open'); }
 
+        // ── Tach / Flight Cost ────────────────────────────────────────────────
         function calcFlight() {
             const start = parseFloat(document.getElementById('tachStart').value);
             const end   = parseFloat(document.getElementById('tachEnd').value);
@@ -279,28 +325,33 @@
             box.style.display = 'flex';
         }
 
-        function selectOil(el, val) {
-            document.querySelectorAll('#oilOptions .oil-opt').forEach(o => o.classList.remove('selected'));
-            el.classList.add('selected');
-            selectedOil = val;
-            document.getElementById('oilQtsField').style.display = val === 'added' ? 'block' : 'none';
+        // ── Fuel ─────────────────────────────────────────────────────────────
+        function selectFuelOption(opt) {
+            selectedFuel = opt;
+            document.getElementById('fuelOptA').classList.toggle('selected', opt === 'fueled');
+            document.getElementById('fuelOptB').classList.toggle('selected', opt === 'needs');
+            document.getElementById('fuelDetailsFueled').classList.toggle('show', opt === 'fueled');
+            document.getElementById('fuelDetailsNeeds').classList.toggle('show',  opt === 'needs');
         }
 
-        function selectGoNoGo(el, val) {
-            document.querySelectorAll('[name=gonogo]').forEach(r => r.closest('.oil-opt').classList.remove('selected'));
-            el.classList.add('selected');
-            selectedGoNoGo = val;
+        // ── Oil ──────────────────────────────────────────────────────────────
+        function calcOil() {
+            const start  = parseFloat(document.getElementById('oilStart').value);
+            const added  = parseFloat(document.getElementById('oilAdded').value) || 0;
+            const box    = document.getElementById('oilCalcBox');
+            if (isNaN(start)) { box.style.display = 'none'; return; }
+            const end = Math.round((start + added) * 10) / 10;
+            document.getElementById('oilStartDisplay').textContent  = `${start.toFixed(1)} qt`;
+            document.getElementById('oilAddedDisplay').textContent  = `${added.toFixed(1)} qt`;
+            document.getElementById('oilEndDisplay').textContent    = `${end.toFixed(1)} qt`;
+            document.getElementById('oilWarning').style.display     = end < OIL_LOW_QTS ? 'block' : 'none';
+            box.style.display = 'flex';
         }
 
-        function selectGround(el, val) {
-            document.querySelectorAll('[name=groundplane]').forEach(r => r.closest('.oil-opt').classList.remove('selected'));
-            el.classList.add('selected');
-            selectedGround = val;
-        }
-
+        // ── Squawks ───────────────────────────────────────────────────────────
         function toggleSquawks() {
-            const checked = document.getElementById('hasSquawks').checked;
-            document.getElementById('squawkFields').style.display = checked ? 'block' : 'none';
+            document.getElementById('squawkFields').style.display =
+                document.getElementById('hasSquawks').checked ? 'block' : 'none';
         }
 
         function addSquawk() {
@@ -315,66 +366,143 @@
             document.getElementById('squawkList').appendChild(row);
         }
 
-        async function submitReport() {
-            const btn = document.getElementById('submitBtn');
+        function selectGround(el, val) {
+            document.getElementById('groundYes').classList.remove('selected','selected-red');
+            document.getElementById('groundNo').classList.remove('selected');
+            if (val) {
+                el.classList.add('selected-red');
+            } else {
+                el.classList.add('selected');
+            }
+            selectedGround = val;
+        }
+
+        // ── Validation ────────────────────────────────────────────────────────
+        function validateForm() {
             const msg = document.getElementById('pfMsg');
-            msg.className = 'pf-msg';
 
-            const tachStart  = parseFloat(document.getElementById('tachStart').value);
-            const tachEnd    = parseFloat(document.getElementById('tachEnd').value);
-            const fuelAdded  = parseFloat(document.getElementById('fuelAdded').value) || 0;
-            const oilQuarts  = parseFloat(document.getElementById('oilQuarts').value) || 0;
-            const notes      = document.getElementById('flightNotes').value.trim();
-
-            if (isNaN(tachEnd)) {
-                msg.className = 'pf-msg error'; msg.textContent = 'Tach End is required.'; return;
+            const tachEnd = parseFloat(document.getElementById('tachEnd').value);
+            const tachStart = parseFloat(document.getElementById('tachStart').value);
+            if (isNaN(tachEnd) || tachEnd <= 0) {
+                showError('Tach End is required.'); return false;
             }
             if (!isNaN(tachStart) && tachEnd < tachStart) {
-                msg.className = 'pf-msg error'; msg.textContent = 'Tach End must be greater than Tach Start.'; return;
-            }
-            if (!selectedOil) {
-                msg.className = 'pf-msg error'; msg.textContent = 'Please check the oil status.'; return;
+                showError('Tach End must be greater than Tach Start.'); return false;
             }
 
+            // Fuel validation
+            if (!selectedFuel) {
+                showError('Please select a fuel option.'); return false;
+            }
+            if (selectedFuel === 'fueled') {
+                const gal = parseFloat(document.getElementById('fuelAddedGallons').value);
+                if (isNaN(gal) || gal < 0) {
+                    showError('Enter gallons added (0 if tanks were not filled).'); return false;
+                }
+            }
+            if (selectedFuel === 'needs') {
+                const left  = parseFloat(document.getElementById('fuelLeftTank').value);
+                const right = parseFloat(document.getElementById('fuelRightTank').value);
+                const comment = document.getElementById('fuelComment').value.trim();
+                if (isNaN(left)  || left  < 0) { showError('Enter left tank remaining fuel.'); return false; }
+                if (isNaN(right) || right < 0) { showError('Enter right tank remaining fuel.'); return false; }
+                if (!comment)                   { showError('A fuel note is required when reporting needs fuel.'); return false; }
+            }
+
+            // Oil validation
+            const oilStart = parseFloat(document.getElementById('oilStart').value);
+            if (isNaN(oilStart) || oilStart < 0) {
+                showError('Oil at Start is required.'); return false;
+            }
+            const oilAdded = parseFloat(document.getElementById('oilAdded').value) || 0;
+            if (oilAdded < 0) {
+                showError('Oil added cannot be negative.'); return false;
+            }
+
+            // Squawk validation
+            if (document.getElementById('hasSquawks').checked) {
+                const rows = document.querySelectorAll('[id^="sq_text_"]');
+                let hasDesc = false;
+                for (const row of rows) {
+                    const desc = row.value.trim();
+                    if (desc) hasDesc = true;
+                    if (desc.length > 500) { showError('Squawk description must be 500 characters or less.'); return false; }
+                }
+                if (!hasDesc) { showError('Please describe the squawk.'); return false; }
+                if (selectedGround === null) { showError('Please select whether to ground the airplane.'); return false; }
+            }
+
+            return true;
+        }
+
+        function showError(txt) {
+            const el = document.getElementById('pfMsg');
+            el.className = 'pf-msg error';
+            el.textContent = txt;
+            el.scrollIntoView({ behavior:'smooth', block:'center' });
+        }
+
+        // ── Submit ────────────────────────────────────────────────────────────
+        async function submitReport() {
+            if (!validateForm()) return;
+
+            const btn = document.getElementById('submitBtn');
             btn.disabled = true; btn.textContent = 'Submitting…';
+
+            const tachStart = parseFloat(document.getElementById('tachStart').value);
+            const tachEnd   = parseFloat(document.getElementById('tachEnd').value);
+            const oilStart  = parseFloat(document.getElementById('oilStart').value);
+            const oilAdded  = parseFloat(document.getElementById('oilAdded').value) || 0;
+            const oilEnd    = Math.round((oilStart + oilAdded) * 10) / 10;
+            const notes     = document.getElementById('flightNotes').value.trim();
+
+            // Build fuel payload
+            const fuelPayload = {
+                needs_fuel: selectedFuel === 'needs',
+                fuel_added_gallons:       selectedFuel === 'fueled' ? (parseFloat(document.getElementById('fuelAddedGallons').value) || 0) : null,
+                fuel_estimate_left_tank:  selectedFuel === 'needs'  ?  parseFloat(document.getElementById('fuelLeftTank').value)  : null,
+                fuel_estimate_right_tank: selectedFuel === 'needs'  ?  parseFloat(document.getElementById('fuelRightTank').value) : null,
+                fuel_comment:             selectedFuel === 'needs'  ?  document.getElementById('fuelComment').value.trim() : null,
+            };
 
             // Find matching reservation
             const now = new Date();
             const twoHrsAgo = new Date(now - 2 * 60 * 60 * 1000);
             const { data: res } = await _supabase
-                .from('reservations')
-                .select('id')
+                .from('reservations').select('id')
                 .eq('member_id', currentMember.id)
                 .eq('airplane_id', airplaneId)
                 .lte('start_time', now.toISOString())
                 .gte('end_time', twoHrsAgo.toISOString())
                 .neq('status', 'cancelled')
-                .limit(1)
-                .single();
+                .limit(1).single();
 
             // Insert flight log
             const { error: logErr } = await _supabase.from('flight_logs').insert({
-                reservation_id:   res?.id || null,
-                airplane_id:      airplaneId,
-                member_id:        currentMember.id,
-                tach_start:       isNaN(tachStart) ? null : tachStart,
-                tach_end:         tachEnd,
-                fuel_added:       fuelAdded,
-                oil_quarts_added: oilQuarts,
-                notes:            notes || null
+                reservation_id:    res?.id || null,
+                airplane_id:       airplaneId,
+                member_id:         currentMember.id,
+                tach_start:        isNaN(tachStart) ? null : tachStart,
+                tach_end:          tachEnd,
+                oil_qty_start_quarts: oilStart,
+                oil_added_quarts:     oilAdded,
+                oil_qty_end_quarts:   oilEnd,
+                notes:             notes || null,
+                ...fuelPayload
             });
 
             if (logErr) {
-                msg.className = 'pf-msg error'; msg.textContent = 'Error saving log: ' + logErr.message;
+                showError('Error saving log: ' + logErr.message);
                 btn.disabled = false; btn.textContent = 'Submit Post-Flight Report'; return;
             }
 
-            // Update airplane tach + status
-            await _supabase.from('airplanes').update({
-                current_tach: tachEnd,
-                status: 'available',
-                updated_at: new Date().toISOString()
-            }).eq('id', airplaneId);
+            // Update airplane tach
+            const planeUpdate = { current_tach: tachEnd, updated_at: new Date().toISOString() };
+            // Only mark available if not grounding via squawk
+            if (!document.getElementById('hasSquawks').checked || !selectedGround) {
+                planeUpdate.status = 'available';
+            }
+            await _supabase.from('airplanes').update(planeUpdate).eq('id', airplaneId);
 
             // Mark reservation complete
             if (res?.id) {
@@ -383,50 +511,31 @@
 
             // Submit squawks
             if (document.getElementById('hasSquawks').checked) {
-                if (selectedGround === null) {
-                    msg.className = 'pf-msg error';
-                    msg.textContent = 'Please select whether to ground the airplane.';
-                    btn.disabled = false; btn.textContent = 'Submit Post-Flight Report';
-                    return;
-                }
                 const rows = document.querySelectorAll('[id^="sq_text_"]');
                 for (const row of rows) {
                     const desc = row.value.trim();
                     if (!desc) continue;
-                    if (desc.length > 500) {
-                        msg.className = 'pf-msg error';
-                        msg.textContent = 'Squawk description must be 500 characters or less.';
-                        btn.disabled = false; btn.textContent = 'Submit Post-Flight Report';
-                        return;
-                    }
                     await _supabase.from('squawks').insert({
                         airplane_id: airplaneId,
                         reported_by: currentMember.id,
                         description: desc,
-                        go_no_go:    selectedGoNoGo,
                         status:      'open'
                     });
-                    // Email admin
                     fetch('/.netlify/functions/notifySquawk', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            description: desc,
-                            reporter:    currentMember.name || currentMember.email,
-                            tail:        AIRPLANE_TAIL
-                        })
+                        body: JSON.stringify({ description: desc, reporter: currentMember.name || currentMember.email, tail: AIRPLANE_TAIL })
                     }).catch(err => console.error('Squawk notification failed:', err));
                 }
-                // Ground plane only if pilot explicitly chose to ground
                 if (selectedGround) {
                     await _supabase.from('airplanes').update({ status: 'squawk' }).eq('id', airplaneId);
                 }
             }
 
             btn.disabled = false; btn.textContent = 'Submit Post-Flight Report';
-            msg.className = 'pf-msg success';
-            msg.textContent = 'Post-flight report submitted. Thank you!';
-
+            const el = document.getElementById('pfMsg');
+            el.className = 'pf-msg success';
+            el.textContent = 'Post-flight report submitted. Thank you!';
             setTimeout(() => window.location.href = '/dashboard.html', 2000);
         }
     </script>
