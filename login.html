@@ -7,44 +7,15 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <style>
-        .login-wrap {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .login-card {
-            background: white;
-            border-radius: 20px;
-            padding: 50px 44px;
-            width: 100%;
-            max-width: 420px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-            text-align: center;
-        }
-        .login-logo { font-size: 2.4em; font-weight: 900; letter-spacing: 3px; color: #2c3e50; margin-bottom: 6px; }
-        .login-sub  { color: #95a5a6; font-size: 0.9em; margin-bottom: 36px; }
-        .login-card h2 { font-size: 1.3em; color: #2c3e50; margin-bottom: 24px; font-weight: 600; }
-        .login-input {
-            width: 100%; padding: 14px 18px; border: 2px solid #e9ecef;
-            border-radius: 10px; font-size: 1em; margin-bottom: 14px;
-            box-sizing: border-box; transition: border-color 0.2s;
-        }
-        .login-input:focus { outline: none; border-color: #667eea; }
-        .login-btn {
-            width: 100%; padding: 14px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white; border: none; border-radius: 10px;
-            font-size: 1em; font-weight: 700; cursor: pointer; transition: opacity 0.2s;
-        }
-        .login-btn:hover { opacity: 0.9; }
-        .login-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .login-msg {
-            margin-top: 16px; padding: 12px; border-radius: 10px;
-            font-size: 0.9em; display: none;
-        }
-        .login-msg.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; display: block; }
+        .login-wrap { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
+        .login-card { background:white; border-radius:20px; padding:50px 44px; width:100%; max-width:420px; box-shadow:0 20px 60px rgba(0,0,0,0.15); text-align:center; }
+        .login-logo { font-size:2.4em; font-weight:900; letter-spacing:3px; color:#2c3e50; margin-bottom:6px; }
+        .login-sub  { color:#95a5a6; font-size:0.9em; margin-bottom:36px; }
+        .login-input { width:100%; padding:14px 18px; border:2px solid #e9ecef; border-radius:10px; font-size:1em; margin-bottom:14px; box-sizing:border-box; transition:border-color 0.2s; }
+        .login-input:focus { outline:none; border-color:#667eea; }
+        .login-btn { width:100%; padding:14px; background:linear-gradient(135deg,#667eea,#764ba2); color:white; border:none; border-radius:10px; font-size:1em; font-weight:700; cursor:pointer; }
+        .login-btn:disabled { opacity:0.5; cursor:not-allowed; }
+        .err { margin-top:14px; padding:12px; border-radius:10px; background:#f8d7da; color:#721c24; font-size:0.9em; display:none; }
     </style>
 </head>
 <body>
@@ -52,48 +23,29 @@
         <div class="login-card">
             <div class="login-logo">PNWAV8R</div>
             <div class="login-sub">Pacific Northwest Flying Club</div>
-            <h2>Member Sign In</h2>
-            <input type="email" class="login-input" id="emailInput" placeholder="Email address"
-                   onkeydown="if(event.key==='Enter') signIn()">
-            <input type="password" class="login-input" id="passInput" placeholder="Password"
-                   onkeydown="if(event.key==='Enter') signIn()">
-            <button class="login-btn" id="signInBtn" onclick="signIn()">Sign In</button>
-            <div class="login-msg" id="loginMsg"></div>
+            <input type="email"    class="login-input" id="email" placeholder="Email" onkeydown="if(event.key==='Enter')signIn()">
+            <input type="password" class="login-input" id="pass"  placeholder="Password" onkeydown="if(event.key==='Enter')signIn()">
+            <button class="login-btn" id="btn" onclick="signIn()">Sign In</button>
+            <div class="err" id="err"></div>
         </div>
     </div>
-
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js"></script>
     <script>
-        // Already logged in — go straight to dashboard
-        _supabase.auth.getSession().then(({ data: { session } }) => {
-            if (session) window.location.href = '/dashboard.html';
-        });
-
         async function signIn() {
-            const email = document.getElementById('emailInput').value.trim();
-            const pass  = document.getElementById('passInput').value;
-            const msg   = document.getElementById('loginMsg');
-            const btn   = document.getElementById('signInBtn');
+            const email = document.getElementById('email').value.trim();
+            const pass  = document.getElementById('pass').value;
+            const err   = document.getElementById('err');
+            const btn   = document.getElementById('btn');
+            err.style.display = 'none';
 
-            msg.className = 'login-msg';
-            if (!email || !pass) {
-                msg.className = 'login-msg error';
-                msg.textContent = 'Please enter your email and password.';
-                return;
-            }
-
-            btn.disabled = true;
-            btn.textContent = 'Signing in…';
-
+            btn.disabled = true; btn.textContent = 'Signing in…';
             const { error } = await _supabase.auth.signInWithPassword({ email, password: pass });
-
-            btn.disabled = false;
-            btn.textContent = 'Sign In';
+            btn.disabled = false; btn.textContent = 'Sign In';
 
             if (error) {
-                msg.className = 'login-msg error';
-                msg.textContent = 'Invalid email or password.';
+                err.textContent = 'Invalid email or password.';
+                err.style.display = 'block';
             } else {
                 window.location.href = '/dashboard.html';
             }

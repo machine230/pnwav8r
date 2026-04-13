@@ -259,6 +259,7 @@
 
             currentMember = await getCurrentMember();
             if (!currentMember) {
+                await _supabase.auth.signOut();
                 window.location.href = '/login.html';
                 return;
             }

@@ -1,14 +1,10 @@
-// ─────────────────────────────────────────────
-//  Auth helpers — shared across all club pages
-// ─────────────────────────────────────────────
+// Auth helpers
 
-// Get current session
 async function getSession() {
     const { data: { session } } = await _supabase.auth.getSession();
     return session;
 }
 
-// Redirect to login if no active session
 async function requireAuth() {
     const session = await getSession();
     if (!session) {
@@ -18,15 +14,11 @@ async function requireAuth() {
     return session;
 }
 
-// Redirect to dashboard if not admin
 async function requireAdmin() {
     const session = await requireAuth();
     if (!session) return null;
     const { data: member } = await _supabase
-        .from('members')
-        .select('role')
-        .eq('id', session.user.id)
-        .single();
+        .from('members').select('role').eq('id', session.user.id).single();
     if (!member || member.role !== 'admin') {
         window.location.href = '/dashboard.html';
         return null;
@@ -34,25 +26,19 @@ async function requireAdmin() {
     return session;
 }
 
-// Get the current member's full record
 async function getCurrentMember() {
     const session = await getSession();
     if (!session) return null;
     const { data } = await _supabase
-        .from('members')
-        .select('*')
-        .eq('id', session.user.id)
-        .single();
+        .from('members').select('*').eq('id', session.user.id).single();
     return data;
 }
 
-// Sign out
 async function signOut() {
     await _supabase.auth.signOut();
     window.location.href = '/login.html';
 }
 
-// Render nav user pill
 async function renderNavUser() {
     const member = await getCurrentMember();
     const el = document.getElementById('navUser');
