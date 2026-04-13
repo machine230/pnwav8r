@@ -319,7 +319,7 @@
         }
 
         async function loadAirplane() {
-            const { data: plane } = await _supabase.from('airplanes').select('*').eq('tail_number', AIRPLANE_TAIL).single();
+            const { data: plane } = await _supabase.from('airplanes').select('*, smoh_base').eq('tail_number', AIRPLANE_TAIL).single();
             if (!plane) return;
 
             const statusMap = { available:{cls:'available',label:'Available'}, flying:{cls:'flying',label:'In the Air'}, maintenance:{cls:'maintenance',label:'Maintenance'}, squawk:{cls:'squawk',label:'Squawk — Grounded'} };
@@ -327,8 +327,10 @@
             document.getElementById('airplaneCard').className = `airplane-card ${s.cls}`;
             document.getElementById('acStatusBadge').textContent = s.label;
             const tach = plane.current_tach || 0;
+            const smohBase = plane.smoh_base || 0;
             document.getElementById('acTach').textContent = tach ? tach.toFixed(1) : '—';
-            document.getElementById('acSmoh').textContent = tach ? tach.toFixed(1) + ' hrs' : '—';
+            document.getElementById('acSmoh').textContent = (tach && smohBase !== null)
+                ? (tach - smohBase).toFixed(1) + ' hrs' : '—';
 
             // Latest flight log for current fuel/oil
             const { data: log } = await _supabase
