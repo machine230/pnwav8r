@@ -89,6 +89,33 @@
         .res-cancel-btn { font-size:0.78em; color:#dc3545; background:none; border:1px solid #f5c6cb; padding:4px 12px; border-radius:20px; cursor:pointer; }
         .empty-state { color:#adb5bd; font-size:0.9em; padding:12px 0; }
 
+        /* Airworthy banner */
+        .aw-banner {
+            border-radius:12px; padding:12px 22px; margin-bottom:20px;
+            display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;
+            font-weight:700; font-size:0.95em;
+        }
+        .aw-banner.airworthy   { background:#d4edda; color:#155724; border:1px solid #c3e6cb; }
+        .aw-banner.not-airworthy { background:#f8d7da; color:#721c24; border:1px solid #f5c6cb; }
+        .aw-banner.unknown     { background:#fff3cd; color:#856404; border:1px solid #ffeeba; }
+        .aw-dot { width:10px; height:10px; border-radius:50%; display:inline-block; margin-right:8px; flex-shrink:0; }
+        .aw-banner.airworthy .aw-dot { background:#28a745; }
+        .aw-banner.not-airworthy .aw-dot { background:#dc3545; }
+        .aw-banner.unknown .aw-dot { background:#ffc107; }
+        .aw-overdue { font-size:0.82em; font-weight:600; opacity:0.85; }
+
+        /* Inspection items */
+        .insp-item { display:flex; align-items:center; gap:14px; padding:12px 0; border-bottom:1px solid #f0f2f5; }
+        .insp-item:last-child { border-bottom:none; }
+        .insp-badge { font-size:0.72em; font-weight:700; padding:3px 10px; border-radius:20px; white-space:nowrap; flex-shrink:0; }
+        .insp-badge.current  { background:#d4edda; color:#155724; }
+        .insp-badge.due-soon { background:#fff3cd; color:#856404; }
+        .insp-badge.overdue  { background:#f8d7da; color:#721c24; }
+        .insp-badge.unknown  { background:#e9ecef; color:#6c757d; }
+        .insp-name { font-weight:600; font-size:0.9em; color:#2c3e50; }
+        .insp-meta { font-size:0.78em; color:#7f8c8d; margin-top:2px; }
+        .insp-edit { font-size:0.78em; background:none; border:1px solid #dee2e6; border-radius:12px; padding:3px 10px; cursor:pointer; color:#7f8c8d; margin-left:auto; flex-shrink:0; display:none; }
+
         /* Profile modal */
         .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:2000; align-items:center; justify-content:center; }
         .modal-overlay.open { display:flex; }
@@ -158,6 +185,12 @@
             </div>
         </div>
 
+        <!-- Airworthy banner -->
+        <div class="aw-banner unknown" id="awBanner">
+            <div><span class="aw-dot"></span><span id="awStatus">Checking airworthiness…</span></div>
+            <div class="aw-overdue" id="awDetail"></div>
+        </div>
+
         <!-- Docs row -->
         <div class="docs-row">
             <a href="/docs/N7798E-POH.pdf" target="_blank" class="doc-tile">
@@ -197,8 +230,15 @@
                 </div>
             </div>
 
-            <!-- Open squawks -->
+            <!-- Right column -->
             <div>
+                <!-- FAA Inspections -->
+                <div class="dash-card">
+                    <div class="dash-card-title">FAA Required Inspections</div>
+                    <div id="inspectionList"><div class="empty-state">Loading…</div></div>
+                </div>
+
+                <!-- Open squawks -->
                 <div class="dash-card">
                     <div class="dash-card-title">Open Squawks</div>
                     <div id="squawkList"><div class="empty-state">Loading…</div></div>
@@ -256,7 +296,7 @@
             renderNavUser();
             if (currentMember.role === 'admin') document.getElementById('adminLink').style.display = 'inline';
 
-            await Promise.all([loadAirplane(), loadReservations(), loadSquawks()]);
+            await Promise.all([loadAirplane(), loadReservations(), loadSquawks(), loadInspections()]);
 
             _supabase.channel('reservations').on('postgres_changes', { event:'*', schema:'public', table:'reservations' }, async () => { await loadReservations(); renderMiniCal(); }).subscribe();
             _supabase.channel('airplanes').on('postgres_changes',    { event:'*', schema:'public', table:'airplanes'    }, loadAirplane).subscribe();
@@ -386,6 +426,85 @@
 
             html += '</tbody></table>';
             el.innerHTML = html;
+        }
+
+        async function loadInspections() {
+            const { data: plane } = await _supabase.from('airplanes').select('id').eq('tail_number', AIRPLANE_TAIL).single();
+            if (!plane) return;
+
+            const { data } = await _supabase
+                .from('inspections')
+                .select('*')
+                .eq('airplane_id', plane.id)
+                .order('name');
+
+            const el = document.getElementById('inspectionList');
+            if (!data || !data.length) {
+                el.innerHTML = '<div class="empty-state">No inspections found. Run the SQL setup first.</div>';
+                updateAirworthyBanner([]);
+                return;
+            }
+
+            const today = new Date(); today.setHours(0,0,0,0);
+            const items = data.map(insp => {
+                let status = 'unknown', dueText = 'Not recorded', daysLeft = null;
+                if (insp.last_completed) {
+                    const last = new Date(insp.last_completed);
+                    const due  = new Date(last);
+                    due.setDate(due.getDate() + insp.interval_days);
+                    daysLeft = Math.floor((due - today) / 86400000);
+                    if (daysLeft < 0)        { status = 'overdue';  dueText = `Overdue by ${Math.abs(daysLeft)}d`; }
+                    else if (daysLeft <= 30) { status = 'due-soon'; dueText = `Due in ${daysLeft}d (${fmtDate(due.toISOString())})`; }
+                    else                     { status = 'current';  dueText = `Due ${fmtDate(due.toISOString())}`; }
+                }
+                return { ...insp, status, dueText, daysLeft };
+            });
+
+            // Sort: overdue first, then due-soon, then current, then unknown
+            const order = { overdue:0, 'due-soon':1, current:2, unknown:3 };
+            items.sort((a,b) => order[a.status] - order[b.status]);
+
+            const labelMap = { overdue:'Overdue', 'due-soon':'Due Soon', current:'Current', unknown:'Not Set' };
+            el.innerHTML = items.map(i => `
+                <div class="insp-item">
+                    <div>
+                        <div class="insp-name">${i.name}</div>
+                        <div class="insp-meta">${i.dueText}</div>
+                    </div>
+                    <span class="insp-badge ${i.status}">${labelMap[i.status]}</span>
+                </div>`).join('');
+
+            updateAirworthyBanner(items);
+        }
+
+        function updateAirworthyBanner(items) {
+            const banner   = document.getElementById('awBanner');
+            const awStatus = document.getElementById('awStatus');
+            const awDetail = document.getElementById('awDetail');
+
+            if (!items.length) {
+                banner.className = 'aw-banner unknown';
+                awStatus.textContent = 'Airworthiness unknown — no inspection data';
+                awDetail.textContent = '';
+                return;
+            }
+
+            const overdue  = items.filter(i => i.status === 'overdue');
+            const dueSoon  = items.filter(i => i.status === 'due-soon');
+
+            if (overdue.length) {
+                banner.className = 'aw-banner not-airworthy';
+                awStatus.textContent = 'NOT AIRWORTHY';
+                awDetail.textContent = `${overdue.length} inspection${overdue.length > 1 ? 's' : ''} overdue: ${overdue.map(i => i.name).join(', ')}`;
+            } else if (dueSoon.length) {
+                banner.className = 'aw-banner unknown';
+                awStatus.textContent = 'AIRWORTHY — Inspections due soon';
+                awDetail.textContent = dueSoon.map(i => `${i.name} in ${i.daysLeft}d`).join(' · ');
+            } else {
+                banner.className = 'aw-banner airworthy';
+                awStatus.textContent = 'AIRWORTHY';
+                awDetail.textContent = 'All FAA required inspections current';
+            }
         }
 
         async function loadSquawks() {
