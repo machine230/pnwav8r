@@ -23,69 +23,28 @@
             box-shadow: 0 20px 60px rgba(0,0,0,0.15);
             text-align: center;
         }
-        .login-logo {
-            font-size: 2.4em;
-            font-weight: 900;
-            letter-spacing: 3px;
-            color: #2c3e50;
-            margin-bottom: 6px;
+        .login-logo { font-size: 2.4em; font-weight: 900; letter-spacing: 3px; color: #2c3e50; margin-bottom: 6px; }
+        .login-sub  { color: #95a5a6; font-size: 0.9em; margin-bottom: 36px; }
+        .login-card h2 { font-size: 1.3em; color: #2c3e50; margin-bottom: 24px; font-weight: 600; }
+        .login-input {
+            width: 100%; padding: 14px 18px; border: 2px solid #e9ecef;
+            border-radius: 10px; font-size: 1em; margin-bottom: 14px;
+            box-sizing: border-box; transition: border-color 0.2s;
         }
-        .login-sub {
-            color: #95a5a6;
-            font-size: 0.9em;
-            margin-bottom: 36px;
+        .login-input:focus { outline: none; border-color: #667eea; }
+        .login-btn {
+            width: 100%; padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; border: none; border-radius: 10px;
+            font-size: 1em; font-weight: 700; cursor: pointer; transition: opacity 0.2s;
         }
-        .login-card h2 {
-            font-size: 1.3em;
-            color: #2c3e50;
-            margin-bottom: 28px;
-            font-weight: 600;
-        }
-        .google-btn {
-            width: 100%;
-            padding: 14px 18px;
-            background: white;
-            color: #3c4043;
-            border: 2px solid #dadce0;
-            border-radius: 10px;
-            font-size: 1em;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            transition: background 0.2s, box-shadow 0.2s;
-        }
-        .google-btn:hover {
-            background: #f8f9fa;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-        }
-        .google-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .google-icon {
-            width: 20px;
-            height: 20px;
-            flex-shrink: 0;
-        }
+        .login-btn:hover { opacity: 0.9; }
+        .login-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .login-msg {
-            margin-top: 20px;
-            padding: 14px;
-            border-radius: 10px;
-            font-size: 0.9em;
-            display: none;
+            margin-top: 16px; padding: 12px; border-radius: 10px;
+            font-size: 0.9em; display: none;
         }
-        .login-msg.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-            display: block;
-        }
-        .login-note {
-            margin-top: 24px;
-            font-size: 0.82em;
-            color: #adb5bd;
-            line-height: 1.5;
-        }
+        .login-msg.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; display: block; }
     </style>
 </head>
 <body>
@@ -93,52 +52,51 @@
         <div class="login-card">
             <div class="login-logo">PNWAV8R</div>
             <div class="login-sub">Pacific Northwest Flying Club</div>
-
             <h2>Member Sign In</h2>
-
-            <button class="google-btn" id="googleBtn" onclick="signInWithGoogle()">
-                <svg class="google-icon" viewBox="0 0 48 48">
-                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-                    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-                    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-                    <path fill="none" d="M0 0h48v48H0z"/>
-                </svg>
-                Continue with Google
-            </button>
-
+            <input type="email" class="login-input" id="emailInput" placeholder="Email address"
+                   onkeydown="if(event.key==='Enter') signIn()">
+            <input type="password" class="login-input" id="passInput" placeholder="Password"
+                   onkeydown="if(event.key==='Enter') signIn()">
+            <button class="login-btn" id="signInBtn" onclick="signIn()">Sign In</button>
             <div class="login-msg" id="loginMsg"></div>
-
-            <p class="login-note">
-                Members only. Contact your club admin<br>if you need access.
-            </p>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js"></script>
     <script>
-        // If already logged in, go to dashboard
+        // Already logged in — go straight to dashboard
         _supabase.auth.getSession().then(({ data: { session } }) => {
             if (session) window.location.href = '/dashboard.html';
         });
 
-        async function signInWithGoogle() {
-            const btn = document.getElementById('googleBtn');
-            const msg = document.getElementById('loginMsg');
-            btn.disabled = true;
+        async function signIn() {
+            const email = document.getElementById('emailInput').value.trim();
+            const pass  = document.getElementById('passInput').value;
+            const msg   = document.getElementById('loginMsg');
+            const btn   = document.getElementById('signInBtn');
 
-            const { error } = await _supabase.auth.signInWithOAuth({
-                provider: 'google',
-                options: { redirectTo: window.location.origin + '/auth-callback.html' }
-            });
+            msg.className = 'login-msg';
+            if (!email || !pass) {
+                msg.className = 'login-msg error';
+                msg.textContent = 'Please enter your email and password.';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Signing in…';
+
+            const { error } = await _supabase.auth.signInWithPassword({ email, password: pass });
+
+            btn.disabled = false;
+            btn.textContent = 'Sign In';
 
             if (error) {
                 msg.className = 'login-msg error';
-                msg.textContent = error.message || 'Sign-in failed. Try again.';
-                btn.disabled = false;
+                msg.textContent = 'Invalid email or password.';
+            } else {
+                window.location.href = '/dashboard.html';
             }
-            // On success Supabase redirects the browser — no further action needed
         }
     </script>
 </body>
