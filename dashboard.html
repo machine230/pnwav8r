@@ -327,9 +327,8 @@
             document.getElementById('airplaneCard').className = `airplane-card ${s.cls}`;
             document.getElementById('acStatusBadge').textContent = s.label;
             const tach = plane.current_tach || 0;
-            const SMOH_BASE = 602.1;
             document.getElementById('acTach').textContent = tach ? tach.toFixed(1) : '—';
-            document.getElementById('acSmoh').textContent = tach ? (tach - SMOH_BASE).toFixed(1) + ' hrs' : '—';
+            document.getElementById('acSmoh').textContent = tach ? tach.toFixed(1) + ' hrs' : '—';
 
             // Latest flight log for current fuel/oil
             const { data: log } = await _supabase
