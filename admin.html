@@ -316,17 +316,18 @@
 
             if (!name || !email) { msg.style.color='#dc3545'; msg.textContent='Name and email are required.'; return; }
 
-            // Invite via Supabase Auth (sends magic link)
-            const { error: inviteErr } = await _supabase.auth.admin.inviteUserByEmail(email);
-            if (inviteErr && !inviteErr.message.includes('already')) {
-                msg.style.color='#dc3545'; msg.textContent='Invite error: ' + inviteErr.message; return;
-            }
+            // Pre-create the member record — member will be linked when they sign in
+            // Admin must also create their auth account in Supabase → Authentication → Users
+            const { error } = await _supabase.from('members').upsert({
+                id: '00000000-0000-0000-0000-000000000000', // placeholder, overwritten by trigger on first login
+                name, email, phone: phone || null,
+                membership_active: true, pic_status: false, role: 'member'
+            }, { onConflict: 'email' });
 
-            // Upsert member record
-            const { error } = await _supabase.from('members').upsert({ name, email, phone: phone || null, membership_active: true, pic_status: false, role: 'member' }, { onConflict: 'email' });
             if (error) { msg.style.color='#dc3545'; msg.textContent='Error: ' + error.message; return; }
 
-            msg.style.color='#28a745'; msg.textContent=`${name} added and invite sent to ${email}.`;
+            msg.style.color='#28a745';
+            msg.textContent = `${name} added. Now go to Supabase → Authentication → Users → Add user to create their login with email: ${email}`;
             document.getElementById('newName').value = '';
             document.getElementById('newEmail').value = '';
             document.getElementById('newPhone').value = '';
