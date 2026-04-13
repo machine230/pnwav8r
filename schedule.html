@@ -45,7 +45,7 @@
 
         /* Day header cells */
         .day-header {
-            background:#f8f9fa; border-bottom:2px solid #e9ecef; border-right:1px solid #f0f2f5;
+            background:#f0f2f5; border-bottom:2px solid #c0c6cf; border-right:1px solid #dce0e6;
             text-align:center; padding:12px 4px;
         }
         .day-header .dow { font-size:0.72em; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#95a5a6; }
@@ -59,15 +59,15 @@
 
         /* Time label column */
         .time-label {
-            background:#f8f9fa; border-right:1px solid #e9ecef; border-bottom:1px solid #f0f2f5;
-            font-size:0.7em; font-weight:600; color:#95a5a6;
+            background:#f0f2f5; border-right:2px solid #d0d4db; border-bottom:1px solid #d0d4db;
+            font-size:0.7em; font-weight:700; color:#7f8c8d;
             display:flex; align-items:flex-start; justify-content:center;
             padding-top:4px; height:48px; box-sizing:border-box;
         }
 
         /* Time slot cells */
         .slot-cell {
-            height:48px; border-right:1px solid #f0f2f5; border-bottom:1px solid #f0f2f5;
+            height:48px; border-right:1px solid #dce0e6; border-bottom:1px solid #dce0e6;
             position:relative; box-sizing:border-box; cursor:pointer; transition:background 0.1s;
         }
         .slot-cell:hover:not(.cell-taken):not(.cell-past):not(.cell-disabled) { background:#f0f4ff; }
@@ -121,8 +121,7 @@
             <div class="club-nav-links">
                 <a href="dashboard.html">Dashboard</a>
                 <a href="schedule.html" class="active">Schedule</a>
-                <a href="weather.html">Weather</a>
-                <a href="wb.html">W&amp;B</a>
+                <a href="post-flight.html">Post-Flight</a>
                 <span id="adminLink" style="display:none"><a href="admin.html">Admin</a></span>
             </div>
             <div id="navUser"></div>
