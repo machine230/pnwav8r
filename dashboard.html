@@ -415,13 +415,38 @@
             // Latest flight log for current fuel/oil
             const { data: log } = await _supabase
                 .from('flight_logs')
-                .select('fuel_added, oil_quarts_added, completed_at')
+                .select('fuel_added_gallons, needs_fuel, fuel_estimate_left_tank, fuel_estimate_right_tank, oil_added_quarts, oil_qty_end_quarts, completed_at')
                 .eq('airplane_id', plane.id)
+                .or('is_deleted.is.null,is_deleted.eq.false')
                 .order('completed_at', { ascending: false })
                 .limit(1).single();
 
-            document.getElementById('acFuel').textContent = log?.fuel_added     ? `${log.fuel_added} gal`    : 'Not reported';
-            document.getElementById('acOil').textContent  = log?.oil_quarts_added ? `${log.oil_quarts_added} qt` : 'Not reported';
+            const fuelEl = document.getElementById('acFuel');
+            const oilEl  = document.getElementById('acOil');
+            if (log) {
+                if (log.needs_fuel) {
+                    const lt = log.fuel_estimate_left_tank  != null ? log.fuel_estimate_left_tank  + ' L' : '?';
+                    const rt = log.fuel_estimate_right_tank != null ? log.fuel_estimate_right_tank + ' R' : '?';
+                    fuelEl.innerHTML = `<span style="color:#ffc107;font-weight:700">⚠ Needs Fuel</span><br><small style="font-size:0.8em;opacity:0.85">${lt} / ${rt}</small>`;
+                } else if (log.fuel_added_gallons != null) {
+                    fuelEl.textContent = `${log.fuel_added_gallons} gal added`;
+                } else {
+                    fuelEl.textContent = 'Not reported';
+                }
+                if (log.oil_qty_end_quarts != null) {
+                    const warn = log.oil_qty_end_quarts < 4;
+                    oilEl.innerHTML = warn
+                        ? `<span style="color:#ffc107;font-weight:700">⚠ ${log.oil_qty_end_quarts} qt</span><small style="font-size:0.8em;opacity:0.85"> (low)</small>`
+                        : `${log.oil_qty_end_quarts} qt`;
+                } else if (log.oil_added_quarts != null) {
+                    oilEl.textContent = `+${log.oil_added_quarts} qt added`;
+                } else {
+                    oilEl.textContent = 'Not reported';
+                }
+            } else {
+                fuelEl.textContent = 'Not reported';
+                oilEl.textContent  = 'Not reported';
+            }
 
             const { count } = await _supabase.from('squawks').select('*', { count:'exact', head:true }).eq('airplane_id', plane.id).eq('status','open');
             document.getElementById('acSquawks').textContent = count ?? 0;

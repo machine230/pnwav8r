@@ -81,6 +81,31 @@
         /* Table scroll wrapper for mobile */
         .table-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; }
 
+        /* Filter bar */
+        .filter-bar { display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; padding:18px 20px; background:#f8f9fa; border-bottom:2px solid #e9ecef; }
+        .filter-bar label { display:block; font-size:0.78em; font-weight:700; color:#6c757d; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px; }
+        .filter-bar input, .filter-bar select { padding:8px 12px; border:2px solid #dee2e6; border-radius:8px; font-size:0.88em; font-family:inherit; box-sizing:border-box; }
+        .filter-bar input:focus, .filter-bar select:focus { outline:none; border-color:#667eea; }
+        .filter-bar .ff { flex:1; min-width:140px; }
+        .filter-bar .ff-narrow { flex:0 0 auto; }
+        .filter-btn { padding:8px 16px; border-radius:8px; font-size:0.85em; font-weight:600; cursor:pointer; border:none; }
+        .filter-btn-apply { background:#667eea; color:white; }
+        .filter-btn-clear  { background:#e9ecef; color:#495057; }
+
+        /* Reservation modal */
+        .res-modal-bg { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:2000; align-items:center; justify-content:center; padding:16px; box-sizing:border-box; }
+        .res-modal-bg.open { display:flex; }
+        .res-modal-box { background:white; border-radius:20px; padding:32px; width:100%; max-width:480px; box-shadow:0 20px 60px rgba(0,0,0,0.2); box-sizing:border-box; }
+        .res-modal-box h2 { font-size:1.05em; font-weight:700; color:#2c3e50; margin:0 0 20px; }
+        .res-field { margin-bottom:14px; }
+        .res-field label { display:block; font-size:0.8em; font-weight:700; color:#7f8c8d; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:5px; }
+        .res-field input, .res-field select { width:100%; padding:11px 14px; border:2px solid #e9ecef; border-radius:10px; font-size:0.92em; box-sizing:border-box; font-family:inherit; }
+        .res-field input:focus, .res-field select:focus { outline:none; border-color:#667eea; }
+        .res-modal-actions { display:flex; gap:10px; margin-top:20px; }
+        .res-modal-actions button { flex:1; padding:11px; border-radius:10px; font-size:0.92em; font-weight:700; cursor:pointer; border:none; }
+        .res-modal-cancel { background:white; color:#7f8c8d; border:2px solid #e9ecef !important; }
+        .res-modal-save   { background:linear-gradient(135deg,#667eea,#764ba2); color:white; }
+
         /* Hamburger nav */
         .hamburger-btn { display:none; background:none; border:none; cursor:pointer; padding:8px; flex-shrink:0; }
         .hamburger-btn span { display:block; width:22px; height:2px; background:#2c3e50; border-radius:2px; margin:5px 0; }
@@ -139,6 +164,7 @@
             <button class="admin-tab" onclick="showTab('aircraft',this)">Aircraft</button>
             <button class="admin-tab" onclick="showTab('inspections',this)">Inspections</button>
             <button class="admin-tab" onclick="showTab('squawks',this)">Squawks</button>
+            <button class="admin-tab" onclick="showTab('reservations',this)">Reservations</button>
             <button class="admin-tab" onclick="showTab('flights',this)">Flight Log</button>
         </div>
 
@@ -281,18 +307,64 @@
             </div>
         </div>
 
-        <!-- ── Flight Log ── -->
-        <div class="tab-panel" id="tab-flights">
+        <!-- ── Reservations ── -->
+        <div class="tab-panel" id="tab-reservations">
             <div class="admin-card">
-                <div class="admin-card-header"><h3>Recent Flight Logs</h3></div>
+                <div class="admin-card-header">
+                    <h3>All Reservations</h3>
+                    <div style="display:flex;gap:8px">
+                        <button class="tbl-btn tbl-btn-primary" onclick="setResFilter('upcoming')" id="resFiltUpcoming" style="border-radius:16px">Upcoming</button>
+                        <button class="tbl-btn tbl-btn-warn" onclick="setResFilter('past')" id="resFiltPast" style="border-radius:16px">Past</button>
+                        <button class="tbl-btn" onclick="setResFilter('all')" id="resFiltAll" style="border-radius:16px;background:#e9ecef;color:#495057">All</button>
+                    </div>
+                </div>
                 <div class="admin-card-body">
                     <div class="table-scroll">
                     <table class="admin-table">
                         <thead>
-                            <tr><th>Pilot</th><th>Date</th><th>Tach Start</th><th>Tach End</th><th>Time</th><th>Fuel Added</th><th>Oil Added</th><th>Notes</th></tr>
+                            <tr><th>Pilot</th><th>Date</th><th>Start</th><th>End</th><th>Purpose</th><th>Actions</th></tr>
+                        </thead>
+                        <tbody id="resTableBody">
+                            <tr><td colspan="6" style="text-align:center;color:#adb5bd;padding:28px">Loading…</td></tr>
+                        </tbody>
+                    </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Flight Log ── -->
+        <div class="tab-panel" id="tab-flights">
+            <div class="admin-card">
+                <div class="admin-card-header"><h3>Flight Logs</h3></div>
+                <div class="filter-bar">
+                    <div class="ff">
+                        <label>Pilot</label>
+                        <select id="flightFilterPilot">
+                            <option value="">All Pilots</option>
+                        </select>
+                    </div>
+                    <div class="ff">
+                        <label>From</label>
+                        <input type="date" id="flightFilterFrom">
+                    </div>
+                    <div class="ff">
+                        <label>To</label>
+                        <input type="date" id="flightFilterTo">
+                    </div>
+                    <div class="ff-narrow" style="display:flex;gap:6px;align-self:flex-end">
+                        <button class="filter-btn filter-btn-apply" onclick="loadFlights()">Apply</button>
+                        <button class="filter-btn filter-btn-clear" onclick="clearFlightFilters()">Clear</button>
+                    </div>
+                </div>
+                <div class="admin-card-body">
+                    <div class="table-scroll">
+                    <table class="admin-table">
+                        <thead>
+                            <tr><th>Pilot</th><th>Date</th><th>Tach Start</th><th>Tach End</th><th>Time</th><th>Fuel</th><th>Oil Added</th><th>Notes</th><th>Delete</th></tr>
                         </thead>
                         <tbody id="flightTableBody">
-                            <tr><td colspan="8" style="text-align:center;color:#adb5bd;padding:28px">Loading…</td></tr>
+                            <tr><td colspan="9" style="text-align:center;color:#adb5bd;padding:28px">Loading…</td></tr>
                         </tbody>
                     </table>
                     </div>
@@ -322,7 +394,8 @@
                 document.getElementById('tachUpdate').value = plane.current_tach || '';
                 document.getElementById('maintNote').value  = plane.notes || '';
             }
-            await Promise.all([ loadMembers(), loadSquawks(), loadFlights(), loadInspections() ]);
+            await Promise.all([ loadMembers(), loadSquawks(), loadFlights(), loadInspections(), loadReservations() ]);
+            populatePilotFilter();
         });
 
         function showTab(name, btn) {
@@ -494,29 +567,177 @@
         }
 
         // ── Flight Log ──
+        async function populatePilotFilter() {
+            const { data } = await _supabase.from('members').select('id,name').order('name');
+            const sel = document.getElementById('flightFilterPilot');
+            if (!data?.length) return;
+            data.forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m.id;
+                opt.textContent = m.name;
+                sel.appendChild(opt);
+            });
+        }
+
+        function clearFlightFilters() {
+            document.getElementById('flightFilterPilot').value = '';
+            document.getElementById('flightFilterFrom').value  = '';
+            document.getElementById('flightFilterTo').value    = '';
+            loadFlights();
+        }
+
         async function loadFlights() {
-            const { data } = await _supabase.from('flight_logs')
-                .select('*, members(name)')
-                .eq('airplane_id', airplaneId)
-                .order('completed_at', { ascending: false })
-                .limit(50);
+            const pilotId  = document.getElementById('flightFilterPilot')?.value || '';
+            const fromDate = document.getElementById('flightFilterFrom')?.value  || '';
+            const toDate   = document.getElementById('flightFilterTo')?.value    || '';
 
             const tbody = document.getElementById('flightTableBody');
-            if (!data?.length) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#adb5bd;padding:28px">No flight logs yet.</td></tr>'; return; }
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#adb5bd;padding:28px">Loading…</td></tr>';
+
+            let q = _supabase.from('flight_logs')
+                .select('*, members(name)')
+                .eq('airplane_id', airplaneId)
+                .or('is_deleted.is.null,is_deleted.eq.false')
+                .order('completed_at', { ascending: false })
+                .limit(100);
+
+            if (pilotId)  q = q.eq('member_id', pilotId);
+            if (fromDate) q = q.gte('completed_at', fromDate + 'T00:00:00');
+            if (toDate)   q = q.lte('completed_at', toDate   + 'T23:59:59');
+
+            const { data } = await q;
+
+            if (!data?.length) { tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#adb5bd;padding:28px">No flight logs found.</td></tr>'; return; }
 
             tbody.innerHTML = data.map(f => {
-                const time = (f.tach_start && f.tach_end) ? (f.tach_end - f.tach_start).toFixed(1) + ' hr' : '—';
+                const time    = (f.tach_start != null && f.tach_end != null) ? (f.tach_end - f.tach_start).toFixed(1) + ' hr' : '—';
+                let fuelStr   = '—';
+                if (f.needs_fuel) {
+                    const lt = f.fuel_estimate_left_tank  != null ? f.fuel_estimate_left_tank  + ' L' : '?';
+                    const rt = f.fuel_estimate_right_tank != null ? f.fuel_estimate_right_tank + ' R' : '?';
+                    fuelStr = `<span class="badge badge-warn" title="Needs Fuel">Needs Fuel<br><small>${lt} / ${rt}</small></span>`;
+                } else if (f.fuel_added_gallons != null) {
+                    fuelStr = f.fuel_added_gallons + ' gal';
+                }
+                const oilStr  = f.oil_added_quarts ? f.oil_added_quarts + ' qt' : '—';
                 return `<tr>
                     <td><strong>${escapeHtml(f.members?.name) || '—'}</strong></td>
                     <td>${fmtDate(f.completed_at)}</td>
                     <td>${f.tach_start ?? '—'}</td>
                     <td>${f.tach_end ?? '—'}</td>
                     <td>${time}</td>
-                    <td>${f.fuel_added ? f.fuel_added + ' gal' : '—'}</td>
-                    <td>${f.oil_quarts_added ? f.oil_quarts_added + ' qt' : '—'}</td>
-                    <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(f.notes) || '—'}</td>
+                    <td>${fuelStr}</td>
+                    <td>${oilStr}</td>
+                    <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escapeHtml(f.notes)}">${escapeHtml(f.notes) || '—'}</td>
+                    <td><button class="tbl-btn tbl-btn-danger" onclick="deleteFlightLog('${escapeHtml(f.id)}')">Delete</button></td>
                 </tr>`;
             }).join('');
+        }
+
+        async function deleteFlightLog(id) {
+            if (!confirm('Soft-delete this flight log? It will be hidden from all views but not permanently removed.')) return;
+            const { error } = await _supabase.from('flight_logs').update({
+                is_deleted:  true,
+                deleted_by:  currentMember.id,
+                deleted_at:  new Date().toISOString()
+            }).eq('id', id);
+            if (error) { alert('Error: ' + error.message); return; }
+            loadFlights();
+        }
+
+        // ── Reservations ──
+        let resFilter = 'upcoming';
+
+        function setResFilter(f) {
+            resFilter = f;
+            ['upcoming','past','all'].forEach(k => {
+                document.getElementById('resFilt' + k.charAt(0).toUpperCase() + k.slice(1))
+                    .style.opacity = (k === f) ? '1' : '0.55';
+            });
+            loadReservations();
+        }
+
+        async function loadReservations() {
+            if (!airplaneId) return;
+            const tbody = document.getElementById('resTableBody');
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#adb5bd;padding:28px">Loading…</td></tr>';
+
+            let q = _supabase.from('reservations')
+                .select('*, member:members(name,email)')
+                .eq('airplane_id', airplaneId)
+                .order('start_time', { ascending: false });
+
+            const now = new Date().toISOString();
+            if (resFilter === 'upcoming') q = q.gte('start_time', now);
+            else if (resFilter === 'past')   q = q.lt('start_time', now);
+
+            const { data, error } = await q.limit(80);
+            if (error) { tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#dc3545;padding:28px">Error: ${escapeHtml(error.message)}</td></tr>`; return; }
+            if (!data?.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="6">No reservations found.</td></tr>'; return; }
+
+            tbody.innerHTML = data.map(r => {
+                const start = new Date(r.start_time);
+                const end   = new Date(r.end_time);
+                const isPast = start < new Date();
+                return `<tr style="${isPast ? 'opacity:0.65' : ''}">
+                    <td><strong>${escapeHtml(r.member?.name) || '—'}</strong><br><small style="color:#7f8c8d">${escapeHtml(r.member?.email) || ''}</small></td>
+                    <td>${start.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</td>
+                    <td>${start.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}</td>
+                    <td>${end.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}</td>
+                    <td>${escapeHtml(r.purpose) || '—'}</td>
+                    <td>
+                        <button class="tbl-btn tbl-btn-primary" onclick="openResEdit('${escapeHtml(r.id)}','${start.toISOString()}','${end.toISOString()}','${escapeHtml(r.purpose||'')}')">Edit</button>
+                        <button class="tbl-btn tbl-btn-danger" onclick="deleteReservation('${escapeHtml(r.id)}')">Delete</button>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        async function deleteReservation(id) {
+            if (!confirm('Delete this reservation? This cannot be undone.')) return;
+            const { error } = await _supabase.from('reservations').delete().eq('id', id);
+            if (error) { alert('Error: ' + error.message); return; }
+            loadReservations();
+        }
+
+        let editResId = null;
+        function openResEdit(id, startIso, endIso, purpose) {
+            editResId = id;
+            // Convert ISO to local datetime-local format
+            const toLocal = iso => {
+                const d = new Date(iso);
+                const pad = n => String(n).padStart(2,'0');
+                return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+            };
+            document.getElementById('resEditStart').value   = toLocal(startIso);
+            document.getElementById('resEditEnd').value     = toLocal(endIso);
+            document.getElementById('resEditPurpose').value = purpose;
+            document.getElementById('resEditMsg').textContent = '';
+            document.getElementById('resModal').classList.add('open');
+        }
+        function closeResEdit() { document.getElementById('resModal').classList.remove('open'); }
+
+        async function saveReservation() {
+            const startVal   = document.getElementById('resEditStart').value;
+            const endVal     = document.getElementById('resEditEnd').value;
+            const purposeVal = document.getElementById('resEditPurpose').value.trim();
+            const msg        = document.getElementById('resEditMsg');
+
+            if (!startVal || !endVal) { msg.style.color='#dc3545'; msg.textContent='Start and end times are required.'; return; }
+            const start = new Date(startVal);
+            const end   = new Date(endVal);
+            if (end <= start) { msg.style.color='#dc3545'; msg.textContent='End time must be after start time.'; return; }
+            if ((end - start) > 12 * 3600000) { msg.style.color='#dc3545'; msg.textContent='Reservation cannot exceed 12 hours.'; return; }
+
+            const { error } = await _supabase.from('reservations').update({
+                start_time: start.toISOString(),
+                end_time:   end.toISOString(),
+                purpose:    purposeVal || null
+            }).eq('id', editResId);
+
+            if (error) { msg.style.color='#dc3545'; msg.textContent='Error: ' + error.message; return; }
+            msg.style.color='#28a745'; msg.textContent='Saved!';
+            setTimeout(() => { closeResEdit(); loadReservations(); }, 700);
         }
 
         function fmtDate(iso) { return new Date(iso).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }
@@ -593,6 +814,30 @@
             setTimeout(() => { closeInspEdit(); loadInspections(); }, 800);
         }
     </script>
+
+    <!-- Reservation edit modal -->
+    <div class="res-modal-bg" id="resModal">
+        <div class="res-modal-box">
+            <h2>Edit Reservation</h2>
+            <div class="res-field">
+                <label>Start Date &amp; Time</label>
+                <input type="datetime-local" id="resEditStart">
+            </div>
+            <div class="res-field">
+                <label>End Date &amp; Time</label>
+                <input type="datetime-local" id="resEditEnd">
+            </div>
+            <div class="res-field">
+                <label>Purpose (optional)</label>
+                <input type="text" id="resEditPurpose" placeholder="e.g. Cross-country, Training…" maxlength="200">
+            </div>
+            <div id="resEditMsg" style="font-size:0.88em;margin-top:6px"></div>
+            <div class="res-modal-actions">
+                <button class="res-modal-cancel" onclick="closeResEdit()">Cancel</button>
+                <button class="res-modal-save"   onclick="saveReservation()">Save Changes</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Inspection edit modal -->
     <div style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2000;align-items:center;justify-content:center;padding:16px;box-sizing:border-box" id="inspModal" class="">
