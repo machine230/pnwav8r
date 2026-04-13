@@ -169,27 +169,6 @@
                         <button class="squawk-add" type="button" onclick="addSquawk()">+ Add another squawk</button>
 
                         <div style="margin-top:20px">
-                            <div class="pf-section-title">Pilot Go / No-Go Recommendation</div>
-                            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
-                                <label class="oil-opt" onclick="selectGoNoGo(this,'go')">
-                                    <input type="radio" name="gonogo" value="go">
-                                    <span class="oil-opt-icon">✅</span>
-                                    <span class="oil-opt-label">GO — Safe to fly</span>
-                                </label>
-                                <label class="oil-opt" onclick="selectGoNoGo(this,'caution')">
-                                    <input type="radio" name="gonogo" value="caution">
-                                    <span class="oil-opt-icon">⚠️</span>
-                                    <span class="oil-opt-label">Caution — Use judgement</span>
-                                </label>
-                                <label class="oil-opt" onclick="selectGoNoGo(this,'no_go')">
-                                    <input type="radio" name="gonogo" value="no_go">
-                                    <span class="oil-opt-icon">🛑</span>
-                                    <span class="oil-opt-label">NO-GO — Ground it</span>
-                                </label>
-                            </div>
-                        </div>
-
-                        <div style="margin-top:20px">
                             <div class="pf-section-title">Ground the Airplane?</div>
                             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
                                 <label class="oil-opt" onclick="selectGround(this, true)">
@@ -351,12 +330,6 @@
 
             // Submit squawks
             if (document.getElementById('hasSquawks').checked) {
-                if (!selectedGoNoGo) {
-                    msg.className = 'pf-msg error';
-                    msg.textContent = 'Please select a Go / No-Go recommendation for your squawk.';
-                    btn.disabled = false; btn.textContent = 'Submit Post-Flight Report';
-                    return;
-                }
                 if (selectedGround === null) {
                     msg.className = 'pf-msg error';
                     msg.textContent = 'Please select whether to ground the airplane.';
