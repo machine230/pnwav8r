@@ -53,12 +53,30 @@
             if (done) return;
             done = true;
 
-            // Check membership — only active members get in
-            const { data: member } = await _supabase
+            // Check membership — look up by id first, fall back to email
+            let { data: member } = await _supabase
                 .from('members')
-                .select('membership_active')
+                .select('id, membership_active')
                 .eq('id', session.user.id)
                 .single();
+
+            if (!member) {
+                // Google auth may have created a new UUID — try matching by email
+                const { data: byEmail } = await _supabase
+                    .from('members')
+                    .select('id, membership_active')
+                    .eq('email', session.user.email)
+                    .single();
+
+                if (byEmail) {
+                    // Update the member row to use the new Google auth UUID
+                    await _supabase
+                        .from('members')
+                        .update({ id: session.user.id })
+                        .eq('email', session.user.email);
+                    member = byEmail;
+                }
+            }
 
             if (!member || !member.membership_active) {
                 await _supabase.auth.signOut();
