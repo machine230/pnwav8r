@@ -33,6 +33,20 @@
         .ac-btn.primary { background:rgba(255,255,255,0.9); color:#2c3e50; border-color:transparent; }
         .ac-btn.primary:hover { background:white; }
 
+        /* Docs row below airplane card */
+        .docs-row { display:flex; gap:14px; margin-bottom:24px; flex-wrap:wrap; }
+        .doc-tile {
+            display:flex; align-items:center; gap:12px;
+            background:white; border-radius:14px; padding:14px 22px;
+            box-shadow:0 4px 16px rgba(0,0,0,0.07); text-decoration:none;
+            color:#2c3e50; font-weight:600; font-size:0.9em;
+            border:2px solid #e9ecef; transition:all 0.2s; flex:1; min-width:180px;
+        }
+        .doc-tile:hover { border-color:#667eea; box-shadow:0 6px 20px rgba(102,126,234,0.15); }
+        .doc-icon { font-size:1.8em; flex-shrink:0; }
+        .doc-info { line-height:1.3; }
+        .doc-label { font-size:0.7em; text-transform:uppercase; letter-spacing:1px; color:#95a5a6; font-weight:700; }
+
         /* Layout */
         .dash-grid { display:grid; grid-template-columns:2fr 1fr; gap:24px; }
         @media(max-width:768px){ .dash-grid { grid-template-columns:1fr; } }
@@ -121,6 +135,10 @@
                         <div class="ac-stat-value" id="acTach">—</div>
                     </div>
                     <div>
+                        <div class="ac-stat-label">SMOH</div>
+                        <div class="ac-stat-value" id="acSmoh">—</div>
+                    </div>
+                    <div>
                         <div class="ac-stat-label">Current Fuel</div>
                         <div class="ac-stat-value" id="acFuel">—</div>
                     </div>
@@ -137,9 +155,25 @@
             <div class="ac-actions">
                 <a href="schedule.html" class="ac-btn primary">Book Flight</a>
                 <a href="post-flight.html" class="ac-btn">Post-Flight</a>
-                <a href="/docs/N7798E-POH.pdf" target="_blank" class="ac-btn">POH</a>
-                <a href="/docs/N7798E-Checklist.pdf" target="_blank" class="ac-btn">Checklist</a>
             </div>
+        </div>
+
+        <!-- Docs row -->
+        <div class="docs-row">
+            <a href="/docs/N7798E-POH.pdf" target="_blank" class="doc-tile">
+                <div class="doc-icon">📖</div>
+                <div class="doc-info">
+                    <div class="doc-label">Reference</div>
+                    <div>Pilot Operating Handbook</div>
+                </div>
+            </a>
+            <a href="/docs/N7798E-Checklist.pdf" target="_blank" class="doc-tile">
+                <div class="doc-icon">✅</div>
+                <div class="doc-info">
+                    <div class="doc-label">N7798E</div>
+                    <div>Flight Checklist</div>
+                </div>
+            </a>
         </div>
 
         <div class="dash-grid">
@@ -252,7 +286,10 @@
             const s = statusMap[plane.status] || statusMap.available;
             document.getElementById('airplaneCard').className = `airplane-card ${s.cls}`;
             document.getElementById('acStatusBadge').textContent = s.label;
-            document.getElementById('acTach').textContent = plane.current_tach ? plane.current_tach.toFixed(1) : '—';
+            const tach = plane.current_tach || 0;
+            const SMOH_BASE = 602.1;
+            document.getElementById('acTach').textContent = tach ? tach.toFixed(1) : '—';
+            document.getElementById('acSmoh').textContent = tach ? (tach - SMOH_BASE).toFixed(1) + ' hrs' : '—';
 
             // Latest flight log for current fuel/oil
             const { data: log } = await _supabase
