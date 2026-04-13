@@ -7,176 +7,90 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <style>
-        .club-nav {
-            background: rgba(255,255,255,0.97);
-            backdrop-filter: blur(10px);
-            padding: 0.9rem 0;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            box-shadow: 0 2px 20px rgba(0,0,0,0.08);
-        }
-        .club-nav-inner {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 0 24px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
-        .club-nav-logo { font-size: 1.6em; font-weight: 900; letter-spacing: 2px; color: #2c3e50; text-decoration: none; }
-        .club-nav-links { display: flex; gap: 6px; }
-        .club-nav-links a {
-            text-decoration: none;
-            color: #2c3e50;
-            font-weight: 500;
-            padding: 7px 16px;
-            border-radius: 20px;
-            font-size: 0.9em;
-            transition: all 0.2s;
-        }
-        .club-nav-links a:hover, .club-nav-links a.active {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-        }
-        .page-wrap { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+        .club-nav { background:rgba(255,255,255,0.97); backdrop-filter:blur(10px); padding:0.9rem 0; position:sticky; top:0; z-index:1000; box-shadow:0 2px 20px rgba(0,0,0,0.08); }
+        .club-nav-inner { max-width:1100px; margin:0 auto; padding:0 24px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+        .club-nav-logo { font-size:1.6em; font-weight:900; letter-spacing:2px; color:#2c3e50; text-decoration:none; }
+        .club-nav-links { display:flex; gap:6px; }
+        .club-nav-links a { text-decoration:none; color:#2c3e50; font-weight:500; padding:7px 16px; border-radius:20px; font-size:0.9em; transition:all 0.2s; }
+        .club-nav-links a:hover, .club-nav-links a.active { background:linear-gradient(135deg,#667eea,#764ba2); color:white; }
+        .page-wrap { max-width:1100px; margin:0 auto; padding:32px 24px; }
 
-        /* Airplane status card */
-        .airplane-card {
-            border-radius: 18px;
-            padding: 28px 32px;
-            margin-bottom: 28px;
-            color: white;
-            display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 20px;
-            align-items: start;
-        }
-        .airplane-card.available  { background: linear-gradient(135deg, #1e7e34, #28a745); }
-        .airplane-card.flying     { background: linear-gradient(135deg, #0062cc, #007bff); }
-        .airplane-card.maintenance{ background: linear-gradient(135deg, #843910, #d35400); }
-        .airplane-card.squawk     { background: linear-gradient(135deg, #7b0000, #c0392b); }
+        /* Airplane card */
+        .airplane-card { border-radius:18px; padding:28px 32px; margin-bottom:28px; color:white; display:grid; grid-template-columns:1fr auto; gap:20px; align-items:start; }
+        .airplane-card.available   { background:linear-gradient(135deg,#1e7e34,#28a745); }
+        .airplane-card.flying      { background:linear-gradient(135deg,#0062cc,#007bff); }
+        .airplane-card.maintenance { background:linear-gradient(135deg,#843910,#d35400); }
+        .airplane-card.squawk      { background:linear-gradient(135deg,#7b0000,#c0392b); }
+        .ac-tail   { font-size:2.4em; font-weight:900; letter-spacing:3px; line-height:1; }
+        .ac-model  { font-size:0.9em; opacity:0.8; margin-top:4px; }
+        .ac-status-badge { background:rgba(255,255,255,0.25); padding:6px 18px; border-radius:20px; font-size:0.8em; font-weight:700; letter-spacing:1px; text-transform:uppercase; margin-top:14px; display:inline-block; }
+        .ac-stats  { display:flex; gap:28px; margin-top:20px; flex-wrap:wrap; }
+        .ac-stat-label { font-size:0.72em; opacity:0.75; text-transform:uppercase; letter-spacing:1px; }
+        .ac-stat-value { font-size:1.2em; font-weight:700; margin-top:2px; }
+        .ac-actions { display:flex; flex-direction:column; gap:10px; align-items:flex-end; }
+        .ac-btn { padding:10px 22px; border-radius:10px; border:2px solid rgba(255,255,255,0.6); background:rgba(255,255,255,0.15); color:white; font-weight:700; font-size:0.9em; cursor:pointer; text-decoration:none; text-align:center; white-space:nowrap; transition:background 0.2s; }
+        .ac-btn:hover { background:rgba(255,255,255,0.3); }
+        .ac-btn.primary { background:rgba(255,255,255,0.9); color:#2c3e50; border-color:transparent; }
+        .ac-btn.primary:hover { background:white; }
 
-        .ac-tail   { font-size: 2.4em; font-weight: 900; letter-spacing: 3px; line-height: 1; }
-        .ac-model  { font-size: 0.9em; opacity: 0.8; margin-top: 4px; }
-        .ac-status-badge {
-            background: rgba(255,255,255,0.25);
-            padding: 6px 18px;
-            border-radius: 20px;
-            font-size: 0.8em;
-            font-weight: 700;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            margin-top: 14px;
-            display: inline-block;
-        }
-        .ac-stats {
-            display: flex;
-            gap: 28px;
-            margin-top: 20px;
-            flex-wrap: wrap;
-        }
-        .ac-stat-label { font-size: 0.72em; opacity: 0.75; text-transform: uppercase; letter-spacing: 1px; }
-        .ac-stat-value { font-size: 1.2em; font-weight: 700; margin-top: 2px; }
-        .ac-actions { display: flex; flex-direction: column; gap: 10px; align-items: flex-end; }
-        .ac-btn {
-            padding: 10px 22px;
-            border-radius: 10px;
-            border: 2px solid rgba(255,255,255,0.6);
-            background: rgba(255,255,255,0.15);
-            color: white;
-            font-weight: 700;
-            font-size: 0.9em;
-            cursor: pointer;
-            text-decoration: none;
-            text-align: center;
-            white-space: nowrap;
-            transition: background 0.2s;
-        }
-        .ac-btn:hover { background: rgba(255,255,255,0.3); }
-        .ac-btn.primary { background: rgba(255,255,255,0.9); color: #2c3e50; border-color: transparent; }
-        .ac-btn.primary:hover { background: white; }
+        /* Layout */
+        .dash-grid { display:grid; grid-template-columns:2fr 1fr; gap:24px; }
+        @media(max-width:768px){ .dash-grid { grid-template-columns:1fr; } }
+        .dash-card { background:rgba(255,255,255,0.97); border-radius:14px; padding:24px 28px; box-shadow:0 4px 20px rgba(0,0,0,0.07); margin-bottom:24px; }
+        .dash-card-title { font-size:0.75em; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; color:#95a5a6; margin-bottom:16px; }
 
-        /* Grid layout */
-        .dash-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 24px;
-        }
-        @media (max-width: 768px) { .dash-grid { grid-template-columns: 1fr; } }
+        /* Mini week calendar */
+        .week-cal { overflow-x:auto; }
+        .week-cal table { width:100%; border-collapse:collapse; font-size:0.8em; }
+        .week-cal th { padding:6px 4px; text-align:center; color:#7f8c8d; font-weight:700; font-size:0.85em; border-bottom:2px solid #f0f2f5; }
+        .week-cal th .wc-num { font-size:1.3em; font-weight:900; color:#2c3e50; display:block; }
+        .week-cal th.today-col .wc-num { background:linear-gradient(135deg,#667eea,#764ba2); color:white; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; margin:0 auto; }
+        .week-cal td { padding:3px 2px; text-align:center; vertical-align:top; }
+        .wc-slot { height:22px; border-radius:4px; margin-bottom:2px; font-size:0.75em; font-weight:600; display:flex; align-items:center; justify-content:center; }
+        .wc-slot.free { background:#f0f4ff; color:#667eea; }
+        .wc-slot.mine { background:#d4edda; color:#155724; }
+        .wc-slot.taken { background:#667eea; color:white; }
+        .wc-slot.past  { background:#f8f9fa; color:#ccc; }
+        .wc-time-col { width:44px; color:#95a5a6; font-size:0.8em; text-align:right; padding-right:6px; }
+        .week-nav-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+        .wk-btn { padding:4px 12px; border-radius:12px; border:1px solid #e9ecef; background:white; font-size:0.8em; cursor:pointer; color:#2c3e50; }
+        .wk-title { font-size:0.85em; font-weight:700; color:#2c3e50; }
 
-        /* Cards */
-        .dash-card {
-            background: rgba(255,255,255,0.97);
-            border-radius: 14px;
-            padding: 24px 28px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.07);
-            margin-bottom: 24px;
-        }
-        .dash-card-title {
-            font-size: 0.75em;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            color: #95a5a6;
-            margin-bottom: 16px;
-        }
+        /* Squawks */
+        .squawk-item { display:flex; gap:12px; align-items:flex-start; padding:12px 0; border-bottom:1px solid #f0f2f5; }
+        .squawk-item:last-child { border-bottom:none; }
+        .squawk-dot { width:10px; height:10px; border-radius:50%; background:#dc3545; margin-top:5px; flex-shrink:0; }
+        .squawk-text { font-size:0.9em; color:#2c3e50; }
+        .squawk-meta { font-size:0.78em; color:#adb5bd; margin-top:3px; }
 
-        /* Squawk list */
-        .squawk-item {
-            display: flex;
-            gap: 12px;
-            align-items: flex-start;
-            padding: 12px 0;
-            border-bottom: 1px solid #f0f2f5;
-        }
-        .squawk-item:last-child { border-bottom: none; }
-        .squawk-dot {
-            width: 10px; height: 10px;
-            border-radius: 50%;
-            background: #dc3545;
-            margin-top: 5px;
-            flex-shrink: 0;
-        }
-        .squawk-dot.resolved { background: #28a745; }
-        .squawk-text { font-size: 0.9em; color: #2c3e50; }
-        .squawk-meta { font-size: 0.78em; color: #adb5bd; margin-top: 3px; }
+        /* Reservations */
+        .res-item { display:flex; align-items:center; gap:14px; padding:12px 0; border-bottom:1px solid #f0f2f5; }
+        .res-item:last-child { border-bottom:none; }
+        .res-date-box { background:linear-gradient(135deg,#667eea,#764ba2); color:white; border-radius:10px; padding:8px 12px; text-align:center; min-width:52px; flex-shrink:0; }
+        .res-date-mon { font-size:0.65em; font-weight:700; text-transform:uppercase; letter-spacing:1px; }
+        .res-date-day { font-size:1.4em; font-weight:900; line-height:1; }
+        .res-info { flex:1; }
+        .res-time { font-weight:600; font-size:0.95em; color:#2c3e50; }
+        .res-who  { font-size:0.82em; color:#7f8c8d; margin-top:2px; }
+        .res-cancel-btn { font-size:0.78em; color:#dc3545; background:none; border:1px solid #f5c6cb; padding:4px 12px; border-radius:20px; cursor:pointer; }
+        .empty-state { color:#adb5bd; font-size:0.9em; padding:12px 0; }
 
-        /* Reservation list */
-        .res-item {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding: 12px 0;
-            border-bottom: 1px solid #f0f2f5;
-        }
-        .res-item:last-child { border-bottom: none; }
-        .res-date-box {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            border-radius: 10px;
-            padding: 8px 12px;
-            text-align: center;
-            min-width: 52px;
-            flex-shrink: 0;
-        }
-        .res-date-mon { font-size: 0.65em; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
-        .res-date-day { font-size: 1.4em; font-weight: 900; line-height: 1; }
-        .res-info { flex: 1; }
-        .res-time { font-weight: 600; font-size: 0.95em; color: #2c3e50; }
-        .res-who  { font-size: 0.82em; color: #7f8c8d; margin-top: 2px; }
-        .res-cancel-btn {
-            font-size: 0.78em;
-            color: #dc3545;
-            background: none;
-            border: 1px solid #f5c6cb;
-            padding: 4px 12px;
-            border-radius: 20px;
-            cursor: pointer;
-        }
-        .empty-state { color: #adb5bd; font-size: 0.9em; padding: 12px 0; }
+        /* Profile modal */
+        .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:2000; align-items:center; justify-content:center; }
+        .modal-overlay.open { display:flex; }
+        .modal-box { background:white; border-radius:20px; padding:40px; width:100%; max-width:440px; box-shadow:0 20px 60px rgba(0,0,0,0.2); }
+        .modal-box h2 { font-size:1.2em; font-weight:700; color:#2c3e50; margin-bottom:24px; }
+        .form-group { margin-bottom:16px; }
+        .form-label { font-size:0.8em; font-weight:700; color:#7f8c8d; text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:6px; }
+        .form-input { width:100%; padding:12px 16px; border:2px solid #e9ecef; border-radius:10px; font-size:0.95em; box-sizing:border-box; transition:border-color 0.2s; }
+        .form-input:focus { outline:none; border-color:#667eea; }
+        .form-input[disabled] { background:#f8f9fa; color:#7f8c8d; }
+        .modal-actions { display:flex; gap:12px; margin-top:24px; }
+        .save-btn { flex:1; padding:12px; background:linear-gradient(135deg,#667eea,#764ba2); color:white; border:none; border-radius:10px; font-size:0.95em; font-weight:700; cursor:pointer; }
+        .close-btn { padding:12px 20px; background:white; color:#7f8c8d; border:2px solid #e9ecef; border-radius:10px; font-size:0.95em; font-weight:600; cursor:pointer; }
+        .profile-msg { font-size:0.88em; margin-top:10px; }
+        .profile-msg.success { color:#28a745; }
+        .profile-msg.error   { color:#dc3545; }
     </style>
 </head>
 <body>
@@ -186,11 +100,9 @@
             <div class="club-nav-links">
                 <a href="dashboard.html" class="active">Dashboard</a>
                 <a href="schedule.html">Schedule</a>
-                <a href="weather.html">Weather</a>
-                <a href="wb.html">W&amp;B</a>
-                <span id="adminLink" style="display:none">
-                    <a href="admin.html">Admin</a>
-                </span>
+                <a href="post-flight.html">Post-Flight</a>
+                <a href="#" onclick="openProfile(); return false;">Profile</a>
+                <span id="adminLink" style="display:none"><a href="admin.html">Admin</a></span>
             </div>
             <div id="navUser"></div>
         </div>
@@ -209,11 +121,11 @@
                         <div class="ac-stat-value" id="acTach">—</div>
                     </div>
                     <div>
-                        <div class="ac-stat-label">Last Fuel</div>
+                        <div class="ac-stat-label">Current Fuel</div>
                         <div class="ac-stat-value" id="acFuel">—</div>
                     </div>
                     <div>
-                        <div class="ac-stat-label">Last Oil</div>
+                        <div class="ac-stat-label">Last Oil Added</div>
                         <div class="ac-stat-value" id="acOil">—</div>
                     </div>
                     <div>
@@ -224,13 +136,25 @@
             </div>
             <div class="ac-actions">
                 <a href="schedule.html" class="ac-btn primary">Book Flight</a>
-                <a href="post-flight.html" class="ac-btn" id="postFlightBtn">Post-Flight</a>
+                <a href="post-flight.html" class="ac-btn">Post-Flight</a>
             </div>
         </div>
 
         <div class="dash-grid">
-            <!-- Upcoming reservations -->
             <div>
+                <!-- This week availability -->
+                <div class="dash-card">
+                    <div class="week-nav-row">
+                        <div class="dash-card-title" style="margin-bottom:0">This Week — N7798E Availability</div>
+                        <div style="display:flex;gap:6px;">
+                            <button class="wk-btn" onclick="shiftMiniWeek(-1)">&#8592;</button>
+                            <button class="wk-btn" onclick="shiftMiniWeek(1)">&#8594;</button>
+                        </div>
+                    </div>
+                    <div class="week-cal" id="miniCal"></div>
+                </div>
+
+                <!-- Upcoming reservations -->
                 <div class="dash-card">
                     <div class="dash-card-title">Upcoming Reservations</div>
                     <div id="reservationList"><div class="empty-state">Loading…</div></div>
@@ -247,11 +171,40 @@
         </div>
     </div>
 
+    <!-- Profile modal -->
+    <div class="modal-overlay" id="profileModal">
+        <div class="modal-box">
+            <h2>My Profile</h2>
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="text" class="form-input" id="profileEmail" disabled>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Name</label>
+                <input type="text" class="form-input" id="profileName" placeholder="Your full name">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Phone</label>
+                <input type="tel" class="form-input" id="profilePhone" placeholder="e.g. 206-555-1234">
+            </div>
+            <div class="modal-actions">
+                <button class="close-btn" onclick="closeProfile()">Cancel</button>
+                <button class="save-btn" onclick="saveProfile()">Save</button>
+            </div>
+            <div class="profile-msg" id="profileMsg"></div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js"></script>
     <script src="js/auth.js"></script>
     <script>
+        const SLOT_HRS = [6,7,8,9,10,11,12,13,14,15,16,17,18,19,20];
+        const DAYS_SHORT = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
         let currentMember = null;
+        let reservations  = [];
+        let miniWeekStart = getWeekStart(new Date());
 
         document.addEventListener('DOMContentLoaded', async () => {
             const session = await requireAuth();
@@ -265,75 +218,52 @@
             }
 
             renderNavUser();
+            if (currentMember.role === 'admin') document.getElementById('adminLink').style.display = 'inline';
 
-            // Show admin link if admin
-            if (currentMember.role === 'admin') {
-                document.getElementById('adminLink').style.display = 'inline';
-            }
+            await Promise.all([loadAirplane(), loadReservations(), loadSquawks()]);
 
-            await Promise.all([
-                loadAirplane(),
-                loadReservations(),
-                loadSquawks()
-            ]);
-
-            // Real-time: refresh when reservations change
-            _supabase.channel('reservations')
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'reservations' }, loadReservations)
-                .subscribe();
-
-            _supabase.channel('airplanes')
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'airplanes' }, loadAirplane)
-                .subscribe();
-
-            _supabase.channel('squawks')
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'squawks' }, loadSquawks)
-                .subscribe();
+            _supabase.channel('reservations').on('postgres_changes', { event:'*', schema:'public', table:'reservations' }, async () => { await loadReservations(); renderMiniCal(); }).subscribe();
+            _supabase.channel('airplanes').on('postgres_changes',    { event:'*', schema:'public', table:'airplanes'    }, loadAirplane).subscribe();
+            _supabase.channel('squawks').on('postgres_changes',      { event:'*', schema:'public', table:'squawks'      }, loadSquawks).subscribe();
         });
 
-        async function loadAirplane() {
-            const { data: plane } = await _supabase
-                .from('airplanes')
-                .select('*')
-                .eq('tail_number', AIRPLANE_TAIL)
-                .single();
+        function getWeekStart(d) {
+            const s = new Date(d); s.setHours(0,0,0,0);
+            s.setDate(s.getDate() - s.getDay());
+            return s;
+        }
 
+        function shiftMiniWeek(dir) {
+            const n = new Date(miniWeekStart);
+            n.setDate(n.getDate() + dir * 7);
+            const today = new Date(); today.setHours(0,0,0,0);
+            if (n < getWeekStart(today)) return;
+            miniWeekStart = n;
+            renderMiniCal();
+        }
+
+        async function loadAirplane() {
+            const { data: plane } = await _supabase.from('airplanes').select('*').eq('tail_number', AIRPLANE_TAIL).single();
             if (!plane) return;
 
-            const card  = document.getElementById('airplaneCard');
-            const badge = document.getElementById('acStatusBadge');
-            const statusMap = {
-                available:   { cls: 'available',    label: 'Available' },
-                flying:      { cls: 'flying',        label: 'In the Air' },
-                maintenance: { cls: 'maintenance',   label: 'Maintenance' },
-                squawk:      { cls: 'squawk',        label: 'Squawk — Grounded' }
-            };
+            const statusMap = { available:{cls:'available',label:'Available'}, flying:{cls:'flying',label:'In the Air'}, maintenance:{cls:'maintenance',label:'Maintenance'}, squawk:{cls:'squawk',label:'Squawk — Grounded'} };
             const s = statusMap[plane.status] || statusMap.available;
-            card.className = `airplane-card ${s.cls}`;
-            badge.textContent = s.label;
-
+            document.getElementById('airplaneCard').className = `airplane-card ${s.cls}`;
+            document.getElementById('acStatusBadge').textContent = s.label;
             document.getElementById('acTach').textContent = plane.current_tach ? plane.current_tach.toFixed(1) : '—';
 
-            // Latest flight log for fuel/oil
+            // Latest flight log for current fuel/oil
             const { data: log } = await _supabase
                 .from('flight_logs')
                 .select('fuel_added, oil_quarts_added, completed_at')
                 .eq('airplane_id', plane.id)
                 .order('completed_at', { ascending: false })
-                .limit(1)
-                .single();
+                .limit(1).single();
 
-            if (log) {
-                document.getElementById('acFuel').textContent = log.fuel_added ? `${log.fuel_added} gal` : 'Not reported';
-                document.getElementById('acOil').textContent = log.oil_quarts_added ? `${log.oil_quarts_added} qt added` : 'Not reported';
-            }
+            document.getElementById('acFuel').textContent = log?.fuel_added     ? `${log.fuel_added} gal`    : 'Not reported';
+            document.getElementById('acOil').textContent  = log?.oil_quarts_added ? `${log.oil_quarts_added} qt` : 'Not reported';
 
-            // Squawk count
-            const { count } = await _supabase
-                .from('squawks')
-                .select('*', { count: 'exact', head: true })
-                .eq('airplane_id', plane.id)
-                .eq('status', 'open');
+            const { count } = await _supabase.from('squawks').select('*', { count:'exact', head:true }).eq('airplane_id', plane.id).eq('status','open');
             document.getElementById('acSquawks').textContent = count ?? 0;
         }
 
@@ -347,49 +277,84 @@
                 .order('start_time', { ascending: true })
                 .limit(10);
 
-            const el = document.getElementById('reservationList');
-            if (!data || !data.length) {
-                el.innerHTML = '<div class="empty-state">No upcoming reservations.</div>';
-                return;
-            }
+            reservations = data || [];
 
-            el.innerHTML = data.map(r => {
-                const start = new Date(r.start_time);
-                const end   = new Date(r.end_time);
-                const mon   = start.toLocaleString('en-US', { month: 'short' });
-                const day   = start.getDate();
-                const timeStr = `${fmtTime(start)} – ${fmtTime(end)}`;
+            const el = document.getElementById('reservationList');
+            if (!reservations.length) { el.innerHTML = '<div class="empty-state">No upcoming reservations.</div>'; renderMiniCal(); return; }
+
+            el.innerHTML = reservations.map(r => {
+                const start = new Date(r.start_time), end = new Date(r.end_time);
                 const isMe  = r.member_id === currentMember?.id;
                 return `<div class="res-item">
                     <div class="res-date-box">
-                        <div class="res-date-mon">${mon}</div>
-                        <div class="res-date-day">${day}</div>
+                        <div class="res-date-mon">${start.toLocaleString('en-US',{month:'short'})}</div>
+                        <div class="res-date-day">${start.getDate()}</div>
                     </div>
                     <div class="res-info">
-                        <div class="res-time">${timeStr}</div>
+                        <div class="res-time">${fmtTime(start)} – ${fmtTime(end)}</div>
                         <div class="res-who">${r.members?.name || '—'}${isMe ? ' <strong>(you)</strong>' : ''}</div>
                     </div>
                     ${isMe ? `<button class="res-cancel-btn" onclick="cancelReservation('${r.id}')">Cancel</button>` : ''}
                 </div>`;
             }).join('');
+
+            renderMiniCal();
+        }
+
+        function renderMiniCal() {
+            const el  = document.getElementById('miniCal');
+            const now = new Date();
+            const today = new Date(); today.setHours(0,0,0,0);
+
+            // Build header
+            let html = '<table><thead><tr><th class="wc-time-col"></th>';
+            for (let c = 0; c < 7; c++) {
+                const day = new Date(miniWeekStart); day.setDate(day.getDate() + c);
+                const isToday = day.toDateString() === today.toDateString();
+                html += `<th class="${isToday ? 'today-col' : ''}">
+                    <div style="font-size:0.8em;color:#95a5a6">${DAYS_SHORT[day.getDay()]}</div>
+                    <div class="wc-num">${day.getDate()}</div>
+                </th>`;
+            }
+            html += '</tr></thead><tbody>';
+
+            // Build rows
+            SLOT_HRS.forEach(h => {
+                html += `<tr><td class="wc-time-col">${fmtHour(h)}</td>`;
+                for (let c = 0; c < 7; c++) {
+                    const day = new Date(miniWeekStart); day.setDate(day.getDate() + c);
+                    const slotStart = new Date(day); slotStart.setHours(h, 0, 0, 0);
+                    const slotEnd   = new Date(day); slotEnd.setHours(h + 1, 0, 0, 0);
+                    const isPast    = slotStart < now;
+
+                    const res = reservations.find(r => {
+                        const rs = new Date(r.start_time), re = new Date(r.end_time);
+                        return rs < slotEnd && re > slotStart && r.status !== 'cancelled';
+                    });
+
+                    let cls = 'wc-slot free', label = '';
+                    if (isPast)      { cls = 'wc-slot past'; }
+                    else if (res) {
+                        const isMe = res.member_id === currentMember?.id;
+                        cls   = isMe ? 'wc-slot mine' : 'wc-slot taken';
+                        label = isMe ? 'You' : (res.members?.name?.split(' ')[0] || '');
+                    }
+
+                    html += `<td><div class="${cls}">${label}</div></td>`;
+                }
+                html += '</tr>';
+            });
+
+            html += '</tbody></table>';
+            el.innerHTML = html;
         }
 
         async function loadSquawks() {
             const { data: plane } = await _supabase.from('airplanes').select('id').eq('tail_number', AIRPLANE_TAIL).single();
             if (!plane) return;
-
-            const { data } = await _supabase
-                .from('squawks')
-                .select('*, members(name)')
-                .eq('airplane_id', plane.id)
-                .eq('status', 'open')
-                .order('reported_at', { ascending: false });
-
+            const { data } = await _supabase.from('squawks').select('*, members(name)').eq('airplane_id', plane.id).eq('status','open').order('reported_at', { ascending: false });
             const el = document.getElementById('squawkList');
-            if (!data || !data.length) {
-                el.innerHTML = '<div class="empty-state">No open squawks.</div>';
-                return;
-            }
+            if (!data || !data.length) { el.innerHTML = '<div class="empty-state">No open squawks.</div>'; return; }
             el.innerHTML = data.map(s => `
                 <div class="squawk-item">
                     <div class="squawk-dot"></div>
@@ -406,12 +371,38 @@
             loadReservations();
         }
 
-        function fmtTime(d) {
-            return d.toLocaleString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+        // Profile
+        function openProfile() {
+            document.getElementById('profileEmail').value = currentMember.email || '';
+            document.getElementById('profileName').value  = currentMember.name  || '';
+            document.getElementById('profilePhone').value = currentMember.phone || '';
+            document.getElementById('profileMsg').textContent = '';
+            document.getElementById('profileModal').classList.add('open');
         }
-        function fmtDate(iso) {
-            return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        function closeProfile() {
+            document.getElementById('profileModal').classList.remove('open');
         }
+        async function saveProfile() {
+            const name  = document.getElementById('profileName').value.trim();
+            const phone = document.getElementById('profilePhone').value.trim();
+            const msg   = document.getElementById('profileMsg');
+            if (!name) { msg.className = 'profile-msg error'; msg.textContent = 'Name is required.'; return; }
+
+            const { error } = await _supabase.from('members').update({ name, phone }).eq('id', currentMember.id);
+            if (error) {
+                msg.className = 'profile-msg error'; msg.textContent = 'Save failed: ' + error.message;
+            } else {
+                currentMember.name  = name;
+                currentMember.phone = phone;
+                msg.className = 'profile-msg success'; msg.textContent = 'Profile updated!';
+                renderNavUser();
+                setTimeout(closeProfile, 1200);
+            }
+        }
+
+        function fmtTime(d)  { return d.toLocaleString('en-US',{hour:'numeric',minute:'2-digit',hour12:true}); }
+        function fmtHour(h)  { const d = new Date(); d.setHours(h,0,0,0); return d.toLocaleString('en-US',{hour:'numeric',hour12:true}); }
+        function fmtDate(iso){ return new Date(iso).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }
     </script>
 </body>
 </html>
