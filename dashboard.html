@@ -162,10 +162,6 @@
                         <div class="ac-stat-value" id="acTach">—</div>
                     </div>
                     <div>
-                        <div class="ac-stat-label">SMOH</div>
-                        <div class="ac-stat-value" id="acSmoh">—</div>
-                    </div>
-                    <div>
                         <div class="ac-stat-label">Current Fuel</div>
                         <div class="ac-stat-value" id="acFuel">—</div>
                     </div>
@@ -327,10 +323,7 @@
             document.getElementById('airplaneCard').className = `airplane-card ${s.cls}`;
             document.getElementById('acStatusBadge').textContent = s.label;
             const tach = plane.current_tach || 0;
-            const smohBase = plane.smoh_base || 0;
             document.getElementById('acTach').textContent = tach ? tach.toFixed(1) : '—';
-            document.getElementById('acSmoh').textContent = (tach && smohBase !== null)
-                ? (tach - smohBase).toFixed(1) + ' hrs' : '—';
 
             // Latest flight log for current fuel/oil
             const { data: log } = await _supabase
