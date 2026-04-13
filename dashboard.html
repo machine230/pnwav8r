@@ -259,8 +259,6 @@
 
             currentMember = await getCurrentMember();
             if (!currentMember) {
-                // Sign out so login.html doesn't bounce them back here
-                await _supabase.auth.signOut();
                 window.location.href = '/login.html';
                 return;
             }

@@ -2,25 +2,10 @@
 //  Auth helpers — shared across all club pages
 // ─────────────────────────────────────────────
 
-// Wait for Supabase to resolve the session (handles magic link hash in URL)
-function getSession() {
-    return new Promise((resolve) => {
-        _supabase.auth.getSession().then(({ data: { session } }) => {
-            if (session) { resolve(session); return; }
-
-            // No session yet — wait for SIGNED_IN event (INITIAL_SESSION with null must be ignored)
-            const { data: { subscription } } = _supabase.auth.onAuthStateChange((event, session) => {
-                if (session) {
-                    subscription.unsubscribe();
-                    resolve(session);
-                }
-                // Don't resolve null here — INITIAL_SESSION fires with null before storage loads
-            });
-
-            // Fallback: if no session established in 5 seconds, resolve null
-            setTimeout(() => { subscription.unsubscribe(); resolve(null); }, 5000);
-        });
-    });
+// Get current session
+async function getSession() {
+    const { data: { session } } = await _supabase.auth.getSession();
+    return session;
 }
 
 // Redirect to login if no active session
