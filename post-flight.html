@@ -95,14 +95,25 @@
                     <div class="pf-row">
                         <div class="pf-field">
                             <label>Tach Start</label>
-                            <input type="number" id="tachStart" step="0.1" min="0" placeholder="e.g. 2847.3">
+                            <input type="number" id="tachStart" step="0.1" min="0" placeholder="e.g. 2847.3" oninput="calcFlight()">
                             <small>Tach at engine start</small>
                         </div>
                         <div class="pf-field">
                             <label>Tach End</label>
-                            <input type="number" id="tachEnd" step="0.1" min="0" placeholder="e.g. 2849.6">
+                            <input type="number" id="tachEnd" step="0.1" min="0" placeholder="e.g. 2849.6" oninput="calcFlight()">
                             <small>Tach at engine shutdown</small>
                         </div>
+                    </div>
+                    <div id="flightCostBox" style="display:none;margin-top:16px;background:#f0f4ff;border-radius:10px;padding:14px 20px;display:none;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+                        <div>
+                            <div style="font-size:0.72em;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#667eea;margin-bottom:2px;">Flight Time</div>
+                            <div style="font-size:1.4em;font-weight:900;color:#2c3e50;" id="flightHoursDisplay">—</div>
+                        </div>
+                        <div>
+                            <div style="font-size:0.72em;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#667eea;margin-bottom:2px;">Dry Rate Cost</div>
+                            <div style="font-size:1.4em;font-weight:900;color:#2c3e50;" id="flightCostDisplay">—</div>
+                        </div>
+                        <div style="font-size:0.75em;color:#95a5a6;">$65/hr dry rate · N7798E</div>
                     </div>
                 </div>
 
@@ -225,6 +236,20 @@
             }
             addSquawk(); // start with one squawk field hidden
         });
+
+        const DRY_RATE = 65;
+
+        function calcFlight() {
+            const start = parseFloat(document.getElementById('tachStart').value);
+            const end   = parseFloat(document.getElementById('tachEnd').value);
+            const box   = document.getElementById('flightCostBox');
+            if (isNaN(start) || isNaN(end) || end <= start) { box.style.display = 'none'; return; }
+            const hrs  = Math.round((end - start) * 10) / 10;
+            const cost = (hrs * DRY_RATE).toFixed(2);
+            document.getElementById('flightHoursDisplay').textContent = `${hrs.toFixed(1)} hrs`;
+            document.getElementById('flightCostDisplay').textContent  = `$${cost}`;
+            box.style.display = 'flex';
+        }
 
         function selectOil(el, val) {
             document.querySelectorAll('#oilOptions .oil-opt').forEach(o => o.classList.remove('selected'));
