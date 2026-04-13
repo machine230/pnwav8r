@@ -97,6 +97,7 @@
         <div class="admin-tabs">
             <button class="admin-tab active" onclick="showTab('members',this)">Members</button>
             <button class="admin-tab" onclick="showTab('aircraft',this)">Aircraft</button>
+            <button class="admin-tab" onclick="showTab('inspections',this)">Inspections</button>
             <button class="admin-tab" onclick="showTab('squawks',this)">Squawks</button>
             <button class="admin-tab" onclick="showTab('flights',this)">Flight Log</button>
         </div>
@@ -219,6 +220,19 @@
             </div>
         </div>
 
+        <!-- ── Inspections ── -->
+        <div class="tab-panel" id="tab-inspections">
+            <div class="admin-card">
+                <div class="admin-card-header"><h3>FAA Required Inspections — N7798E</h3></div>
+                <div class="admin-card-body">
+                    <table class="admin-table">
+                        <thead><tr><th>Inspection</th><th>Interval</th><th>Last Completed</th><th>Next Due</th><th>Status</th><th>Action</th></tr></thead>
+                        <tbody id="inspTableBody"><tr><td colspan="6" style="text-align:center;padding:28px;color:#adb5bd">Loading…</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
         <!-- ── Flight Log ── -->
         <div class="tab-panel" id="tab-flights">
             <div class="admin-card">
@@ -258,7 +272,7 @@
                 document.getElementById('tachUpdate').value = plane.current_tach || '';
                 document.getElementById('maintNote').value  = plane.notes || '';
             }
-            await Promise.all([ loadMembers(), loadSquawks(), loadFlights() ]);
+            await Promise.all([ loadMembers(), loadSquawks(), loadFlights(), loadInspections() ]);
         });
 
         function showTab(name, btn) {
@@ -436,6 +450,105 @@
         }
 
         function fmtDate(iso) { return new Date(iso).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }
+
+        // ── Inspections ──
+        async function loadInspections() {
+            const { data } = await _supabase
+                .from('inspections')
+                .select('*')
+                .eq('airplane_id', airplaneId)
+                .order('name');
+
+            const tbody = document.getElementById('inspTableBody');
+            if (!data?.length) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:28px;color:#adb5bd">No inspections found. Run the SQL setup script first.</td></tr>';
+                return;
+            }
+
+            const today = new Date(); today.setHours(0,0,0,0);
+            tbody.innerHTML = data.map(insp => {
+                let status = 'unknown', dueText = '—', nextDue = '—';
+                if (insp.last_completed) {
+                    const due = new Date(insp.last_completed);
+                    due.setDate(due.getDate() + insp.interval_days);
+                    const days = Math.floor((due - today) / 86400000);
+                    nextDue = fmtDate(due.toISOString());
+                    if (days < 0)        { status = 'overdue';  dueText = `Overdue ${Math.abs(days)}d`; }
+                    else if (days <= 30) { status = 'due-soon'; dueText = `Due in ${days}d`; }
+                    else                 { status = 'current';  dueText = `${days}d remaining`; }
+                }
+                const badgeMap = { overdue:'badge-red', 'due-soon':'badge-orange', current:'badge-green', unknown:'badge-grey' };
+                const labelMap = { overdue:'Overdue', 'due-soon':'Due Soon', current:'Current', unknown:'Not Set' };
+                const interval = insp.interval_days === 365 ? '12 months' : insp.interval_days === 730 ? '24 months' : insp.interval_days + 'd';
+                return `<tr>
+                    <td>
+                        <strong>${insp.name}</strong>
+                        <div style="font-size:0.8em;color:#7f8c8d;margin-top:2px">${insp.description || ''}</div>
+                    </td>
+                    <td>${interval}</td>
+                    <td>${insp.last_completed ? fmtDate(insp.last_completed) : '—'}</td>
+                    <td>${nextDue}</td>
+                    <td><span class="badge ${badgeMap[status]}">${labelMap[status]}</span> <small style="color:#7f8c8d">${dueText}</small></td>
+                    <td><button class="tbl-btn tbl-btn-primary" onclick="openInspEdit('${insp.id}','${insp.name}','${insp.last_completed||''}','${insp.notes||''}')">Update</button></td>
+                </tr>`;
+            }).join('');
+        }
+
+        let editInspId = null;
+        function openInspEdit(id, name, lastCompleted, notes) {
+            editInspId = id;
+            document.getElementById('inspEditName').textContent = name;
+            document.getElementById('inspEditDate').value  = lastCompleted || '';
+            document.getElementById('inspEditNotes').value = notes || '';
+            document.getElementById('inspEditMsg').textContent = '';
+            document.getElementById('inspModal').classList.add('open');
+        }
+        function closeInspEdit() {
+            document.getElementById('inspModal').classList.remove('open');
+        }
+        async function saveInspection() {
+            const date  = document.getElementById('inspEditDate').value;
+            const notes = document.getElementById('inspEditNotes').value.trim();
+            const msg   = document.getElementById('inspEditMsg');
+            if (!date) { msg.style.color='#dc3545'; msg.textContent='Please enter a completion date.'; return; }
+            const { error } = await _supabase.from('inspections').update({
+                last_completed: date,
+                notes: notes || null,
+                updated_at: new Date().toISOString(),
+                updated_by: currentMember.id
+            }).eq('id', editInspId);
+            if (error) { msg.style.color='#dc3545'; msg.textContent='Error: ' + error.message; return; }
+            msg.style.color='#28a745'; msg.textContent='Saved!';
+            setTimeout(() => { closeInspEdit(); loadInspections(); }, 800);
+        }
+    </script>
+
+    <!-- Inspection edit modal -->
+    <div style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2000;align-items:center;justify-content:center" id="inspModal" class="">
+        <div style="background:white;border-radius:20px;padding:40px;width:100%;max-width:440px;box-shadow:0 20px 60px rgba(0,0,0,0.2)">
+            <h2 style="font-size:1.1em;font-weight:700;color:#2c3e50;margin-bottom:6px">Update Inspection</h2>
+            <div id="inspEditName" style="font-size:0.9em;color:#7f8c8d;margin-bottom:24px"></div>
+            <div style="margin-bottom:16px">
+                <label style="font-size:0.8em;font-weight:700;color:#7f8c8d;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:6px">Last Completed Date</label>
+                <input type="date" id="inspEditDate" style="width:100%;padding:12px 16px;border:2px solid #e9ecef;border-radius:10px;font-size:0.95em;box-sizing:border-box">
+            </div>
+            <div style="margin-bottom:16px">
+                <label style="font-size:0.8em;font-weight:700;color:#7f8c8d;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:6px">Notes (optional)</label>
+                <textarea id="inspEditNotes" rows="3" placeholder="e.g. Done by ABC Aviation, work order #123" style="width:100%;padding:12px 16px;border:2px solid #e9ecef;border-radius:10px;font-size:0.95em;box-sizing:border-box;resize:vertical"></textarea>
+            </div>
+            <div style="display:flex;gap:12px;margin-top:8px">
+                <button onclick="closeInspEdit()" style="padding:12px 20px;background:white;color:#7f8c8d;border:2px solid #e9ecef;border-radius:10px;font-size:0.95em;font-weight:600;cursor:pointer">Cancel</button>
+                <button onclick="saveInspection()" style="flex:1;padding:12px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:10px;font-size:0.95em;font-weight:700;cursor:pointer">Save</button>
+            </div>
+            <div id="inspEditMsg" style="font-size:0.88em;margin-top:10px"></div>
+        </div>
+    </div>
+    <script>
+        // Make modal open/close work with the class toggle
+        const inspModalEl = document.getElementById('inspModal');
+        new MutationObserver(() => {
+            inspModalEl.style.display = inspModalEl.classList.contains('open') ? 'flex' : 'none';
+        }).observe(inspModalEl, { attributes: true, attributeFilter: ['class'] });
     </script>
 </body>
 </html>
