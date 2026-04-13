@@ -42,6 +42,7 @@
         .badge-blue   { background:#cce5ff; color:#004085; }
         .badge-grey   { background:#e9ecef; color:#6c757d; }
         .badge-orange { background:#ffe5cc; color:#7d3c00; }
+        .badge-warn   { background:#ffeeba; color:#856404; }
 
         /* Action buttons */
         .tbl-btn { padding:5px 14px; border-radius:8px; font-size:0.82em; font-weight:600; cursor:pointer; border:none; transition:all 0.2s; }
@@ -336,6 +337,7 @@
             const { data } = await _supabase.from('members').select('*').order('name');
             const tbody = document.getElementById('memberTableBody');
             if (!data?.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="7">No members yet.</td></tr>'; return; }
+            const roleBadge = { admin:'badge-orange', ap:'badge-warn', member:'badge-grey' };
             tbody.innerHTML = data.map(m => `
                 <tr>
                     <td><strong>${escapeHtml(m.name)}</strong></td>
@@ -343,7 +345,7 @@
                     <td>${escapeHtml(m.phone) || '—'}</td>
                     <td><span class="badge ${m.membership_active ? 'badge-green' : 'badge-red'}">${m.membership_active ? 'Active' : 'Inactive'}</span></td>
                     <td><span class="badge ${m.pic_status ? 'badge-blue' : 'badge-grey'}">${m.pic_status ? 'Current' : 'Not Current'}</span></td>
-                    <td><span class="badge ${m.role === 'admin' ? 'badge-orange' : 'badge-grey'}">${escapeHtml(m.role)}</span></td>
+                    <td><span class="badge ${roleBadge[m.role] || 'badge-grey'}">${escapeHtml(m.role === 'ap' ? 'A&P' : m.role)}</span></td>
                     <td>
                         <button class="tbl-btn ${m.membership_active ? 'tbl-btn-danger' : 'tbl-btn-success'}"
                             onclick="toggleMembership('${escapeHtml(m.id)}', ${!!m.membership_active})">
@@ -353,6 +355,11 @@
                             onclick="togglePIC('${escapeHtml(m.id)}', ${!!m.pic_status})">
                             ${m.pic_status ? 'Remove PIC' : 'Set PIC'}
                         </button>
+                        ${m.role !== 'admin' ? `
+                        <button class="tbl-btn tbl-btn-warn"
+                            onclick="cycleRole('${escapeHtml(m.id)}', '${escapeHtml(m.role)}')">
+                            ${m.role === 'ap' ? '→ Member' : '→ A&P'}
+                        </button>` : ''}
                     </td>
                 </tr>`).join('');
         }
@@ -392,6 +399,14 @@
 
         async function togglePIC(id, current) {
             await _supabase.from('members').update({ pic_status: !current }).eq('id', id);
+            loadMembers();
+        }
+
+        async function cycleRole(id, currentRole) {
+            const newRole = currentRole === 'ap' ? 'member' : 'ap';
+            const label   = newRole === 'ap' ? 'A&P (Maintenance)' : 'Member';
+            if (!confirm(`Change this member's role to ${label}?`)) return;
+            await _supabase.from('members').update({ role: newRole }).eq('id', id);
             loadMembers();
         }
 

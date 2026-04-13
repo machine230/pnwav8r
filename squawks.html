@@ -80,11 +80,28 @@
         .sq-header { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
         .sq-badges { display:flex; gap:8px; flex-wrap:wrap; }
         .sq-badge { font-size:0.72em; font-weight:700; padding:4px 12px; border-radius:20px; white-space:nowrap; }
-        .sq-badge.open      { background:#f8d7da; color:#721c24; }
-        .sq-badge.resolved  { background:#d4edda; color:#155724; }
-        .sq-badge.no_go     { background:#dc3545; color:white; }
-        .sq-badge.caution   { background:#fff3cd; color:#856404; }
-        .sq-badge.go        { background:#d4edda; color:#155724; }
+        .sq-badge.open        { background:#f8d7da; color:#721c24; }
+        .sq-badge.in_progress { background:#ffe5cc; color:#7d3c00; }
+        .sq-badge.deferred    { background:#e9ecef; color:#495057; }
+        .sq-badge.resolved    { background:#d4edda; color:#155724; }
+        .sq-badge.no_go       { background:#dc3545; color:white; }
+        .sq-badge.caution     { background:#fff3cd; color:#856404; }
+        .sq-badge.go          { background:#d4edda; color:#155724; }
+
+        .squawk-card.in_progress { border-left-color:#e67e22; }
+        .squawk-card.deferred    { border-left-color:#95a5a6; }
+
+        /* Maintenance notes block */
+        .sq-maint-notes {
+            margin-top:12px; padding:12px 16px; border-radius:10px;
+            background:#fff8f0; border-left:3px solid #e67e22;
+        }
+        .sq-maint-label { font-size:0.72em; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#e67e22; margin-bottom:4px; }
+        .sq-maint-text  { font-size:0.9em; color:#2c3e50; line-height:1.5; }
+
+        /* Status select */
+        .sq-status-select { padding:8px 12px; border:2px solid #e9ecef; border-radius:8px; font-size:0.88em; font-family:inherit; color:#2c3e50; cursor:pointer; }
+        .sq-status-select:focus { outline:none; border-color:#667eea; }
 
         .sq-description { font-size:0.97em; color:#2c3e50; font-weight:600; margin-bottom:8px; line-height:1.5; }
         .sq-meta { font-size:0.8em; color:#7f8c8d; }
@@ -145,6 +162,8 @@
 
         <div class="filter-tabs">
             <button class="filter-tab active" onclick="setFilter('open',this)">Open</button>
+            <button class="filter-tab" onclick="setFilter('in_progress',this)">In Progress</button>
+            <button class="filter-tab" onclick="setFilter('deferred',this)">Deferred</button>
             <button class="filter-tab" onclick="setFilter('all',this)">All</button>
             <button class="filter-tab" onclick="setFilter('resolved',this)">Resolved</button>
         </div>
@@ -166,7 +185,7 @@
             if (!session) return;
             currentMember = await getCurrentMember();
             renderNavUser();
-            if (currentMember?.role === 'admin') document.getElementById('adminLink').style.display = 'inline';
+            if (isAdmin(currentMember)) document.getElementById('adminLink').style.display = 'inline';
 
             const { data: plane } = await _supabase.from('airplanes').select('id,status').eq('tail_number', AIRPLANE_TAIL).single();
             airplaneId = plane?.id;
@@ -207,13 +226,20 @@
         async function loadSquawks() {
             const { data } = await _supabase
                 .from('squawks')
-                .select('*, reporter:members!squawks_reported_by_fkey(name), responder:members!squawks_resolved_by_fkey(name)')
+                .select('*, reporter:members!squawks_reported_by_fkey(name), responder:members!squawks_resolved_by_fkey(name), updater:members!squawks_status_updated_by_fkey(name)')
                 .eq('airplane_id', airplaneId)
                 .order('reported_at', { ascending: false });
 
             allSquawks = data || [];
             renderSquawks();
         }
+
+        const STATUS_MAP = {
+            open:        { label:'Open',        cls:'open',        card:'open' },
+            in_progress: { label:'In Progress', cls:'in_progress', card:'in_progress' },
+            deferred:    { label:'Deferred',    cls:'deferred',    card:'deferred' },
+            resolved:    { label:'Resolved',    cls:'resolved',    card:'resolved' }
+        };
 
         function setFilter(f, btn) {
             currentFilter = f;
@@ -223,56 +249,72 @@
         }
 
         function renderSquawks() {
-            const el = document.getElementById('squawkList');
-            let list = allSquawks;
-            if (currentFilter === 'open')     list = allSquawks.filter(s => s.status === 'open');
-            if (currentFilter === 'resolved') list = allSquawks.filter(s => s.status === 'resolved');
+            const el  = document.getElementById('squawkList');
+            let   list = allSquawks;
+            const activeStatuses = ['open','in_progress','deferred'];
+            if (currentFilter === 'open')        list = allSquawks.filter(s => s.status === 'open');
+            else if (currentFilter === 'in_progress') list = allSquawks.filter(s => s.status === 'in_progress');
+            else if (currentFilter === 'deferred')    list = allSquawks.filter(s => s.status === 'deferred');
+            else if (currentFilter === 'resolved')    list = allSquawks.filter(s => s.status === 'resolved');
 
             if (!list.length) {
-                el.innerHTML = `<div class="empty-state">${currentFilter === 'open' ? 'No open squawks — airplane is good to go!' : 'No squawks found.'}</div>`;
+                const msgs = { open:'No open squawks — airplane is good to go!', in_progress:'No squawks in progress.', deferred:'No deferred squawks.', resolved:'No resolved squawks.', all:'No squawks on record.' };
+                el.innerHTML = `<div class="empty-state">${msgs[currentFilter] || 'No squawks found.'}</div>`;
                 return;
             }
 
-            const goNoGoMap = {
-                no_go:   { cls:'no_go',   label:'🛑 NO-GO' },
-                caution: { cls:'caution', label:'⚠️ CAUTION' },
-                go:      { cls:'go',      label:'✅ GO' }
-            };
-            const isAdmin = currentMember?.role === 'admin';
+            const canManage = isAdminOrAP(currentMember);
 
             el.innerHTML = list.map(s => {
-                const gng     = goNoGoMap[s.go_no_go] || null;
-                const isOpen  = s.status === 'open';
-                const safeId  = escapeHtml(s.id);
+                const st     = STATUS_MAP[s.status] || STATUS_MAP.open;
+                const safeId = escapeHtml(s.id);
+                const isActive = ['open','in_progress','deferred'].includes(s.status);
 
-                return `<div class="squawk-card ${isOpen ? 'open' : 'resolved'} ${s.go_no_go || ''}">
+                // Status selector options for A&P/Admin
+                const statusOptions = Object.entries(STATUS_MAP).map(([val, m]) =>
+                    `<option value="${val}" ${s.status === val ? 'selected' : ''}>${m.label}</option>`
+                ).join('');
+
+                return `<div class="squawk-card ${st.card}">
                     <div class="sq-header">
                         <div class="sq-badges">
-                            <span class="sq-badge ${isOpen ? 'open' : 'resolved'}">${isOpen ? 'Open' : 'Resolved'}</span>
-                            ${gng ? `<span class="sq-badge ${gng.cls}">${gng.label}</span>` : ''}
+                            <span class="sq-badge ${st.cls}">${st.label}</span>
                         </div>
                         <div class="sq-meta">${fmtDate(s.reported_at)}</div>
                     </div>
                     <div class="sq-description">${escapeHtml(s.description)}</div>
                     <div class="sq-meta">Reported by ${escapeHtml(s.reporter?.name) || '—'}</div>
 
-                    ${s.admin_response ? `
-                        <div class="sq-response">
-                            <div class="sq-response-label">Admin Response</div>
-                            <div class="sq-response-text">${escapeHtml(s.admin_response)}</div>
-                            <div class="sq-response-meta">${escapeHtml(s.responder?.name) || 'Admin'} · ${s.admin_response_at ? fmtDate(s.admin_response_at) : ''}</div>
+                    ${s.maintenance_notes ? `
+                        <div class="sq-maint-notes">
+                            <div class="sq-maint-label">🔧 Maintenance Notes</div>
+                            <div class="sq-maint-text">${escapeHtml(s.maintenance_notes)}</div>
+                            ${s.status_updated_at ? `<div class="sq-meta" style="margin-top:4px">Updated by ${escapeHtml(s.updater?.name) || 'A&P'} · ${fmtDate(s.status_updated_at)}</div>` : ''}
                         </div>` : ''}
 
-                    ${isAdmin && isOpen ? `
-                        <span class="sq-admin-toggle" onclick="toggleRespond('${safeId}')">+ Respond / Update</span>
+                    ${s.admin_response ? `
+                        <div class="sq-response">
+                            <div class="sq-response-label">Response</div>
+                            <div class="sq-response-text">${escapeHtml(s.admin_response)}</div>
+                            <div class="sq-response-meta">${escapeHtml(s.responder?.name) || '—'} · ${s.admin_response_at ? fmtDate(s.admin_response_at) : ''}</div>
+                        </div>` : ''}
+
+                    ${canManage && isActive ? `
+                        <span class="sq-admin-toggle" onclick="toggleRespond('${safeId}')">+ Update / Respond</span>
                         <div class="sq-respond-form" id="form_${safeId}">
-                            <textarea id="resp_${safeId}" placeholder="Your response or action taken…">${escapeHtml(s.admin_response) || ''}</textarea>
-                            <div class="sq-respond-actions">
-                                <button class="sq-btn sq-btn-primary" onclick="saveResponse('${safeId}', false)">Save Response</button>
-                                <button class="sq-btn sq-btn-success" onclick="saveResponse('${safeId}', true)">Resolve & Clear</button>
-                                <button class="sq-btn sq-btn-danger"  onclick="groundPlane()">Ground Plane</button>
-                                <button class="sq-btn sq-btn-outline" onclick="ungroundPlane()">Clear to Fly</button>
+                            <div style="margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                                <label style="font-size:0.8em;font-weight:700;color:#7f8c8d;text-transform:uppercase;letter-spacing:1px">Set Status</label>
+                                <select class="sq-status-select" id="status_${safeId}">${statusOptions}</select>
                             </div>
+                            <textarea id="resp_${safeId}" placeholder="Response or action taken…" style="margin-bottom:8px">${escapeHtml(s.admin_response) || ''}</textarea>
+                            <textarea id="maint_${safeId}" placeholder="Maintenance notes (A&P work log, parts, procedures…)">${escapeHtml(s.maintenance_notes) || ''}</textarea>
+                            <div class="sq-respond-actions">
+                                <button class="sq-btn sq-btn-primary" onclick="saveUpdate('${safeId}')">Save Update</button>
+                                ${isAdmin(currentMember) || isAP(currentMember) ? `
+                                <button class="sq-btn sq-btn-danger"  onclick="groundPlane()">🔒 Ground Plane</button>
+                                <button class="sq-btn sq-btn-outline" onclick="ungroundPlane()">✈️ Clear to Fly</button>` : ''}
+                            </div>
+                            <div class="sq-msg" id="msg_${safeId}" style="font-size:0.82em;margin-top:6px"></div>
                         </div>` : ''}
                 </div>`;
             }).join('');
@@ -283,26 +325,49 @@
             form.style.display = form.style.display === 'block' ? 'none' : 'block';
         }
 
-        async function saveResponse(id, resolve) {
-            const text = document.getElementById(`resp_${id}`).value.trim();
+        async function saveUpdate(id) {
+            const newStatus   = document.getElementById(`status_${id}`).value;
+            const response    = document.getElementById(`resp_${id}`).value.trim();
+            const maintNotes  = document.getElementById(`maint_${id}`).value.trim();
+            const msgEl       = document.getElementById(`msg_${id}`);
+
+            if (maintNotes.length > 2000) {
+                msgEl.style.color = '#dc3545';
+                msgEl.textContent = 'Maintenance notes must be 2000 characters or less.';
+                return;
+            }
+
             const update = {
-                admin_response:    text || null,
-                admin_response_at: new Date().toISOString(),
-                admin_response_by: currentMember.id  // uses resolved_by column
+                status:             newStatus,
+                status_updated_at:  new Date().toISOString(),
+                status_updated_by:  currentMember.id,
+                admin_response:     response || null,
+                admin_response_at:  response ? new Date().toISOString() : null,
+                admin_response_by:  currentMember.id,
+                maintenance_notes:  maintNotes || null
             };
-            if (resolve) {
-                update.status      = 'resolved';
+
+            if (newStatus === 'resolved') {
                 update.resolved_at = new Date().toISOString();
                 update.resolved_by = currentMember.id;
             }
-            await _supabase.from('squawks').update(update).eq('id', id);
-            if (resolve) {
-                // If no more open squawks, unground
+
+            const { error } = await _supabase.from('squawks').update(update).eq('id', id);
+            if (error) {
+                msgEl.style.color = '#dc3545';
+                msgEl.textContent = 'Error: ' + error.message;
+                return;
+            }
+
+            // If resolved and no open squawks remain, offer to unground
+            if (newStatus === 'resolved') {
                 const { count } = await _supabase.from('squawks')
                     .select('*', { count:'exact', head:true })
-                    .eq('airplane_id', airplaneId).eq('status','open');
+                    .eq('airplane_id', airplaneId)
+                    .in('status', ['open','in_progress']);
                 if (count === 0) await ungroundPlane();
             }
+
             await loadSquawks();
         }
 

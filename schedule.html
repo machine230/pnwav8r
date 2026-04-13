@@ -164,6 +164,7 @@
     </nav>
 
     <div class="page-wrap">
+        <div id="schedBanner" style="display:none"></div>
         <div class="week-nav">
             <div class="legend">
                 <span><span class="legend-dot" style="background:#667eea"></span>Other member</span>
@@ -206,6 +207,7 @@
         let reservations = [];
         let airplaneId   = null;
         let currentMember= null;
+        let planeGrounded= false;
         let selecting    = { start: null, end: null }; // absolute Date objects
 
         const TODAY = new Date(); TODAY.setHours(0,0,0,0);
@@ -216,10 +218,19 @@
             if (!session) return;
             currentMember = await getCurrentMember();
             renderNavUser();
-            if (currentMember?.role === 'admin') document.getElementById('adminLink').style.display = 'inline';
+            if (isAdmin(currentMember)) document.getElementById('adminLink').style.display = 'inline';
 
-            const { data: plane } = await _supabase.from('airplanes').select('id').eq('tail_number', AIRPLANE_TAIL).single();
-            airplaneId = plane?.id;
+            // Profile completion gate — members must complete profile before booking
+            if (!currentMember.profile_completed && !isAdminOrAP(currentMember)) {
+                showBanner('⚠️ Please complete your profile before booking. Go to Dashboard → Profile.', 'warning');
+            }
+
+            const { data: plane } = await _supabase.from('airplanes').select('id, status').eq('tail_number', AIRPLANE_TAIL).single();
+            airplaneId   = plane?.id;
+            planeGrounded = plane?.status === 'squawk' || plane?.status === 'maintenance';
+            if (planeGrounded && !isAdminOrAP(currentMember)) {
+                showBanner('🔒 Aircraft is currently grounded. Booking is disabled until the squawk is cleared.', 'danger');
+            }
 
             await loadReservations();
             renderWeek();
@@ -358,7 +369,15 @@
                     }
 
                     if (!isPast && !isDisabled && !res) {
-                        cell.onclick = () => toggleCell(slotStart);
+                        if (planeGrounded && !isAdminOrAP(currentMember)) {
+                            cell.title = 'Aircraft is grounded — booking disabled';
+                            cell.style.cursor = 'not-allowed';
+                        } else if (!currentMember?.profile_completed && !isAdminOrAP(currentMember)) {
+                            cell.title = 'Complete your profile first';
+                            cell.style.cursor = 'not-allowed';
+                        } else {
+                            cell.onclick = () => toggleCell(slotStart);
+                        }
                     }
 
                     grid.appendChild(cell);
@@ -478,6 +497,14 @@
                 await loadReservations();
                 renderWeek();
             }
+        }
+
+        function showBanner(msg, type) {
+            const el = document.getElementById('schedBanner');
+            const colors = { warning:'background:#fff3cd;color:#856404;border:1px solid #ffeeba', danger:'background:#f8d7da;color:#721c24;border:1px solid #f5c6cb' };
+            el.style.cssText = `${colors[type]};border-radius:10px;padding:12px 20px;margin-bottom:16px;font-weight:600;font-size:0.9em`;
+            el.textContent = msg;
+            el.style.display = 'block';
         }
 
         function fmtTime(d)     { return d.toLocaleString('en-US',{hour:'numeric',minute:'2-digit',hour12:true}); }
