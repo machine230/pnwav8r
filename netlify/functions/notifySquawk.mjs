@@ -52,12 +52,18 @@ export const handler = async (event) => {
 
     const { description, reporter, tail } = body;
 
-    // Validate inputs
+    // Validate all inputs — reject oversized or wrong-type fields
     if (!description || typeof description !== 'string' || description.trim().length === 0) {
         return { statusCode: 400, headers: cors, body: JSON.stringify({ error: 'Description required' }) };
     }
     if (description.length > 1000) {
         return { statusCode: 400, headers: cors, body: JSON.stringify({ error: 'Description too long' }) };
+    }
+    if (reporter && (typeof reporter !== 'string' || reporter.length > 200)) {
+        return { statusCode: 400, headers: cors, body: JSON.stringify({ error: 'Reporter field invalid' }) };
+    }
+    if (tail && (typeof tail !== 'string' || tail.length > 10)) {
+        return { statusCode: 400, headers: cors, body: JSON.stringify({ error: 'Tail number invalid' }) };
     }
 
     const safeDesc     = esc(description.trim());

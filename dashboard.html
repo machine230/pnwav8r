@@ -662,7 +662,14 @@
 
         async function cancelReservation(id) {
             if (!confirm('Cancel this reservation?')) return;
-            await _supabase.from('reservations').update({ status: 'cancelled' }).eq('id', id);
+            // Client-side ownership check — RLS enforces this server-side too
+            const res = reservations.find(function(r){ return r.id === id; });
+            if (!res || res.member_id !== currentMember.id) {
+                alert('You can only cancel your own reservations.');
+                return;
+            }
+            const { error } = await _supabase.from('reservations').update({ status: 'cancelled' }).eq('id', id);
+            if (error) { console.error('[cancelReservation]', error); alert('Cancel failed. Please try again.'); return; }
             loadReservations();
         }
 

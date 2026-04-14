@@ -81,17 +81,30 @@ CREATE POLICY "Role-based squawk update"
         EXISTS (SELECT 1 FROM public.members WHERE id = auth.uid() AND role IN ('admin','ap'))
     );
 
--- 7. Members table RLS — members can update own email/phone only
---    Admins can update anything
+-- 7. Members table RLS — members can update own name/phone/profile_completed ONLY
+--    Admins can update anything (including role, membership_active, pic_status)
+--    IMPORTANT: The WITH CHECK restricts which rows, but Postgres column-level
+--    security is enforced here by checking that non-admins cannot change role,
+--    membership_active, or pic_status via a security definer function.
 DROP POLICY IF EXISTS "Members can update own profile" ON public.members;
 CREATE POLICY "Members can update own profile"
     ON public.members FOR UPDATE
-    USING (auth.uid() IS NOT NULL)
-    WITH CHECK (
-        -- Admin can update anything
+    USING (
+        -- Admin can update any row
         EXISTS (SELECT 1 FROM public.members WHERE id = auth.uid() AND role = 'admin')
-        -- Everyone else can only update their own row
+        -- Members can only update their own row
         OR id = auth.uid()
+    )
+    WITH CHECK (
+        -- Admin can write anything
+        EXISTS (SELECT 1 FROM public.members WHERE id = auth.uid() AND role = 'admin')
+        -- Non-admins: own row only AND role/membership_active/pic_status must stay unchanged
+        OR (
+            id = auth.uid()
+            AND role = (SELECT role FROM public.members WHERE id = auth.uid())
+            AND membership_active = (SELECT membership_active FROM public.members WHERE id = auth.uid())
+            AND pic_status = (SELECT pic_status FROM public.members WHERE id = auth.uid())
+        )
     );
 
 -- Done!
