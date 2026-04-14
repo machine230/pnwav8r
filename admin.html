@@ -362,11 +362,12 @@
                     <div class="table-scroll">
                     <table class="admin-table">
                         <thead>
-                            <tr><th>Pilot</th><th>Date</th><th>Tach Start</th><th>Tach End</th><th>Time</th><th>Fuel</th><th>Oil Added</th><th>Notes</th><th>Delete</th></tr>
+                            <tr><th>Pilot</th><th>Date</th><th>Tach Start</th><th>Tach End</th><th>Hours</th><th>Dry Rate Cost</th><th>Fuel</th><th>Oil Added</th><th>Notes</th><th>Delete</th></tr>
                         </thead>
                         <tbody id="flightTableBody">
-                            <tr><td colspan="9" style="text-align:center;color:#adb5bd;padding:28px">Loading…</td></tr>
+                            <tr><td colspan="10" style="text-align:center;color:#adb5bd;padding:28px">Loading…</td></tr>
                         </tbody>
+                        <tfoot id="flightTableFoot"></tfoot>
                     </table>
                     </div>
                 </div>
@@ -615,11 +616,24 @@
 
             const { data } = await q;
 
-            if (!data?.length) { tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#adb5bd;padding:28px">No flight logs found.</td></tr>'; return; }
+            if (!data?.length) { tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:#adb5bd;padding:28px">No flight logs found.</td></tr>'; document.getElementById('flightTableFoot').innerHTML = ''; return; }
 
+            let totalHrs = 0, totalCost = 0;
             tbody.innerHTML = data.map(f => {
-                const time    = (f.tach_start != null && f.tach_end != null) ? (f.tach_end - f.tach_start).toFixed(1) + ' hr' : '—';
-                let fuelStr   = '—';
+                // Use stored columns; fall back to tach calculation for older rows
+                const hrs  = f.flight_hours  != null ? f.flight_hours
+                           : (f.tach_start != null && f.tach_end != null) ? Math.round((f.tach_end - f.tach_start) * 10) / 10
+                           : null;
+                const cost = f.flight_cost   != null ? f.flight_cost
+                           : hrs != null ? Math.round(hrs * 65 * 100) / 100
+                           : null;
+                if (hrs  != null) totalHrs  += hrs;
+                if (cost != null) totalCost += cost;
+
+                const timeStr = hrs  != null ? hrs.toFixed(1)  + ' hr' : '—';
+                const costStr = cost != null ? '$' + cost.toFixed(2)   : '—';
+
+                let fuelStr = '—';
                 if (f.needs_fuel) {
                     const lt = f.fuel_estimate_left_tank  != null ? f.fuel_estimate_left_tank  + ' L' : '?';
                     const rt = f.fuel_estimate_right_tank != null ? f.fuel_estimate_right_tank + ' R' : '?';
@@ -627,19 +641,32 @@
                 } else if (f.fuel_added_gallons != null) {
                     fuelStr = f.fuel_added_gallons + ' gal';
                 }
-                const oilStr  = f.oil_added_quarts ? f.oil_added_quarts + ' qt' : '—';
+                const oilStr = f.oil_added_quarts ? f.oil_added_quarts + ' qt' : '—';
+
                 return `<tr>
                     <td><strong>${escapeHtml(f.members?.name) || '—'}</strong></td>
                     <td>${fmtDate(f.completed_at)}</td>
                     <td>${f.tach_start ?? '—'}</td>
                     <td>${f.tach_end ?? '—'}</td>
-                    <td>${time}</td>
+                    <td><strong>${timeStr}</strong></td>
+                    <td><strong style="color:#28a745">${costStr}</strong></td>
                     <td>${fuelStr}</td>
                     <td>${oilStr}</td>
-                    <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escapeHtml(f.notes)}">${escapeHtml(f.notes) || '—'}</td>
+                    <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escapeHtml(f.notes)}">${escapeHtml(f.notes) || '—'}</td>
                     <td><button class="tbl-btn tbl-btn-danger" onclick="deleteFlightLog('${escapeHtml(f.id)}')">Delete</button></td>
                 </tr>`;
             }).join('');
+
+            // Totals row
+            document.getElementById('flightTableFoot').innerHTML = `
+                <tr style="background:#f0f4ff;font-weight:700;border-top:2px solid #667eea">
+                    <td colspan="4" style="padding:12px 20px;font-size:0.85em;color:#667eea;text-transform:uppercase;letter-spacing:1px">
+                        TOTALS — ${data.length} flight${data.length !== 1 ? 's' : ''}
+                    </td>
+                    <td style="padding:12px 20px;font-size:1em;color:#2c3e50">${totalHrs.toFixed(1)} hr</td>
+                    <td style="padding:12px 20px;font-size:1em;color:#28a745">$${totalCost.toFixed(2)}</td>
+                    <td colspan="4" style="padding:12px 20px;font-size:0.8em;color:#95a5a6">$65/hr dry rate</td>
+                </tr>`;
         }
 
         async function deleteFlightLog(id) {

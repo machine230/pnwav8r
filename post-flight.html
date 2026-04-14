@@ -482,6 +482,14 @@
                 .neq('status', 'cancelled')
                 .limit(1).single();
 
+            // Calculate flight hours and cost
+            const flightHours = (!isNaN(tachStart) && tachEnd > tachStart)
+                ? Math.round((tachEnd - tachStart) * 10) / 10
+                : null;
+            const flightCost  = flightHours != null
+                ? Math.round(flightHours * DRY_RATE * 100) / 100
+                : null;
+
             // Insert flight log
             const { error: logErr } = await _supabase.from('flight_logs').insert({
                 reservation_id:    res?.id || null,
@@ -489,6 +497,8 @@
                 member_id:         currentMember.id,
                 tach_start:        isNaN(tachStart) ? null : tachStart,
                 tach_end:          tachEnd,
+                flight_hours:      flightHours,
+                flight_cost:       flightCost,
                 oil_qty_start_quarts: oilStart,
                 oil_added_quarts:     oilAdded,
                 oil_qty_end_quarts:   oilEnd,

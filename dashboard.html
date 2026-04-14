@@ -235,12 +235,20 @@
                         <div class="ac-stat-value" id="acFuel">—</div>
                     </div>
                     <div>
-                        <div class="ac-stat-label">Last Oil Added</div>
+                        <div class="ac-stat-label">Last Oil</div>
                         <div class="ac-stat-value" id="acOil">—</div>
                     </div>
                     <div>
                         <div class="ac-stat-label">Open Squawks</div>
                         <div class="ac-stat-value" id="acSquawks">—</div>
+                    </div>
+                    <div>
+                        <div class="ac-stat-label">My Hours</div>
+                        <div class="ac-stat-value" id="acMyHours">—</div>
+                    </div>
+                    <div>
+                        <div class="ac-stat-label">My Dry Cost</div>
+                        <div class="ac-stat-value" id="acMyCost">—</div>
                     </div>
                 </div>
             </div>
@@ -281,6 +289,17 @@
                     <div>Flight Checklist</div>
                 </div>
             </a>
+        </div>
+
+        <!-- My Flight Log -->
+        <div class="dash-card" style="margin-bottom:24px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+                <div class="dash-card-title" style="margin-bottom:0">My Flight Log</div>
+                <div id="myFlightLogTotal" style="font-size:0.82em;color:#95a5a6;font-weight:600"></div>
+            </div>
+            <div id="myFlightLog">
+                <div style="color:#adb5bd;font-size:0.9em;text-align:center;padding:20px 0">No flights logged yet.</div>
+            </div>
         </div>
 
         <div class="dash-grid">
@@ -370,7 +389,7 @@
             renderNavUser();
             if (isAdmin(currentMember)) document.getElementById('adminLink').style.display = 'inline';
 
-            await Promise.all([loadAirplane(), loadReservations(), loadSquawks(), loadInspections()]);
+            await Promise.all([loadAirplane(), loadReservations(), loadSquawks(), loadInspections(), loadMyFlightLog()]);
 
             const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
             _supabase.channel('reservations').on('postgres_changes', { event:'*', schema:'public', table:'reservations' }, debounce(async () => { await loadReservations(); renderMiniCal(); }, 500)).subscribe();
@@ -461,6 +480,64 @@
 
             const { count } = await _supabase.from('squawks').select('*', { count:'exact', head:true }).eq('airplane_id', plane.id).eq('status','open');
             document.getElementById('acSquawks').textContent = count ?? 0;
+        }
+
+        async function loadMyFlightLog() {
+            const { data: plane } = await _supabase.from('airplanes').select('id').eq('tail_number', AIRPLANE_TAIL).single();
+            if (!plane) return;
+
+            const { data: logs } = await _supabase
+                .from('flight_logs')
+                .select('flight_hours, flight_cost, tach_start, tach_end, completed_at, notes, needs_fuel, fuel_added_gallons')
+                .eq('member_id', currentMember.id)
+                .eq('airplane_id', plane.id)
+                .or('is_deleted.is.null,is_deleted.eq.false')
+                .order('completed_at', { ascending: false });
+
+            if (!logs?.length) {
+                document.getElementById('acMyHours').textContent = '0.0 hr';
+                document.getElementById('acMyCost').textContent  = '$0.00';
+                return;
+            }
+
+            let totalHrs = 0, totalCost = 0;
+            logs.forEach(function(f) {
+                const hrs  = f.flight_hours  != null ? f.flight_hours
+                           : (f.tach_start != null && f.tach_end != null) ? Math.round((f.tach_end - f.tach_start) * 10) / 10
+                           : 0;
+                const cost = f.flight_cost   != null ? f.flight_cost
+                           : Math.round(hrs * 65 * 100) / 100;
+                totalHrs  += hrs;
+                totalCost += cost;
+            });
+
+            document.getElementById('acMyHours').textContent = totalHrs.toFixed(1) + ' hr';
+            document.getElementById('acMyCost').textContent  = '$' + totalCost.toFixed(2);
+
+            // Render personal flight log card
+            const logEl = document.getElementById('myFlightLog');
+            if (!logEl) return;
+            logEl.innerHTML = logs.slice(0, 10).map(function(f) {
+                const hrs  = f.flight_hours != null ? f.flight_hours
+                           : (f.tach_start != null && f.tach_end != null) ? Math.round((f.tach_end - f.tach_start) * 10) / 10
+                           : null;
+                const cost = f.flight_cost  != null ? f.flight_cost
+                           : hrs != null ? Math.round(hrs * 65 * 100) / 100 : null;
+                const date = new Date(f.completed_at).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+                return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f0f2f5;gap:12px;flex-wrap:wrap">
+                    <div style="font-size:0.85em;color:#7f8c8d;min-width:80px">${date}</div>
+                    <div style="flex:1;font-size:0.88em;color:#2c3e50;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(f.notes) || '—'}</div>
+                    <div style="text-align:right;flex-shrink:0">
+                        <span style="font-weight:700;color:#2c3e50">${hrs != null ? hrs.toFixed(1) + ' hr' : '—'}</span>
+                        <span style="color:#28a745;font-weight:700;margin-left:12px">${cost != null ? '$' + cost.toFixed(2) : '—'}</span>
+                    </div>
+                </div>`;
+            }).join('');
+
+            const totalRow = document.getElementById('myFlightLogTotal');
+            if (totalRow) {
+                totalRow.textContent = logs.length + ' flight' + (logs.length !== 1 ? 's' : '') + ' · ' + totalHrs.toFixed(1) + ' hr total · $' + totalCost.toFixed(2) + ' total dry cost';
+            }
         }
 
         async function loadReservations() {
