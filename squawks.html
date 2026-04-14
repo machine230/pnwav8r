@@ -193,17 +193,17 @@
 
             await loadSquawks();
 
+            const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
+
             _supabase.channel('squawks-live')
-                .on('postgres_changes', { event:'*', schema:'public', table:'squawks' }, async () => {
-                    await loadSquawks();
-                })
+                .on('postgres_changes', { event:'*', schema:'public', table:'squawks' }, debounce(loadSquawks, 500))
                 .subscribe();
 
             _supabase.channel('plane-live')
-                .on('postgres_changes', { event:'*', schema:'public', table:'airplanes' }, async () => {
+                .on('postgres_changes', { event:'*', schema:'public', table:'airplanes' }, debounce(async () => {
                     const { data: p } = await _supabase.from('airplanes').select('status').eq('tail_number', AIRPLANE_TAIL).single();
                     renderPlaneStatus(p?.status);
-                })
+                }, 500))
                 .subscribe();
         });
 

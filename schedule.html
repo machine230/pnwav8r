@@ -235,11 +235,11 @@
             await loadReservations();
             renderWeek();
 
+            const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
+            const reloadCalendar = debounce(async () => { await loadReservations(); renderWeek(); }, 500);
+
             _supabase.channel('res-live')
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'reservations' }, async () => {
-                    await loadReservations();
-                    renderWeek();
-                })
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'reservations' }, reloadCalendar)
                 .subscribe();
         });
 
