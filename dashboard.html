@@ -370,14 +370,6 @@
             renderNavUser();
             if (isAdmin(currentMember)) document.getElementById('adminLink').style.display = 'inline';
 
-            // Profile completion banner
-            if (!currentMember.profile_completed && !isAdminOrAP(currentMember)) {
-                const banner = document.createElement('div');
-                banner.style.cssText = 'background:#fff3cd;color:#856404;border:1px solid #ffeeba;border-radius:10px;padding:12px 20px;margin-bottom:20px;font-weight:600;font-size:0.9em;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap';
-                banner.innerHTML = '<span>⚠️ Please complete your profile before making a booking.</span><button onclick="openProfile()" style="background:#856404;color:white;border:none;border-radius:8px;padding:6px 16px;font-weight:700;cursor:pointer;font-size:0.88em">Complete Profile</button>';
-                document.querySelector('.page-wrap').prepend(banner);
-            }
-
             await Promise.all([loadAirplane(), loadReservations(), loadSquawks(), loadInspections()]);
 
             const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };

@@ -307,18 +307,6 @@
             renderNavUser();
             if (isAdmin(currentMember)) document.getElementById('adminLink').style.display = 'inline';
 
-            // Profile completion gate — redirect to dashboard to complete profile first
-            if (currentMember && !currentMember.profile_completed) {
-                document.body.innerHTML = `
-                    <div style="max-width:480px;margin:80px auto;padding:32px;text-align:center;font-family:sans-serif">
-                        <div style="font-size:3em">✈️</div>
-                        <h2 style="color:#2c3e50;margin:16px 0 8px">Complete Your Profile First</h2>
-                        <p style="color:#7f8c8d">Please complete your member profile before submitting a post-flight report.</p>
-                        <a href="dashboard.html" style="display:inline-block;margin-top:20px;padding:12px 28px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border-radius:10px;text-decoration:none;font-weight:700">Go to Dashboard</a>
-                    </div>`;
-                return;
-            }
-
             const { data: plane } = await _supabase.from('airplanes').select('id, current_tach').eq('tail_number', AIRPLANE_TAIL).single();
             airplaneId = plane?.id;
             if (plane?.current_tach) {

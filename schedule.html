@@ -220,11 +220,6 @@
             renderNavUser();
             if (isAdmin(currentMember)) document.getElementById('adminLink').style.display = 'inline';
 
-            // Profile completion gate — members must complete profile before booking
-            if (!currentMember.profile_completed && !isAdminOrAP(currentMember)) {
-                showBanner('⚠️ Please complete your profile before booking. Go to Dashboard → Profile.', 'warning');
-            }
-
             const { data: plane } = await _supabase.from('airplanes').select('id, status').eq('tail_number', AIRPLANE_TAIL).single();
             airplaneId   = plane?.id;
             planeGrounded = plane?.status === 'squawk' || plane?.status === 'maintenance';
@@ -371,9 +366,6 @@
                     if (!isPast && !isDisabled && !res) {
                         if (planeGrounded && !isAdminOrAP(currentMember)) {
                             cell.title = 'Aircraft is grounded — booking disabled';
-                            cell.style.cursor = 'not-allowed';
-                        } else if (!currentMember?.profile_completed && !isAdminOrAP(currentMember)) {
-                            cell.title = 'Complete your profile first';
                             cell.style.cursor = 'not-allowed';
                         } else {
                             cell.onclick = () => toggleCell(slotStart);
