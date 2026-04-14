@@ -65,7 +65,7 @@ async function getCurrentMember() {
 
 async function signOut() {
     await _supabase.auth.signOut();
-    window.location.href = '/login.html';
+    window.location.href = '/index.html';
 }
 
 async function renderNavUser() {
