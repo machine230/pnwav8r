@@ -207,7 +207,7 @@
                         </div>
                         <div class="pf-field">
                             <label>Fuel Note <span style="color:#dc3545">*</span></label>
-                            <textarea id="fuelComment" rows="2" placeholder="Explain fuel condition — e.g. 'Ran low on return leg, left tank below tabs'"></textarea>
+                            <textarea id="fuelComment" rows="2" placeholder="Explain fuel condition — e.g. 'Ran low on return leg, left tank below tabs'" maxlength="500"></textarea>
                         </div>
                     </div>
                 </div>
@@ -278,7 +278,7 @@
                 <div class="pf-section">
                     <div class="pf-section-title">General Notes</div>
                     <div class="pf-field">
-                        <textarea id="flightNotes" rows="3" placeholder="Any other notes about the flight or aircraft condition…"></textarea>
+                        <textarea id="flightNotes" rows="3" placeholder="Any other notes about the flight or aircraft condition…" maxlength="1000"></textarea>
                     </div>
                 </div>
 
@@ -366,7 +366,7 @@
             row.className = 'squawk-item-row';
             row.id = id;
             row.innerHTML = `
-                <textarea placeholder="Describe the squawk…" id="sq_text_${squawkCount}"></textarea>
+                <textarea placeholder="Describe the squawk…" id="sq_text_${squawkCount}" maxlength="500"></textarea>
                 <button class="squawk-remove" onclick="document.getElementById('${id}').remove()">Remove</button>`;
             document.getElementById('squawkList').appendChild(row);
         }
@@ -497,7 +497,8 @@
             });
 
             if (logErr) {
-                showError('Error saving log: ' + logErr.message);
+                console.error('[postFlight submit]', logErr);
+                showError('Failed to save flight log. Please try again.');
                 btn.disabled = false; btn.textContent = 'Submit Post-Flight Report'; return;
             }
 

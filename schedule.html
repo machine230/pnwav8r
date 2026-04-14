@@ -482,8 +482,9 @@
             btn.disabled = false; btn.textContent = 'Confirm Reservation';
 
             if (error) {
+                console.error('[confirmBooking]', error);
                 msg.className = 'book-msg error';
-                msg.textContent = 'Booking failed: ' + error.message;
+                msg.textContent = 'Booking failed. Please try again or refresh the page.';
             } else {
                 clearSelection(false);
                 await loadReservations();

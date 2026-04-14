@@ -331,7 +331,7 @@
             </div>
             <div class="form-group">
                 <label class="form-label">Name</label>
-                <input type="text" class="form-input" id="profileName" placeholder="Your full name">
+                <input type="text" class="form-input" id="profileName" placeholder="Your full name" maxlength="100">
             </div>
             <div class="form-group">
                 <label class="form-label">Phone</label>
@@ -417,21 +417,40 @@
             const oilEl  = document.getElementById('acOil');
             if (log) {
                 if (log.needs_fuel) {
+                    // Build with DOM — no innerHTML with DB values
+                    fuelEl.textContent = '';
+                    const warn = document.createElement('span');
+                    warn.style.cssText = 'color:#ffc107;font-weight:700';
+                    warn.textContent = '⚠ Needs Fuel';
+                    const detail = document.createElement('small');
+                    detail.style.cssText = 'display:block;font-size:0.8em;opacity:0.85';
                     const lt = log.fuel_estimate_left_tank  != null ? log.fuel_estimate_left_tank  + ' L' : '?';
                     const rt = log.fuel_estimate_right_tank != null ? log.fuel_estimate_right_tank + ' R' : '?';
-                    fuelEl.innerHTML = `<span style="color:#ffc107;font-weight:700">⚠ Needs Fuel</span><br><small style="font-size:0.8em;opacity:0.85">${lt} / ${rt}</small>`;
+                    detail.textContent = lt + ' / ' + rt;
+                    fuelEl.appendChild(warn);
+                    fuelEl.appendChild(detail);
                 } else if (log.fuel_added_gallons != null) {
-                    fuelEl.textContent = `${log.fuel_added_gallons} gal added`;
+                    fuelEl.textContent = log.fuel_added_gallons + ' gal added';
                 } else {
                     fuelEl.textContent = 'Not reported';
                 }
                 if (log.oil_qty_end_quarts != null) {
-                    const warn = log.oil_qty_end_quarts < 4;
-                    oilEl.innerHTML = warn
-                        ? `<span style="color:#ffc107;font-weight:700">⚠ ${log.oil_qty_end_quarts} qt</span><small style="font-size:0.8em;opacity:0.85"> (low)</small>`
-                        : `${log.oil_qty_end_quarts} qt`;
+                    const lowOil = log.oil_qty_end_quarts < 4;
+                    if (lowOil) {
+                        oilEl.textContent = '';
+                        const owarn = document.createElement('span');
+                        owarn.style.cssText = 'color:#ffc107;font-weight:700';
+                        owarn.textContent = '⚠ ' + log.oil_qty_end_quarts + ' qt';
+                        const olabel = document.createElement('small');
+                        olabel.style.cssText = 'font-size:0.8em;opacity:0.85';
+                        olabel.textContent = ' (low)';
+                        oilEl.appendChild(owarn);
+                        oilEl.appendChild(olabel);
+                    } else {
+                        oilEl.textContent = log.oil_qty_end_quarts + ' qt';
+                    }
                 } else if (log.oil_added_quarts != null) {
-                    oilEl.textContent = `+${log.oil_added_quarts} qt added`;
+                    oilEl.textContent = '+' + log.oil_added_quarts + ' qt added';
                 } else {
                     oilEl.textContent = 'Not reported';
                 }
@@ -666,7 +685,8 @@
 
             const { error } = await _supabase.from('members').update({ name, phone, profile_completed: true }).eq('id', currentMember.id);
             if (error) {
-                msg.className = 'profile-msg error'; msg.textContent = 'Save failed: ' + error.message;
+                console.error('[saveProfile]', error);
+                msg.className = 'profile-msg error'; msg.textContent = 'Save failed. Please try again.';
             } else {
                 currentMember.name  = name;
                 currentMember.phone = phone;

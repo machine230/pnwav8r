@@ -200,7 +200,7 @@
                     <div class="form-row">
                         <div class="form-field">
                             <label>Full Name</label>
-                            <input type="text" id="newName" placeholder="Jane Smith">
+                            <input type="text" id="newName" placeholder="Jane Smith" maxlength="100">
                         </div>
                         <div class="form-field">
                             <label>Email</label>
@@ -249,7 +249,7 @@
                         <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
                             <div class="form-field" style="flex:1;min-width:200px">
                                 <label>Note (shown on dashboard)</label>
-                                <input type="text" id="maintNote" placeholder="Annual due, oil change, etc.">
+                                <input type="text" id="maintNote" placeholder="Annual due, oil change, etc." maxlength="500">
                             </div>
                             <button class="form-submit" onclick="saveMaintNote()">Save Note</button>
                         </div>
@@ -448,15 +448,22 @@
             if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { msg.style.color='#dc3545'; msg.textContent='Enter a valid email address.'; return; }
             if (phone && phone.replace(/\D/g,'').length > 15) { msg.style.color='#dc3545'; msg.textContent='Phone number is too long.'; return; }
 
-            // Pre-create the member record — member will be linked when they sign in
+            // Pre-create the member record by email — when the member first signs in via Supabase Auth,
+            // the auth trigger updates the id to match their auth UUID.
             // Admin must also create their auth account in Supabase → Authentication → Users
             const { error } = await _supabase.from('members').upsert({
-                id: '00000000-0000-0000-0000-000000000000', // placeholder, overwritten by trigger on first login
                 name, email, phone: phone || null,
                 membership_active: true, pic_status: false, role: 'member'
             }, { onConflict: 'email' });
 
-            if (error) { msg.style.color='#dc3545'; msg.textContent='Error: ' + error.message; return; }
+            if (error) {
+                console.error('[addMember]', error);
+                msg.style.color='#dc3545';
+                msg.textContent = error.code === '23505'
+                    ? 'A member with that email already exists.'
+                    : 'Failed to add member. Please try again.';
+                return;
+            }
 
             msg.style.color='#28a745';
             msg.textContent = `${name} added. Now go to Supabase → Authentication → Users → Add user to create their login with email: ${email}`;
@@ -642,7 +649,7 @@
                 deleted_by:  currentMember.id,
                 deleted_at:  new Date().toISOString()
             }).eq('id', id);
-            if (error) { alert('Error: ' + error.message); return; }
+            if (error) { console.error('[deleteFlightLog]', error); alert('Delete failed. Please try again.'); return; }
             loadFlights();
         }
 
@@ -673,7 +680,7 @@
             else if (resFilter === 'past')   q = q.lt('start_time', now);
 
             const { data, error } = await q.limit(80);
-            if (error) { tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#dc3545;padding:28px">Error: ${escapeHtml(error.message)}</td></tr>`; return; }
+            if (error) { console.error('[loadReservations]', error); tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#dc3545;padding:28px">Failed to load reservations. Please refresh.</td></tr>'; return; }
             if (!data?.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="6">No reservations found.</td></tr>'; return; }
 
             tbody.innerHTML = data.map(r => {
@@ -697,7 +704,7 @@
         async function deleteReservation(id) {
             if (!confirm('Delete this reservation? This cannot be undone.')) return;
             const { error } = await _supabase.from('reservations').delete().eq('id', id);
-            if (error) { alert('Error: ' + error.message); return; }
+            if (error) { console.error('[deleteReservation]', error); alert('Delete failed. Please try again.'); return; }
             loadReservations();
         }
 
@@ -736,7 +743,7 @@
                 purpose:    purposeVal || null
             }).eq('id', editResId);
 
-            if (error) { msg.style.color='#dc3545'; msg.textContent='Error: ' + error.message; return; }
+            if (error) { console.error('[saveReservation]', error); msg.style.color='#dc3545'; msg.textContent='Save failed. Please try again.'; return; }
             msg.style.color='#28a745'; msg.textContent='Saved!';
             setTimeout(() => { closeResEdit(); loadReservations(); }, 700);
         }
@@ -810,7 +817,7 @@
                 updated_at: new Date().toISOString(),
                 updated_by: currentMember.id
             }).eq('id', editInspId);
-            if (error) { msg.style.color='#dc3545'; msg.textContent='Error: ' + error.message; return; }
+            if (error) { console.error('[saveInspection]', error); msg.style.color='#dc3545'; msg.textContent='Save failed. Please try again.'; return; }
             msg.style.color='#28a745'; msg.textContent='Saved!';
             setTimeout(() => { closeInspEdit(); loadInspections(); }, 800);
         }
@@ -851,7 +858,7 @@
             </div>
             <div style="margin-bottom:16px">
                 <label style="font-size:0.8em;font-weight:700;color:#7f8c8d;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:6px">Notes (optional)</label>
-                <textarea id="inspEditNotes" rows="3" placeholder="e.g. Done by ABC Aviation, work order #123" style="width:100%;padding:12px 16px;border:2px solid #e9ecef;border-radius:10px;font-size:0.95em;box-sizing:border-box;resize:vertical"></textarea>
+                <textarea id="inspEditNotes" rows="3" maxlength="1000" placeholder="e.g. Done by ABC Aviation, work order #123" style="width:100%;padding:12px 16px;border:2px solid #e9ecef;border-radius:10px;font-size:0.95em;box-sizing:border-box;resize:vertical"></textarea>
             </div>
             <div style="display:flex;gap:12px;margin-top:8px">
                 <button onclick="closeInspEdit()" style="padding:12px 20px;background:white;color:#7f8c8d;border:2px solid #e9ecef;border-radius:10px;font-size:0.95em;font-weight:600;cursor:pointer">Cancel</button>
