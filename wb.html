@@ -3,80 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>N7798E Weight & Balance - PNWAV8R</title>
-    <link rel="stylesheet" href="css/style.css">
+    <title>N7798E Weight &amp; Balance — PNWAV8R</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
     <style>
-        .wb-calculator { background: rgba(255, 255, 255, 0.95); border-radius: 15px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); overflow: hidden; margin-bottom: 40px; }
-        .wb-header { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 30px; text-align: center; }
-        .wb-content { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; padding: 30px; }
-        .input-section { background: #f8f9fa; padding: 25px; border-radius: 10px; border: 2px solid #e9ecef; }
-        .results-section { background: #fff; padding: 25px; border-radius: 10px; border: 2px solid #dee2e6; }
-        .input-group { margin-bottom: 20px; }
-        .input-group label { display: block; margin-bottom: 8px; font-weight: 500; color: #34495e; }
-        .input-group input { width: 100%; padding: 12px; border: 2px solid #bdc3c7; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
-        .input-group small { color: #7f8c8d; font-size: 12px; }
-        .results-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .results-table th, .results-table td { padding: 12px; text-align: left; border-bottom: 1px solid #ecf0f1; }
-        .results-table th { background: #34495e; color: white; font-weight: 600; }
-        .results-table tr:nth-child(even) { background: #f8f9fa; }
-        .total-row { font-weight: bold; background: #e8f4f8 !important; border-top: 2px solid #3498db; }
-        .status { padding: 15px; border-radius: 8px; margin: 15px 0; font-weight: 600; text-align: center; }
-        .status.safe { background: #d4edda; color: #155724; border: 2px solid #c3e6cb; }
-        .status.warning { background: #fff3cd; color: #856404; border: 2px solid #ffeaa7; }
-        .status.danger { background: #f8d7da; color: #721c24; border: 2px solid #f5c6cb; }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background: linear-gradient(160deg, #0C1F14 0%, #0D1E20 50%, #0B1C2D 100%);
+            color: #fff;
+            min-height: 100vh;
+        }
+
+        /* NAV */
+        nav {
+            position: sticky; top: 0; z-index: 100;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 36px; height: 64px;
+            background: rgba(12,31,20,0.97);
+            box-shadow: 0 2px 16px rgba(0,0,0,0.4);
+        }
+        .nav-logo { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 1.25em; color: #fff; text-decoration: none; letter-spacing: 1px; }
+        .nav-logo span { color: #5BB8E8; }
+        .nav-links { display: flex; align-items: center; gap: 6px; list-style: none; }
+        .nav-links a { color: rgba(255,255,255,0.8); text-decoration: none; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.85em; padding: 7px 14px; border-radius: 6px; transition: color 0.2s, background 0.2s; }
+        .nav-links a:hover, .nav-links a.active { color: #fff; background: rgba(255,255,255,0.08); }
+        .nav-links .portal { background: #2A7A52; color: #fff !important; box-shadow: 0 0 12px rgba(42,122,82,0.35); }
+        .nav-links .portal:hover { background: #359966; }
+
+        /* PAGE WRAP */
+        .page { max-width: 960px; margin: 0 auto; padding: 40px 28px 64px; }
+
+        /* CALCULATOR */
+        .wb-calculator { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; overflow: hidden; margin-bottom: 24px; }
+        .wb-content { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+        .input-section { padding: 28px; border-right: 1px solid rgba(255,255,255,0.08); }
+        .results-section { padding: 28px; }
+        .input-section h2, .results-section h2 { font-family: 'Montserrat', sans-serif; font-size: 0.95em; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: rgba(255,255,255,0.5); margin-bottom: 20px; }
+        .input-group { margin-bottom: 18px; }
+        .input-group label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.88em; color: rgba(255,255,255,0.75); }
+        .input-group input { width: 100%; padding: 11px 14px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; font-size: 1em; color: #fff; font-family: 'Open Sans', sans-serif; }
+        .input-group input:focus { outline: none; border-color: #5BB8E8; box-shadow: 0 0 0 3px rgba(91,184,232,0.15); }
+        .input-group small { color: rgba(255,255,255,0.35); font-size: 0.75em; margin-top: 4px; display: block; }
+        .results-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; border-radius: 8px; overflow: hidden; }
+        .results-table th, .results-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 0.88em; }
+        .results-table th { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.6); font-weight: 700; font-size: 0.75em; text-transform: uppercase; letter-spacing: 1px; }
+        .results-table td { color: rgba(255,255,255,0.85); }
+        .total-row td { font-weight: 700; color: #fff !important; background: rgba(91,184,232,0.1) !important; border-top: 1px solid rgba(91,184,232,0.3); }
+        .status { padding: 12px; border-radius: 8px; margin: 12px 0; font-weight: 700; text-align: center; font-family: 'Montserrat', sans-serif; font-size: 0.88em; letter-spacing: 1px; }
+        .status.safe    { background: rgba(42,122,82,0.25);  color: #5DD89A; border: 1px solid rgba(42,122,82,0.4); }
+        .status.warning { background: rgba(245,185,66,0.15); color: #F5B942; border: 1px solid rgba(245,185,66,0.3); }
+        .status.danger  { background: rgba(220,53,69,0.2);   color: #ff8090; border: 1px solid rgba(220,53,69,0.35); }
         .button-group { display: flex; gap: 10px; margin-top: 20px; }
-        .calc-button, .print-button { flex: 1; padding: 15px; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; }
-        .calc-button { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
-        .print-button { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; }
-        
-        /* CG Scale Styles */
-        .cg-section { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #28a745; }
-        .cg-scale-container { margin: 20px 0; }
-        .cg-scale { position: relative; height: 40px; border-radius: 20px; overflow: hidden; margin-bottom: 15px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); background: linear-gradient(90deg, #e74c3c 0%, #e74c3c 15%, #27ae60 15%, #27ae60 85%, #e74c3c 85%, #e74c3c 100%); }
-        .safe-zone { position: absolute; left: 15%; width: 70%; height: 100%; background: linear-gradient(90deg, #f39c12 0%, #27ae60 20%, #27ae60 80%, #f39c12 100%); }
-        .cg-indicator { position: absolute; top: -15px; height: 70px; width: 6px; background: #2c3e50; border: 3px solid #fff; border-radius: 3px; box-shadow: 0 0 10px rgba(0,0,0,0.3), 0 0 20px rgba(44,62,80,0.5); transition: left 0.3s ease; z-index: 15; }
-        .cg-pointer { position: absolute; top: -5px; left: -12px; width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 20px solid #2c3e50; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
-        .cg-pointer::after { content: ''; position: absolute; top: 20px; left: -3px; width: 6px; height: 35px; background: #2c3e50; border: 3px solid #fff; border-top: none; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
-        .cg-value { position: absolute; top: 60px; left: -25px; background: #2c3e50; color: white; padding: 6px 10px; border-radius: 6px; font-size: 13px; font-weight: bold; white-space: nowrap; border: 2px solid #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
-        .scale-labels { display: flex; justify-content: space-between; font-size: 12px; color: #7f8c8d; margin-top: 5px; }
-        
+        .calc-button  { flex:1; padding:13px; border:none; border-radius:8px; font-size:0.92em; font-weight:700; font-family:'Montserrat',sans-serif; cursor:pointer; background:#2A7A52; color:white; transition:background 0.2s; }
+        .calc-button:hover { background:#359966; }
+        .print-button { flex:1; padding:13px; border:1px solid rgba(255,255,255,0.2); border-radius:8px; font-size:0.92em; font-weight:700; font-family:'Montserrat',sans-serif; cursor:pointer; background:transparent; color:rgba(255,255,255,0.7); transition:background 0.2s; }
+        .print-button:hover { background:rgba(255,255,255,0.08); }
+
+        /* CG Scale */
+        .cg-section { background: rgba(255,255,255,0.04); padding: 18px; border-radius: 8px; margin: 16px 0; border-left: 3px solid #2A7A52; }
+        .cg-section h4 { font-family:'Montserrat',sans-serif; font-size:0.82em; font-weight:700; color:rgba(255,255,255,0.6); margin-bottom:14px; text-transform:uppercase; letter-spacing:1px; }
+        .cg-scale-container { margin: 16px 0; }
+        .cg-scale { position:relative; height:40px; border-radius:20px; overflow:hidden; margin-bottom:15px; background:linear-gradient(90deg,#e74c3c 0%,#e74c3c 15%,#27ae60 15%,#27ae60 85%,#e74c3c 85%,#e74c3c 100%); }
+        .safe-zone { position:absolute; left:15%; width:70%; height:100%; background:linear-gradient(90deg,#f39c12 0%,#27ae60 20%,#27ae60 80%,#f39c12 100%); }
+        .cg-indicator { position:absolute; top:-15px; height:70px; width:6px; background:#fff; border:3px solid #0B1C2D; border-radius:3px; box-shadow:0 0 10px rgba(0,0,0,0.5); transition:left 0.3s ease; z-index:15; }
+        .cg-pointer { position:absolute; top:-5px; left:-12px; width:0; height:0; border-left:15px solid transparent; border-right:15px solid transparent; border-top:20px solid #fff; }
+        .cg-pointer::after { content:''; position:absolute; top:20px; left:-3px; width:6px; height:35px; background:#fff; border-top:none; }
+        .cg-value { position:absolute; top:60px; left:-25px; background:#0B1C2D; color:#5BB8E8; padding:5px 10px; border-radius:6px; font-size:12px; font-weight:bold; white-space:nowrap; border:1px solid rgba(91,184,232,0.4); }
+        .scale-labels { display:flex; justify-content:space-between; font-size:0.72em; color:rgba(255,255,255,0.4); margin-top:5px; }
+
         /* Flight Characteristics */
-        .flight-characteristics { margin: 20px 0; padding: 15px; border-radius: 8px; }
-        .char-normal { background: #d4edda; border-left: 4px solid #28a745; }
-        .char-caution { background: #fff3cd; border-left: 4px solid #ffc107; }
-        .char-danger { background: #f8d7da; border-left: 4px solid #dc3545; }
-        .flight-characteristics h4 { margin-top: 0; margin-bottom: 10px; }
-        .flight-characteristics p { margin: 0; line-height: 1.4; }
-        
-        @media (max-width: 768px) { .wb-content { grid-template-columns: 1fr; } }
+        .flight-characteristics { margin:14px 0; padding:14px 16px; border-radius:8px; font-size:0.88em; }
+        .char-normal { background:rgba(42,122,82,0.15); border-left:3px solid #2A7A52; color:#5DD89A; }
+        .char-caution { background:rgba(245,185,66,0.12); border-left:3px solid #F5B942; color:#F5B942; }
+        .char-danger  { background:rgba(220,53,69,0.15);  border-left:3px solid #dc3545; color:#ff8090; }
+        .flight-characteristics h4 { margin-bottom:6px; font-family:'Montserrat',sans-serif; font-size:0.88em; }
+        .flight-characteristics p { margin:0; line-height:1.5; opacity:0.85; }
+
+        /* Va box */
+        .va-box { background:rgba(91,184,232,0.1); border:1px solid rgba(91,184,232,0.25); padding:14px 16px; border-radius:8px; margin-top:12px; }
+        .va-box h4 { font-family:'Montserrat',sans-serif; font-size:0.82em; font-weight:700; color:#5BB8E8; margin-bottom:6px; }
+        .va-box p { font-size:0.82em; color:rgba(255,255,255,0.5); margin:0; }
+
+        /* Disclaimer */
+        .disclaimer { background:rgba(245,185,66,0.08); border:1px solid rgba(245,185,66,0.25); border-radius:10px; padding:18px 20px; margin:16px 0; }
+        .disclaimer h4 { font-family:'Montserrat',sans-serif; font-size:0.85em; color:#F5B942; margin-bottom:8px; }
+        .disclaimer p { font-size:0.82em; color:rgba(255,255,255,0.55); line-height:1.6; margin-bottom:6px; }
+        .disclaimer p:last-child { margin-bottom:0; }
+
+        /* Footer */
+        .page-footer { border-top:1px solid rgba(255,255,255,0.06); padding:24px 28px; text-align:center; font-size:0.78em; color:rgba(255,255,255,0.3); }
+
+        @media (max-width: 768px) { .wb-content { grid-template-columns: 1fr; } .input-section { border-right:none; border-bottom:1px solid rgba(255,255,255,0.08); } }
     </style>
 </head>
 <body>
-    <nav class="navbar">
-        <div class="nav-container">
-            <a href="index.html" class="logo">PNWAV8R</a>
-            <button class="mobile-menu" onclick="toggleMobileMenu()">☰</button>
-            <ul class="nav-menu" id="navMenu">
-                <li><a href="index.html" class="nav-link">Home</a></li>
-                <li><a href="weather.html" class="nav-link">Weather</a></li>
-                <li class="dropdown">
-                    <a href="weight-balance.html" class="nav-link active">Weight & Balance</a>
-                    <ul class="dropdown-menu">
-                        <li><a href="wb.html" class="dropdown-link">N7798E (Cessna 150)</a></li>
-                        <li><a href="#" class="dropdown-link" onclick="showComingSoon()">Future Aircraft</a></li>
-                    </ul>
-                </li>
-                <li><a href="dashboard.html" class="nav-link" style="background:linear-gradient(135deg,#667eea,#764ba2);color:white;border-radius:20px;padding:6px 16px;font-weight:700;">Member Portal</a></li>
-            </ul>
-        </div>
+    <nav>
+        <a href="index.html" class="nav-logo">PNW<span>AV8R</span></a>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="weather.html">Weather</a></li>
+            <li><a href="wb.html" class="active">W&amp;B</a></li>
+            <li><a href="dashboard.html" class="portal">Member Portal</a></li>
+        </ul>
     </nav>
 
-    <div class="main-content">
-        <div class="wb-calculator">
-            <div class="wb-header">
-                <h1>N7798E</h1>
-                <p>Cessna 150 Weight & Balance Calculator</p>
+    <!-- HERO BANNER -->
+    <div style="position:relative;height:220px;overflow:hidden;background:linear-gradient(135deg,#0C1F14,#0D2B3A);">
+        <img src="https://images.unsplash.com/photo-1474552226712-ac184abbf097?w=1400&q=80" alt="E6B Flight Computer" style="width:100%;height:100%;object-fit:cover;object-position:center 60%;opacity:0.4;">
+        <div style="position:absolute;inset:0;background:linear-gradient(to right,rgba(12,31,20,0.88) 0%,rgba(12,31,20,0.4) 100%);display:flex;align-items:center;padding:0 52px;">
+            <div>
+                <div style="font-family:'Montserrat',sans-serif;font-size:0.72em;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:#5BB8E8;margin-bottom:8px;">N7798E · 1959 Cessna 150</div>
+                <h1 style="font-family:'Montserrat',sans-serif;font-weight:900;font-size:2em;line-height:1.1;">Weight &amp; <span style="color:#5BB8E8;">Balance</span></h1>
+                <p style="color:rgba(255,255,255,0.55);font-size:0.88em;margin-top:6px;">CG Calculator · Envelope Check · Maneuvering Speed</p>
             </div>
+        </div>
+    </div>
+
+    <div class="page">
+        <div class="wb-calculator">
+            <div class="wb-content" style="display:grid;grid-template-columns:1fr 1fr;">
             
             <div class="wb-content">
                 <div class="input-section">
@@ -179,23 +227,27 @@
                         <p>Aircraft exhibits normal flight characteristics with predictable handling qualities.</p>
                     </div>
                     
-                    <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #2196f3;">
-                        <h4 style="margin-top: 0; color: #1565c0;">Maneuvering Speed (Va)</h4>
-                        <p id="va-speed" style="margin: 5px 0;"><strong>107 MPH</strong></p>
-                        <p style="margin: 0;"><small>Va = 106 × √(Weight / 1500)</small></p>
+                    <div class="va-box">
+                        <h4>Maneuvering Speed (Va)</h4>
+                        <p id="va-speed" style="font-size:1.2em;font-weight:700;color:#fff;margin:4px 0;"><strong>107 MPH</strong></p>
+                        <p>Va = 106 × √(Weight / 1500)</p>
                     </div>
                 </div>
             </div>
         </div>
-        
-        <div style="background: #fff3cd; border: 2px solid #ffc107; border-radius: 8px; padding: 20px; margin: 20px 0;">
-            <h4 style="margin-top: 0; color: #856404;">⚠️ IMPORTANT DISCLAIMER</h4>
-            <p style="color: #856404;"><strong>This calculator is designed specifically for 1959-1960 Cessna 150 aircraft.</strong></p>
-            <p style="color: #856404;">Always verify all calculations against your aircraft's official POH and current W&B documentation. The pilot in command is solely responsible for ensuring the aircraft is loaded within approved limits before flight.</p>
+
+        <div class="disclaimer">
+            <h4>⚠ Important Disclaimer</h4>
+            <p><strong style="color:rgba(255,255,255,0.75);">This calculator is designed specifically for 1959–1960 Cessna 150 aircraft.</strong></p>
+            <p>Always verify all calculations against your aircraft's official POH and current W&amp;B documentation. The pilot in command is solely responsible for ensuring the aircraft is loaded within approved limits before flight.</p>
         </div>
     </div>
 
-    <script src="js/main.js"></script>
+    <div class="page-footer">
+        For reference only · Always verify against official POH · PIC is solely responsible for all loading decisions
+    </div>
+
+    <script>
     <script>
         function showComingSoon() {
             alert('Additional aircraft calculators coming soon!');

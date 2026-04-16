@@ -3,23 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weather - PNWAV8R</title>
-    <link rel="stylesheet" href="css/style.css">
+    <title>Aviation Weather — PNWAV8R</title>
     <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
     <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background: linear-gradient(160deg, #0C1F14 0%, #0D1E20 50%, #0B1C2D 100%);
+            color: #fff;
+            min-height: 100vh;
+        }
+
+        /* NAV */
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 36px;
+            height: 64px;
+            background: rgba(12,31,20,0.97);
+            box-shadow: 0 2px 16px rgba(0,0,0,0.4);
+        }
+        .nav-logo {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 900;
+            font-size: 1.25em;
+            color: #fff;
+            text-decoration: none;
+            letter-spacing: 1px;
+        }
+        .nav-logo span { color: #5BB8E8; }
+        .nav-links { display: flex; align-items: center; gap: 6px; list-style: none; }
+        .nav-links a {
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 0.85em;
+            padding: 7px 14px;
+            border-radius: 6px;
+            transition: color 0.2s, background 0.2s;
+        }
+        .nav-links a:hover, .nav-links a.active { color: #fff; background: rgba(255,255,255,0.08); }
+        .nav-links .portal {
+            background: #2A7A52;
+            color: #fff !important;
+            box-shadow: 0 0 12px rgba(42,122,82,0.35);
+        }
+        .nav-links .portal:hover { background: #359966; }
+
+        /* PAGE */
+        .page { max-width: 860px; margin: 0 auto; padding: 48px 28px 64px; }
+        .page-title {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 900;
+            font-size: 1.6em;
+            margin-bottom: 6px;
+        }
+        .page-title span { color: #5BB8E8; }
+        .page-sub { color: rgba(255,255,255,0.5); font-size: 0.88em; margin-bottom: 32px; }
         /* ── Search card ── */
         .wx-search-card {
-            background: rgba(255,255,255,0.95);
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
             border-radius: 16px;
             padding: 36px 40px 30px;
             margin-bottom: 28px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        }
-        .wx-search-card h2 {
-            font-size: 2em;
-            color: #2c3e50;
-            margin-bottom: 24px;
-            text-align: center;
         }
         .wx-search-row {
             display: flex;
@@ -29,8 +84,9 @@
             flex-wrap: wrap;
         }
         .wx-search-row input {
-            padding: 14px 22px;
-            border: 2px solid #bdc3c7;
+            padding: 13px 22px;
+            background: rgba(255,255,255,0.08);
+            border: 2px solid rgba(255,255,255,0.15);
             border-radius: 30px;
             font-size: 1.1em;
             width: 220px;
@@ -38,28 +94,28 @@
             letter-spacing: 2px;
             font-family: 'Courier New', monospace;
             font-weight: bold;
+            color: #fff;
             transition: border-color 0.2s;
         }
+        .wx-search-row input::placeholder { color: rgba(255,255,255,0.35); }
         .wx-search-row input:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102,126,234,0.15);
+            border-color: #5BB8E8;
+            box-shadow: 0 0 0 3px rgba(91,184,232,0.15);
         }
         .wx-search-row button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #2A7A52;
             color: white;
             border: none;
-            padding: 14px 32px;
+            padding: 13px 32px;
             border-radius: 30px;
             font-size: 1em;
-            font-weight: 600;
+            font-weight: 700;
+            font-family: 'Montserrat', sans-serif;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: background 0.2s, transform 0.15s;
         }
-        .wx-search-row button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(102,126,234,0.4);
-        }
+        .wx-search-row button:hover { background: #359966; transform: translateY(-2px); }
         .quick-airports {
             display: flex;
             flex-wrap: wrap;
@@ -67,10 +123,10 @@
             justify-content: center;
         }
         .airport-btn {
-            background: #f0f2f5;
-            border: 2px solid #e0e4ea;
-            color: #2c3e50;
-            padding: 8px 18px;
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.75);
+            padding: 7px 18px;
             border-radius: 20px;
             font-size: 0.85em;
             font-weight: 700;
@@ -80,15 +136,15 @@
             font-family: 'Courier New', monospace;
         }
         .airport-btn:hover {
-            background: #667eea;
-            border-color: #667eea;
-            color: white;
-            transform: translateY(-2px);
+            background: #5BB8E8;
+            border-color: #5BB8E8;
+            color: #0B1C2D;
         }
         .airport-btn.active {
-            background: #667eea;
-            border-color: #667eea;
-            color: white;
+            background: #5BB8E8;
+            border-color: #5BB8E8;
+            color: #0B1C2D;
+            font-weight: 900;
         }
 
         /* ── Results ── */
@@ -96,11 +152,11 @@
 
         /* Airport header */
         .wx-airport-header {
-            background: rgba(255,255,255,0.95);
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
             border-radius: 16px;
-            padding: 28px 36px;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 24px 32px;
+            margin-bottom: 16px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -108,9 +164,10 @@
             gap: 16px;
         }
         .wx-airport-name {
-            font-size: 1.6em;
-            font-weight: 700;
-            color: #2c3e50;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.4em;
+            font-weight: 800;
+            color: #fff;
         }
         .wx-airport-meta {
             display: flex;
@@ -121,47 +178,45 @@
         }
         .wx-icao {
             font-family: 'Courier New', monospace;
-            font-size: 1.1em;
+            font-size: 1em;
             font-weight: bold;
-            color: #667eea;
-            background: #f0f2ff;
+            color: #5BB8E8;
+            background: rgba(91,184,232,0.12);
             padding: 4px 12px;
             border-radius: 8px;
         }
-        .wx-obs-time {
-            color: #7f8c8d;
-            font-size: 0.9em;
-        }
+        .wx-obs-time { color: rgba(255,255,255,0.45); font-size: 0.88em; }
 
         /* Flight rules badge */
         .fr-badge {
-            font-size: 1.3em;
+            font-size: 1.2em;
             font-weight: 800;
-            padding: 10px 24px;
+            padding: 9px 22px;
             border-radius: 30px;
             letter-spacing: 2px;
             color: white;
         }
         .fr-VFR  { background: #28a745; }
-        .fr-MVFR { background: #007bff; }
+        .fr-MVFR { background: #1a7abf; }
         .fr-IFR  { background: #dc3545; }
         .fr-LIFR { background: #6f42c1; }
 
         /* Cards */
         .wx-card {
-            background: rgba(255,255,255,0.95);
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
             border-radius: 16px;
-            padding: 28px 36px;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 24px 32px;
+            margin-bottom: 16px;
         }
         .wx-card-title {
-            font-size: 1.2em;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1em;
             font-weight: 700;
-            color: #2c3e50;
+            color: rgba(255,255,255,0.85);
             margin-bottom: 14px;
             padding-bottom: 10px;
-            border-bottom: 2px solid #f0f2f5;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
             display: flex;
             align-items: center;
             gap: 10px;
@@ -177,50 +232,51 @@
 
         /* Raw string box */
         .raw-string {
-            background: #1e2d3d;
-            color: #a8d8ea;
-            padding: 16px 20px;
+            background: rgba(0,0,0,0.35);
+            color: #5BB8E8;
+            padding: 14px 18px;
             border-radius: 10px;
             font-family: 'Courier New', monospace;
-            font-size: 0.95em;
+            font-size: 0.92em;
             line-height: 1.6;
             word-break: break-all;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(91,184,232,0.15);
         }
 
         /* Decoded grid */
         .decoded-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 14px;
+            gap: 12px;
         }
         .decoded-item {
-            background: #f8f9fa;
+            background: rgba(255,255,255,0.05);
             border-radius: 10px;
-            padding: 14px 16px;
-            border-left: 4px solid #667eea;
+            padding: 12px 16px;
+            border-left: 3px solid #5BB8E8;
         }
         .decoded-label {
-            font-size: 0.75em;
+            font-size: 0.72em;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 1px;
-            color: #95a5a6;
+            color: rgba(255,255,255,0.4);
             margin-bottom: 4px;
         }
         .decoded-value {
-            font-size: 1em;
+            font-size: 0.97em;
             font-weight: 600;
-            color: #2c3e50;
+            color: #fff;
         }
 
         /* TAF periods */
         .taf-period {
-            border: 1px solid #e9ecef;
+            border: 1px solid rgba(255,255,255,0.08);
             border-radius: 10px;
             padding: 14px 18px;
-            margin-bottom: 10px;
-            background: #fafbfc;
+            margin-bottom: 8px;
+            background: rgba(255,255,255,0.03);
         }
         .taf-period:last-child { margin-bottom: 0; }
         .taf-period-header {
@@ -231,49 +287,50 @@
             flex-wrap: wrap;
         }
         .taf-type-label {
-            font-size: 0.75em;
+            font-size: 0.72em;
             font-weight: 700;
             padding: 3px 10px;
             border-radius: 6px;
-            background: #e9ecef;
-            color: #495057;
+            background: rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.7);
             text-transform: uppercase;
             letter-spacing: 1px;
         }
-        .taf-type-FM    { background: #cce5ff; color: #004085; }
-        .taf-type-BECMG { background: #fff3cd; color: #856404; }
-        .taf-type-TEMPO { background: #d4edda; color: #155724; }
-        .taf-type-PROB  { background: #f8d7da; color: #721c24; }
+        .taf-type-FM    { background: rgba(91,184,232,0.2);  color: #5BB8E8; }
+        .taf-type-BECMG { background: rgba(245,185,66,0.2);  color: #F5B942; }
+        .taf-type-TEMPO { background: rgba(42,122,82,0.25);  color: #5DD89A; }
+        .taf-type-PROB  { background: rgba(220,53,69,0.2);   color: #ff8090; }
         .taf-period-time {
-            font-size: 0.85em;
-            color: #7f8c8d;
+            font-size: 0.83em;
+            color: rgba(255,255,255,0.4);
             font-family: 'Courier New', monospace;
         }
         .taf-period-details {
             display: flex;
             flex-wrap: wrap;
             gap: 16px;
-            font-size: 0.9em;
-            color: #2c3e50;
+            font-size: 0.88em;
+            color: rgba(255,255,255,0.8);
         }
         .taf-detail { display: flex; gap: 5px; }
-        .taf-detail-label { color: #95a5a6; font-size: 0.85em; }
+        .taf-detail-label { color: rgba(255,255,255,0.4); font-size: 0.85em; }
 
         /* Pressure / Density Altitude box */
         .pa-box {
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            background: linear-gradient(135deg, rgba(42,122,82,0.25) 0%, rgba(91,184,232,0.15) 100%);
+            border: 1px solid rgba(91,184,232,0.2);
             border-radius: 16px;
-            padding: 24px 36px;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            padding: 24px 32px;
+            margin-bottom: 16px;
             color: white;
         }
         .pa-box-title {
-            font-size: 0.8em;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.72em;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 2px;
-            color: rgba(255,255,255,0.7);
+            color: rgba(255,255,255,0.5);
             margin-bottom: 16px;
         }
         .pa-grid {
@@ -283,88 +340,96 @@
         }
         .pa-item { text-align: center; }
         .pa-value {
-            font-size: 2.2em;
-            font-weight: 800;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 2em;
+            font-weight: 900;
             line-height: 1;
             margin-bottom: 4px;
         }
         .pa-label {
-            font-size: 0.75em;
+            font-size: 0.72em;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 1px;
-            color: rgba(255,255,255,0.65);
-        }
-        .pa-divider {
-            width: 1px;
-            background: rgba(255,255,255,0.2);
-            align-self: stretch;
-        }
-        .pa-note {
-            font-size: 0.75em;
             color: rgba(255,255,255,0.5);
-            margin-top: 16px;
-            border-top: 1px solid rgba(255,255,255,0.15);
-            padding-top: 12px;
+        }
+        .pa-divider { width: 1px; background: rgba(255,255,255,0.12); align-self: stretch; }
+        .pa-note {
+            font-size: 0.73em;
+            color: rgba(255,255,255,0.35);
+            margin-top: 14px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 10px;
         }
 
         /* Loading / error */
         .wx-loading {
             text-align: center;
             padding: 50px;
-            color: #7f8c8d;
-            font-size: 1.1em;
+            color: rgba(255,255,255,0.4);
+            font-size: 1.05em;
         }
         .wx-loading .spinner {
-            width: 36px; height: 36px;
-            border: 4px solid #e9ecef;
-            border-top-color: #667eea;
+            width: 34px; height: 34px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: #5BB8E8;
             border-radius: 50%;
             animation: spin 0.7s linear infinite;
             margin: 0 auto 16px;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
         .wx-error {
-            background: #fff5f5;
-            border: 1px solid #feb2b2;
+            background: rgba(220,53,69,0.12);
+            border: 1px solid rgba(220,53,69,0.3);
             border-left: 4px solid #dc3545;
             border-radius: 10px;
-            padding: 20px 24px;
-            color: #721c24;
+            padding: 18px 22px;
+            color: #ff8090;
+        }
+
+        /* Footer */
+        .page-footer {
+            border-top: 1px solid rgba(255,255,255,0.06);
+            padding: 24px 28px;
+            text-align: center;
+            font-size: 0.78em;
+            color: rgba(255,255,255,0.3);
         }
 
         @media (max-width: 768px) {
             .wx-search-card { padding: 24px 20px; }
             .wx-card { padding: 20px; }
-            .wx-airport-header { padding: 20px; }
+            .wx-airport-header { padding: 18px 20px; }
             .decoded-grid { grid-template-columns: 1fr 1fr; }
         }
     </style>
 </head>
 <body>
-    <nav class="navbar">
-        <div class="nav-container">
-            <a href="index.html" class="logo">PNWAV8R</a>
-            <button class="mobile-menu" onclick="toggleMobileMenu()">☰</button>
-            <ul class="nav-menu" id="navMenu">
-                <li><a href="index.html" class="nav-link">Home</a></li>
-                <li><a href="weather.html" class="nav-link active">Weather</a></li>
-                <li class="dropdown">
-                    <a href="weight-balance.html" class="nav-link">Weight & Balance</a>
-                    <ul class="dropdown-menu">
-                        <li><a href="wb.html" class="dropdown-link">N7798E (Cessna 150)</a></li>
-                        <li><a href="#" class="dropdown-link" onclick="alert('Coming soon!')">Future Aircraft</a></li>
-                    </ul>
-                </li>
-                <li><a href="dashboard.html" class="nav-link" style="background:linear-gradient(135deg,#667eea,#764ba2);color:white;border-radius:20px;padding:6px 16px;font-weight:700;">Member Portal</a></li>
-            </ul>
-        </div>
+    <nav>
+        <a href="index.html" class="nav-logo">PNW<span>AV8R</span></a>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="weather.html" class="active">Weather</a></li>
+            <li><a href="wb.html">W&amp;B</a></li>
+            <li><a href="dashboard.html" class="portal">Member Portal</a></li>
+        </ul>
     </nav>
 
-    <div class="main-content">
+    <!-- HERO BANNER -->
+    <div style="position:relative;height:220px;overflow:hidden;background:linear-gradient(135deg,#0C1F14,#0D2B3A);">
+        <img src="https://images.unsplash.com/photo-1534088568595-a066f410bcda?w=1400&q=80" alt="Clouds" style="width:100%;height:100%;object-fit:cover;opacity:0.35;">
+        <div style="position:absolute;inset:0;background:linear-gradient(to right,rgba(12,31,20,0.85) 0%,rgba(12,31,20,0.4) 100%);display:flex;align-items:center;padding:0 52px;">
+            <div>
+                <div style="font-family:'Montserrat',sans-serif;font-size:0.72em;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:#5BB8E8;margin-bottom:8px;">PNWAV8R · KBFI</div>
+                <h1 style="font-family:'Montserrat',sans-serif;font-weight:900;font-size:2em;line-height:1.1;">Aviation <span style="color:#5BB8E8;">Weather</span></h1>
+                <p style="color:rgba(255,255,255,0.55);font-size:0.88em;margin-top:6px;">Live METAR &amp; TAF · Performance Altitudes</p>
+            </div>
+        </div>
+    </div>
+
+    <div style="max-width:860px;margin:0 auto;padding:40px 28px 64px;">
 
         <div class="wx-search-card">
-            <h2>Aviation Weather</h2>
             <div class="wx-search-row">
                 <input type="text" id="airportInput" placeholder="KRNT" maxlength="4"
                        onkeydown="if(event.key==='Enter') lookupWeather()">
@@ -388,13 +453,11 @@
 
     </div>
 
-    <footer class="footer">
-        <p><strong>PNWAV8R</strong> - Pacific Northwest Aviation</p>
-        <p>Weather data via AVWX / NOAA. For flight planning reference only — always verify with official sources.</p>
-        <p>The pilot in command is solely responsible for all preflight decisions.</p>
-    </footer>
+    <div class="page-footer">
+        Weather data via AVWX / NOAA · For flight planning reference only · Always verify with official sources before flight
+    </div>
 
-    <script src="js/main.js"></script>
+    <script></script>
     <script>
         async function lookupWeather(icaoArg) {
             let icao = icaoArg;
