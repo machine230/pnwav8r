@@ -4,205 +4,268 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard — PNWAV8R</title>
-    <link rel="stylesheet" href="css/style.css">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
     <style>
-        .club-nav { background:rgba(255,255,255,0.97); backdrop-filter:blur(10px); padding:0.9rem 0; position:sticky; top:0; z-index:1000; box-shadow:0 2px 20px rgba(0,0,0,0.08); }
-        .club-nav-inner { max-width:1100px; margin:0 auto; padding:0 24px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
-        .club-nav-logo { font-size:1.6em; font-weight:900; letter-spacing:2px; color:#2c3e50; text-decoration:none; }
-        .club-nav-links { display:flex; gap:6px; }
-        .club-nav-links a { text-decoration:none; color:#2c3e50; font-weight:500; padding:7px 16px; border-radius:20px; font-size:0.9em; transition:all 0.2s; }
-        .club-nav-links a:hover, .club-nav-links a.active { background:linear-gradient(135deg,#667eea,#764ba2); color:white; }
-        .page-wrap { max-width:1100px; margin:0 auto; padding:32px 24px; }
+        *, *::before, *::after { box-sizing: border-box; }
 
-        /* Airplane card */
-        .airplane-card { border-radius:18px; padding:28px 32px; margin-bottom:28px; color:white; display:grid; grid-template-columns:1fr auto; gap:20px; align-items:start; }
-        .airplane-card.available   { background:linear-gradient(135deg,#1e7e34,#28a745); }
-        .airplane-card.flying      { background:linear-gradient(135deg,#0062cc,#007bff); }
-        .airplane-card.maintenance { background:linear-gradient(135deg,#843910,#d35400); }
-        .airplane-card.squawk      { background:linear-gradient(135deg,#7b0000,#c0392b); }
-        .ac-tail   { font-size:2.4em; font-weight:900; letter-spacing:3px; line-height:1; }
-        .ac-model  { font-size:0.9em; opacity:0.8; margin-top:4px; }
-        .ac-status-badge { background:rgba(255,255,255,0.25); padding:6px 18px; border-radius:20px; font-size:0.8em; font-weight:700; letter-spacing:1px; text-transform:uppercase; margin-top:14px; display:inline-block; }
-        .ac-stats  { display:flex; gap:28px; margin-top:20px; flex-wrap:wrap; }
-        .ac-stat-label { font-size:0.72em; opacity:0.75; text-transform:uppercase; letter-spacing:1px; }
-        .ac-stat-value { font-size:1.2em; font-weight:700; margin-top:2px; }
+        /* ── BASE — PNW dark + subtle sectional chart lat/lon grid ── */
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background: #0B1C2D;
+            background-image:
+                linear-gradient(rgba(212,67,154,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(212,67,154,0.04) 1px, transparent 1px);
+            background-size: 48px 48px;
+            color: #fff;
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        /* ── NAV — matches all public pages ── */
+        .club-nav {
+            position: sticky; top: 0; z-index: 1000;
+            background: rgba(12,31,20,0.97);
+            box-shadow: 0 2px 16px rgba(0,0,0,0.5);
+            padding: 0;
+        }
+        .club-nav-inner {
+            max-width: 1100px; margin: 0 auto;
+            padding: 0 28px; height: 64px;
+            display: flex; align-items: center;
+            justify-content: space-between; gap: 16px;
+        }
+        .club-nav-logo {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 900; font-size: 1.25em;
+            color: #fff; text-decoration: none; letter-spacing: 1px;
+        }
+        .club-nav-logo span { color: #5BB8E8; }
+        .club-nav-links { display: flex; gap: 4px; align-items: center; }
+        .club-nav-links a {
+            text-decoration: none; color: rgba(255,255,255,0.75);
+            font-family: 'Montserrat', sans-serif; font-weight: 700;
+            font-size: 0.84em; padding: 7px 13px; border-radius: 6px;
+            transition: color 0.2s, background 0.2s;
+        }
+        .club-nav-links a:hover, .club-nav-links a.active {
+            color: #fff; background: rgba(255,255,255,0.09);
+        }
+        #navUser { font-size: 0.82em; color: rgba(255,255,255,0.5); font-family: 'Montserrat', sans-serif; }
+        .hamburger-btn { display:none; background:none; border:none; cursor:pointer; padding:8px; }
+        .hamburger-btn span { display:block; width:22px; height:2px; background:#fff; border-radius:2px; margin:5px 0; }
+
+        .page-wrap { max-width: 1100px; margin: 0 auto; padding: 32px 24px 64px; }
+
+        /* ── AIRPLANE CARD — sectional chart inspired ── */
+        .airplane-card {
+            border-radius: 16px; padding: 28px 32px;
+            margin-bottom: 24px; color: white;
+            display: grid; grid-template-columns: 1fr auto;
+            gap: 20px; align-items: start;
+            position: relative; overflow: hidden;
+            /* Subtle compass rose background via radial gradients */
+            background-image:
+                radial-gradient(circle at 85% 50%, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.04) 60px, transparent 61px),
+                radial-gradient(circle at 85% 50%, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.03) 90px, transparent 91px),
+                radial-gradient(circle at 85% 50%, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.02) 120px, transparent 121px);
+        }
+        .airplane-card.available   { background-color: #0D3320; border: 1px solid rgba(42,122,82,0.5); }
+        .airplane-card.flying      { background-color: #0A2040; border: 1px solid rgba(91,184,232,0.5); }
+        .airplane-card.maintenance { background-color: #2A1A08; border: 1px solid rgba(212,131,26,0.5); }
+        .airplane-card.squawk      { background-color: #2A0810; border: 1px solid rgba(220,53,69,0.5); }
+        /* Magenta airway line accent (sectional chart) */
+        .airplane-card::before {
+            content: ''; position: absolute;
+            top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, transparent, #D4439A, #5BB8E8, transparent);
+        }
+        .ac-tail { font-family:'Montserrat',sans-serif; font-size:2.4em; font-weight:900; letter-spacing:3px; line-height:1; }
+        .ac-model { font-size:0.88em; opacity:0.65; margin-top:4px; font-family:'Montserrat',sans-serif; letter-spacing:1px; }
+        .ac-status-badge { background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.25); padding:5px 16px; border-radius:20px; font-size:0.75em; font-weight:700; letter-spacing:2px; text-transform:uppercase; margin-top:14px; display:inline-block; font-family:'Montserrat',sans-serif; }
+        .ac-stats { display:flex; gap:24px; margin-top:20px; flex-wrap:wrap; }
+        .ac-stat-label { font-size:0.68em; opacity:0.55; text-transform:uppercase; letter-spacing:1.5px; font-family:'Montserrat',sans-serif; }
+        .ac-stat-value { font-size:1.15em; font-weight:700; margin-top:3px; font-family:'Courier New',monospace; }
         .ac-actions { display:flex; flex-direction:column; gap:10px; align-items:flex-end; }
-        .ac-btn { padding:10px 22px; border-radius:10px; border:2px solid rgba(255,255,255,0.6); background:rgba(255,255,255,0.15); color:white; font-weight:700; font-size:0.9em; cursor:pointer; text-decoration:none; text-align:center; white-space:nowrap; transition:background 0.2s; }
-        .ac-btn:hover { background:rgba(255,255,255,0.3); }
-        .ac-btn.primary { background:rgba(255,255,255,0.9); color:#2c3e50; border-color:transparent; }
-        .ac-btn.primary:hover { background:white; }
+        .ac-btn { padding:10px 22px; border-radius:8px; border:1px solid rgba(255,255,255,0.3); background:rgba(255,255,255,0.08); color:white; font-weight:700; font-size:0.88em; cursor:pointer; text-decoration:none; text-align:center; white-space:nowrap; transition:background 0.2s; font-family:'Montserrat',sans-serif; }
+        .ac-btn:hover { background:rgba(255,255,255,0.18); }
+        .ac-btn.primary { background:#2A7A52; border-color:#2A7A52; color:white; box-shadow:0 0 12px rgba(42,122,82,0.35); }
+        .ac-btn.primary:hover { background:#359966; }
 
-        /* Docs row below airplane card */
-        .docs-row { display:flex; gap:14px; margin-bottom:24px; flex-wrap:wrap; }
+        /* ── DOCS ROW ── */
+        .docs-row { display:flex; gap:12px; margin-bottom:22px; flex-wrap:wrap; }
         .doc-tile {
             display:flex; align-items:center; gap:12px;
-            background:white; border-radius:14px; padding:14px 22px;
-            box-shadow:0 4px 16px rgba(0,0,0,0.07); text-decoration:none;
-            color:#2c3e50; font-weight:600; font-size:0.9em;
-            border:2px solid #e9ecef; transition:all 0.2s; flex:1; min-width:180px;
+            background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);
+            border-radius:12px; padding:13px 20px;
+            text-decoration:none; color:rgba(255,255,255,0.8);
+            font-weight:600; font-size:0.88em;
+            transition:all 0.2s; flex:1; min-width:180px;
         }
-        .doc-tile:hover { border-color:#667eea; box-shadow:0 6px 20px rgba(102,126,234,0.15); }
-        .doc-icon { font-size:1.8em; flex-shrink:0; }
-        .doc-info { line-height:1.3; }
-        .doc-label { font-size:0.7em; text-transform:uppercase; letter-spacing:1px; color:#95a5a6; font-weight:700; }
+        .doc-tile:hover { background:rgba(91,184,232,0.1); border-color:rgba(91,184,232,0.4); color:#fff; }
+        .doc-icon { font-size:1.6em; flex-shrink:0; }
+        .doc-info { line-height:1.35; }
+        .doc-label { font-size:0.68em; text-transform:uppercase; letter-spacing:1.5px; color:rgba(255,255,255,0.4); font-weight:700; font-family:'Montserrat',sans-serif; }
 
-        /* Layout */
-        .dash-grid { display:grid; grid-template-columns:2fr 1fr; gap:24px; }
+        /* ── LAYOUT ── */
+        .dash-grid { display:grid; grid-template-columns:2fr 1fr; gap:20px; }
         @media(max-width:768px){ .dash-grid { grid-template-columns:1fr; } }
-        .dash-card { background:rgba(255,255,255,0.97); border-radius:14px; padding:24px 28px; box-shadow:0 4px 20px rgba(0,0,0,0.07); margin-bottom:24px; }
-        .dash-card-title { font-size:0.75em; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; color:#95a5a6; margin-bottom:16px; }
 
-        /* Mini week calendar */
+        /* ── CARDS — dark glass with sectional border ── */
+        .dash-card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 14px; padding: 22px 26px;
+            margin-bottom: 20px;
+            position: relative; overflow: hidden;
+        }
+        /* Subtle magenta left-border — like a sectional airway line */
+        .dash-card::before {
+            content:''; position:absolute;
+            left:0; top:16px; bottom:16px; width:3px;
+            background: linear-gradient(to bottom, #D4439A, #5BB8E8);
+            border-radius:2px;
+        }
+        .dash-card-title {
+            font-size:0.7em; font-weight:700;
+            text-transform:uppercase; letter-spacing:2px;
+            color: rgba(255,255,255,0.4);
+            margin-bottom:16px; padding-left:10px;
+            font-family:'Montserrat',sans-serif;
+        }
+
+        /* ── CALENDAR ── */
         .week-cal { overflow-x:auto; }
         .week-cal table { width:100%; border-collapse:collapse; font-size:0.8em; }
-        .week-cal th { padding:6px 4px; text-align:center; color:#7f8c8d; font-weight:700; font-size:0.85em; border-bottom:2px solid #f0f2f5; }
-        .week-cal th .wc-num { font-size:1.3em; font-weight:900; color:#2c3e50; display:block; }
-        .week-cal th.today-col .wc-num { background:linear-gradient(135deg,#667eea,#764ba2); color:white; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; margin:0 auto; }
+        .week-cal th { padding:6px 4px; text-align:center; color:rgba(255,255,255,0.45); font-weight:700; font-size:0.82em; border-bottom:1px solid rgba(255,255,255,0.08); font-family:'Montserrat',sans-serif; }
+        .week-cal th .wc-num { font-size:1.3em; font-weight:900; color:rgba(255,255,255,0.8); display:block; }
+        .week-cal th.today-col .wc-num { background:#D4439A; color:white; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; margin:0 auto; }
         .week-cal td { padding:3px 2px; text-align:center; vertical-align:top; }
-        .wc-slot { height:22px; border-radius:4px; margin-bottom:2px; font-size:0.75em; font-weight:600; display:flex; align-items:center; justify-content:center; }
-        .wc-slot.free { background:#f0f4ff; color:#667eea; }
-        .wc-slot.mine { background:#d4edda; color:#155724; }
-        .wc-slot.taken { background:#667eea; color:white; }
-        .wc-slot.past  { background:#f8f9fa; color:#ccc; }
-        .wc-time-col { width:44px; color:#95a5a6; font-size:0.8em; text-align:right; padding-right:6px; }
+        .wc-slot { height:22px; border-radius:4px; margin-bottom:2px; font-size:0.73em; font-weight:600; display:flex; align-items:center; justify-content:center; }
+        .wc-slot.free  { background:rgba(42,122,82,0.2);  color:#5DD89A; }
+        .wc-slot.mine  { background:rgba(212,67,154,0.25); color:#F07EC4; }
+        .wc-slot.taken { background:rgba(91,184,232,0.2);  color:#5BB8E8; }
+        .wc-slot.past  { background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.2); }
+        .wc-time-col { width:44px; color:rgba(255,255,255,0.3); font-size:0.78em; text-align:right; padding-right:6px; font-family:'Courier New',monospace; }
         .week-nav-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
-        .wk-btn { padding:4px 12px; border-radius:12px; border:1px solid #e9ecef; background:white; font-size:0.8em; cursor:pointer; color:#2c3e50; }
-        .wk-title { font-size:0.85em; font-weight:700; color:#2c3e50; }
+        .wk-btn { padding:5px 14px; border-radius:8px; border:1px solid rgba(255,255,255,0.12); background:rgba(255,255,255,0.05); font-size:0.8em; cursor:pointer; color:rgba(255,255,255,0.7); font-family:'Montserrat',sans-serif; }
+        .wk-btn:hover { background:rgba(255,255,255,0.1); }
+        .wk-title { font-size:0.85em; font-weight:700; color:rgba(255,255,255,0.8); font-family:'Montserrat',sans-serif; }
 
-        /* Squawks */
-        .squawk-item { display:flex; gap:12px; align-items:flex-start; padding:12px 0; border-bottom:1px solid #f0f2f5; }
+        /* ── SQUAWKS ── */
+        .squawk-item { display:flex; gap:12px; align-items:flex-start; padding:11px 0; border-bottom:1px solid rgba(255,255,255,0.06); }
         .squawk-item:last-child { border-bottom:none; }
-        .squawk-dot { width:10px; height:10px; border-radius:50%; background:#dc3545; margin-top:5px; flex-shrink:0; }
-        .squawk-text { font-size:0.9em; color:#2c3e50; }
-        .squawk-meta { font-size:0.78em; color:#adb5bd; margin-top:3px; }
+        .squawk-dot { width:9px; height:9px; border-radius:50%; background:#dc3545; margin-top:5px; flex-shrink:0; }
+        .squawk-text { font-size:0.88em; color:rgba(255,255,255,0.85); }
+        .squawk-meta { font-size:0.75em; color:rgba(255,255,255,0.35); margin-top:3px; }
 
-        /* Reservations */
-        .res-item { display:flex; align-items:center; gap:14px; padding:12px 0; border-bottom:1px solid #f0f2f5; }
+        /* ── RESERVATIONS ── */
+        .res-item { display:flex; align-items:center; gap:14px; padding:11px 0; border-bottom:1px solid rgba(255,255,255,0.06); }
         .res-item:last-child { border-bottom:none; }
-        .res-date-box { background:linear-gradient(135deg,#667eea,#764ba2); color:white; border-radius:10px; padding:8px 12px; text-align:center; min-width:52px; flex-shrink:0; }
-        .res-date-mon { font-size:0.65em; font-weight:700; text-transform:uppercase; letter-spacing:1px; }
-        .res-date-day { font-size:1.4em; font-weight:900; line-height:1; }
+        .res-date-box { background:rgba(212,67,154,0.2); border:1px solid rgba(212,67,154,0.4); color:#F07EC4; border-radius:10px; padding:8px 12px; text-align:center; min-width:52px; flex-shrink:0; }
+        .res-date-mon { font-size:0.62em; font-weight:700; text-transform:uppercase; letter-spacing:1px; font-family:'Montserrat',sans-serif; }
+        .res-date-day { font-size:1.4em; font-weight:900; line-height:1; font-family:'Montserrat',sans-serif; }
         .res-info { flex:1; }
-        .res-time { font-weight:600; font-size:0.95em; color:#2c3e50; }
-        .res-who  { font-size:0.82em; color:#7f8c8d; margin-top:2px; }
-        .res-cancel-btn { font-size:0.78em; color:#dc3545; background:none; border:1px solid #f5c6cb; padding:4px 12px; border-radius:20px; cursor:pointer; }
-        .empty-state { color:#adb5bd; font-size:0.9em; padding:12px 0; }
+        .res-time { font-weight:600; font-size:0.92em; color:rgba(255,255,255,0.9); }
+        .res-who  { font-size:0.8em; color:rgba(255,255,255,0.4); margin-top:2px; }
+        .res-cancel-btn { font-size:0.75em; color:#ff8090; background:none; border:1px solid rgba(220,53,69,0.35); padding:4px 12px; border-radius:20px; cursor:pointer; }
+        .empty-state { color:rgba(255,255,255,0.3); font-size:0.88em; padding:12px 0; }
 
-        /* Airworthy banner */
-        .aw-banner {
-            border-radius:12px; padding:12px 22px; margin-bottom:20px;
-            display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;
-            font-weight:700; font-size:0.95em;
-        }
-        .aw-banner.airworthy   { background:#d4edda; color:#155724; border:1px solid #c3e6cb; }
-        .aw-banner.not-airworthy { background:#f8d7da; color:#721c24; border:1px solid #f5c6cb; }
-        .aw-banner.unknown     { background:#fff3cd; color:#856404; border:1px solid #ffeeba; }
-        .aw-dot { width:10px; height:10px; border-radius:50%; display:inline-block; margin-right:8px; flex-shrink:0; }
-        .aw-banner.airworthy .aw-dot { background:#28a745; }
-        .aw-banner.not-airworthy .aw-dot { background:#dc3545; }
-        .aw-banner.unknown .aw-dot { background:#ffc107; }
-        .aw-overdue { font-size:0.82em; font-weight:600; opacity:0.85; }
+        /* ── AIRWORTHY BANNER ── */
+        .aw-banner { border-radius:10px; padding:11px 20px; margin-bottom:18px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; font-weight:700; font-size:0.9em; font-family:'Montserrat',sans-serif; }
+        .aw-banner.airworthy     { background:rgba(42,122,82,0.18);  color:#5DD89A; border:1px solid rgba(42,122,82,0.4); }
+        .aw-banner.not-airworthy { background:rgba(220,53,69,0.15);  color:#ff8090; border:1px solid rgba(220,53,69,0.35); }
+        .aw-banner.unknown       { background:rgba(245,185,66,0.12); color:#F5B942; border:1px solid rgba(245,185,66,0.3); }
+        .aw-dot { width:9px; height:9px; border-radius:50%; display:inline-block; margin-right:8px; flex-shrink:0; }
+        .aw-banner.airworthy .aw-dot     { background:#5DD89A; }
+        .aw-banner.not-airworthy .aw-dot { background:#ff8090; }
+        .aw-banner.unknown .aw-dot       { background:#F5B942; }
+        .aw-overdue { font-size:0.8em; font-weight:600; opacity:0.8; }
 
-        /* Inspection items */
-        .insp-item { display:flex; align-items:center; gap:14px; padding:12px 0; border-bottom:1px solid #f0f2f5; }
+        /* ── INSPECTION ITEMS ── */
+        .insp-item { display:flex; align-items:center; gap:14px; padding:11px 0; border-bottom:1px solid rgba(255,255,255,0.06); }
         .insp-item:last-child { border-bottom:none; }
-        .insp-badge { font-size:0.72em; font-weight:700; padding:3px 10px; border-radius:20px; white-space:nowrap; flex-shrink:0; }
-        .insp-badge.current  { background:#d4edda; color:#155724; }
-        .insp-badge.due-soon { background:#fff3cd; color:#856404; }
-        .insp-badge.overdue  { background:#f8d7da; color:#721c24; }
-        .insp-badge.unknown  { background:#e9ecef; color:#6c757d; }
-        .insp-name { font-weight:600; font-size:0.9em; color:#2c3e50; }
-        .insp-meta { font-size:0.78em; color:#7f8c8d; margin-top:2px; }
-        .insp-edit { font-size:0.78em; background:none; border:1px solid #dee2e6; border-radius:12px; padding:3px 10px; cursor:pointer; color:#7f8c8d; margin-left:auto; flex-shrink:0; display:none; }
+        .insp-badge { font-size:0.7em; font-weight:700; padding:3px 10px; border-radius:20px; white-space:nowrap; flex-shrink:0; font-family:'Montserrat',sans-serif; }
+        .insp-badge.current  { background:rgba(42,122,82,0.25);  color:#5DD89A; border:1px solid rgba(42,122,82,0.4); }
+        .insp-badge.due-soon { background:rgba(245,185,66,0.15); color:#F5B942; border:1px solid rgba(245,185,66,0.3); }
+        .insp-badge.overdue  { background:rgba(220,53,69,0.18);  color:#ff8090; border:1px solid rgba(220,53,69,0.35); }
+        .insp-badge.unknown  { background:rgba(255,255,255,0.07); color:rgba(255,255,255,0.5); border:1px solid rgba(255,255,255,0.12); }
+        .insp-name { font-weight:600; font-size:0.88em; color:rgba(255,255,255,0.85); }
+        .insp-meta { font-size:0.75em; color:rgba(255,255,255,0.35); margin-top:2px; }
+        .insp-edit { font-size:0.75em; background:none; border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:3px 10px; cursor:pointer; color:rgba(255,255,255,0.4); margin-left:auto; flex-shrink:0; display:none; }
+        .insp-edit:hover { color:#fff; border-color:rgba(255,255,255,0.3); }
 
-        /* Squawk alert cards (below airplane card) */
+        /* ── SQUAWK ALERT CARDS ── */
         .squawk-alert-section { display:none; margin-bottom:20px; }
         .squawk-alert-section.has-squawks { display:block; }
         .squawk-alert-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
-        .squawk-alert-title { font-size:0.75em; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; color:#dc3545; display:flex; align-items:center; gap:8px; }
+        .squawk-alert-title { font-size:0.72em; font-weight:700; text-transform:uppercase; letter-spacing:2px; color:#ff8090; display:flex; align-items:center; gap:8px; font-family:'Montserrat',sans-serif; }
         .squawk-alert-title::before { content:''; display:inline-block; width:8px; height:8px; border-radius:50%; background:#dc3545; animation:pulse 1.5s infinite; }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
-        .squawk-alert-link { font-size:0.82em; color:#667eea; font-weight:600; text-decoration:none; }
-        .squawk-alert-link:hover { text-decoration:underline; }
+        .squawk-alert-link { font-size:0.82em; color:#5BB8E8; font-weight:600; text-decoration:none; font-family:'Montserrat',sans-serif; }
+        .squawk-alert-link:hover { color:#fff; }
         .squawk-cards-row { display:flex; gap:12px; flex-wrap:wrap; }
         .sq-alert-card {
-            background:white; border-radius:12px; padding:16px 20px;
-            box-shadow:0 3px 12px rgba(0,0,0,0.09); flex:1; min-width:220px; max-width:320px;
-            border-top:4px solid #e9ecef; position:relative;
+            background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
+            border-radius:12px; padding:16px 20px; flex:1; min-width:220px; max-width:320px;
+            border-top:3px solid rgba(255,255,255,0.1); position:relative;
         }
         .sq-alert-card.no_go   { border-top-color:#dc3545; }
-        .sq-alert-card.caution { border-top-color:#ffc107; }
-        .sq-alert-card.go      { border-top-color:#28a745; }
-        .sq-alert-num { font-size:0.7em; font-weight:700; color:#95a5a6; letter-spacing:1px; margin-bottom:6px; }
+        .sq-alert-card.caution { border-top-color:#F5B942; }
+        .sq-alert-card.go      { border-top-color:#2A7A52; }
+        .sq-alert-num { font-size:0.68em; font-weight:700; color:rgba(255,255,255,0.3); letter-spacing:1px; margin-bottom:6px; font-family:'Montserrat',sans-serif; }
         .sq-alert-badges { display:flex; gap:6px; margin-bottom:8px; flex-wrap:wrap; }
-        .sq-alert-badge { font-size:0.68em; font-weight:700; padding:3px 10px; border-radius:20px; }
-        .sq-alert-badge.no_go   { background:#dc3545; color:white; }
-        .sq-alert-badge.caution { background:#fff3cd; color:#856404; }
-        .sq-alert-badge.go      { background:#d4edda; color:#155724; }
-        .sq-alert-desc { font-size:0.88em; font-weight:600; color:#2c3e50; line-height:1.4; margin-bottom:8px; }
-        .sq-alert-meta { font-size:0.75em; color:#adb5bd; }
+        .sq-alert-badge { font-size:0.68em; font-weight:700; padding:3px 10px; border-radius:20px; font-family:'Montserrat',sans-serif; }
+        .sq-alert-badge.no_go   { background:rgba(220,53,69,0.25); color:#ff8090; border:1px solid rgba(220,53,69,0.4); }
+        .sq-alert-badge.caution { background:rgba(245,185,66,0.15); color:#F5B942; border:1px solid rgba(245,185,66,0.3); }
+        .sq-alert-badge.go      { background:rgba(42,122,82,0.2); color:#5DD89A; border:1px solid rgba(42,122,82,0.35); }
+        .sq-alert-desc { font-size:0.88em; font-weight:600; color:rgba(255,255,255,0.85); line-height:1.4; margin-bottom:8px; }
+        .sq-alert-meta { font-size:0.73em; color:rgba(255,255,255,0.3); }
 
-        /* Hamburger nav */
-        .hamburger-btn { display:none; background:none; border:none; cursor:pointer; padding:8px; flex-shrink:0; }
-        .hamburger-btn span { display:block; width:22px; height:2px; background:#2c3e50; border-radius:2px; margin:5px 0; }
+        /* ── PROFILE MODAL ── */
+        .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.65); z-index:2000; align-items:center; justify-content:center; padding:16px; }
+        .modal-overlay.open { display:flex; }
+        .modal-box { background:#111E2A; border:1px solid rgba(255,255,255,0.12); border-radius:18px; padding:36px; width:100%; max-width:440px; box-shadow:0 24px 64px rgba(0,0,0,0.6); }
+        .modal-box h2 { font-family:'Montserrat',sans-serif; font-size:1.1em; font-weight:900; color:#fff; margin-bottom:22px; }
+        .form-group { margin-bottom:14px; }
+        .form-label { font-size:0.72em; font-weight:700; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:1.5px; display:block; margin-bottom:6px; font-family:'Montserrat',sans-serif; }
+        .form-input { width:100%; padding:11px 14px; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.15); border-radius:8px; font-size:0.93em; color:#fff; font-family:'Open Sans',sans-serif; }
+        .form-input:focus { outline:none; border-color:#5BB8E8; box-shadow:0 0 0 3px rgba(91,184,232,0.15); }
+        .form-input[disabled] { opacity:0.45; cursor:default; }
+        .modal-actions { display:flex; gap:10px; margin-top:20px; }
+        .save-btn { flex:1; padding:11px; background:#2A7A52; color:white; border:none; border-radius:8px; font-size:0.92em; font-weight:700; cursor:pointer; font-family:'Montserrat',sans-serif; }
+        .save-btn:hover { background:#359966; }
+        .close-btn { padding:11px 18px; background:transparent; color:rgba(255,255,255,0.6); border:1px solid rgba(255,255,255,0.15); border-radius:8px; font-size:0.92em; font-weight:600; cursor:pointer; font-family:'Montserrat',sans-serif; }
+        .close-btn:hover { background:rgba(255,255,255,0.07); }
+        .profile-msg { font-size:0.85em; margin-top:10px; }
+        .profile-msg.success { color:#5DD89A; }
+        .profile-msg.error   { color:#ff8090; }
 
         @media(max-width:680px) {
             .hamburger-btn { display:block; }
-            .club-nav-inner { position:relative; flex-wrap:nowrap; }
-            .club-nav-links { display:none; position:absolute; top:100%; left:0; right:0; flex-direction:column; background:white; padding:8px 24px 16px; box-shadow:0 8px 24px rgba(0,0,0,0.12); z-index:999; border-top:1px solid #f0f2f5; }
+            .club-nav-inner { flex-wrap:nowrap; }
+            .club-nav-links { display:none; position:absolute; top:64px; left:0; right:0; flex-direction:column; background:rgba(12,31,20,0.99); padding:8px 24px 20px; box-shadow:0 8px 24px rgba(0,0,0,0.5); z-index:999; }
             .club-nav-links.nav-open { display:flex; }
-            .club-nav-links a { padding:12px 4px; border-bottom:1px solid #f0f2f5; border-radius:0; font-size:1em; }
-            .club-nav-links span { display:block; }
-            #navUser { font-size:0.85em; }
-
-            /* Airplane card */
+            .club-nav-links a { padding:13px 4px; border-bottom:1px solid rgba(255,255,255,0.06); border-radius:0; font-size:1em; }
             .airplane-card { grid-template-columns:1fr; }
-            .ac-actions { flex-direction:row; align-items:flex-start; flex-wrap:wrap; }
+            .ac-actions { flex-direction:row; flex-wrap:wrap; }
             .ac-btn { flex:1; min-width:120px; }
-
-            /* Docs row */
             .docs-row { flex-direction:column; }
             .doc-tile { min-width:unset; }
-
-            /* Grid stacks to single column */
-            .dash-grid { grid-template-columns:1fr !important; }
-
-            /* Squawk alert cards stack */
             .squawk-cards-row { flex-direction:column; }
             .sq-alert-card { max-width:100%; }
-
-            /* Mini calendar scrolls */
-            .week-cal { overflow-x:auto; -webkit-overflow-scrolling:touch; }
             .week-cal table { min-width:480px; }
             .wk-btn { padding:8px 16px; min-height:44px; }
-
-            /* Profile modal */
-            .modal-box { padding:24px; margin:16px; max-width:calc(100vw - 32px); box-sizing:border-box; }
+            .modal-box { padding:24px; margin:16px; max-width:calc(100vw - 32px); }
         }
-
-        /* Profile modal */
-        .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:2000; align-items:center; justify-content:center; padding:16px; box-sizing:border-box; }
-        .modal-overlay.open { display:flex; }
-        .modal-box { background:white; border-radius:20px; padding:40px; width:100%; max-width:440px; box-shadow:0 20px 60px rgba(0,0,0,0.2); box-sizing:border-box; }
-        .modal-box h2 { font-size:1.2em; font-weight:700; color:#2c3e50; margin-bottom:24px; }
-        .form-group { margin-bottom:16px; }
-        .form-label { font-size:0.8em; font-weight:700; color:#7f8c8d; text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:6px; }
-        .form-input { width:100%; padding:12px 16px; border:2px solid #e9ecef; border-radius:10px; font-size:0.95em; box-sizing:border-box; transition:border-color 0.2s; }
-        .form-input:focus { outline:none; border-color:#667eea; }
-        .form-input[disabled] { background:#f8f9fa; color:#7f8c8d; }
-        .modal-actions { display:flex; gap:12px; margin-top:24px; }
-        .save-btn { flex:1; padding:12px; background:linear-gradient(135deg,#667eea,#764ba2); color:white; border:none; border-radius:10px; font-size:0.95em; font-weight:700; cursor:pointer; }
-        .close-btn { padding:12px 20px; background:white; color:#7f8c8d; border:2px solid #e9ecef; border-radius:10px; font-size:0.95em; font-weight:600; cursor:pointer; }
-        .profile-msg { font-size:0.88em; margin-top:10px; }
-        .profile-msg.success { color:#28a745; }
-        .profile-msg.error   { color:#dc3545; }
     </style>
 </head>
 <body>
     <nav class="club-nav">
         <div class="club-nav-inner">
-            <a href="dashboard.html" class="club-nav-logo">PNWAV8R</a>
+            <a href="dashboard.html" class="club-nav-logo">PNW<span>AV8R</span></a>
             <div id="navLinks" class="club-nav-links">
                 <a href="dashboard.html" class="active">Dashboard</a>
                 <a href="schedule.html">Schedule</a>
