@@ -34,37 +34,107 @@
         .nav-links .portal:hover { background: #359966; }
 
         /* PAGE WRAP */
-        .page { max-width: 960px; margin: 0 auto; padding: 40px 28px 64px; }
+        .page { max-width: 980px; margin: 0 auto; padding: 40px 28px 64px; }
 
-        /* CALCULATOR */
-        .wb-calculator { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; overflow: hidden; margin-bottom: 24px; }
+        /* CALCULATOR — instrument panel aesthetic */
+        .wb-calculator {
+            background: #111820;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 24px;
+            box-shadow: 0 16px 48px rgba(0,0,0,0.6);
+        }
         .wb-content { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
-        .input-section { padding: 28px; border-right: 1px solid rgba(255,255,255,0.08); }
-        .results-section { padding: 28px; }
-        .input-section h2, .results-section h2 { font-family: 'Montserrat', sans-serif; font-size: 0.95em; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: rgba(255,255,255,0.5); margin-bottom: 20px; }
-        .input-group { margin-bottom: 18px; }
-        .input-group label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.88em; color: rgba(255,255,255,0.75); }
-        .input-group input { width: 100%; padding: 11px 14px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; font-size: 1em; color: #fff; font-family: 'Open Sans', sans-serif; }
-        .input-group input:focus { outline: none; border-color: #5BB8E8; box-shadow: 0 0 0 3px rgba(91,184,232,0.15); }
-        .input-group small { color: rgba(255,255,255,0.35); font-size: 0.75em; margin-top: 4px; display: block; }
-        .results-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; border-radius: 8px; overflow: hidden; }
-        .results-table th, .results-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 0.88em; }
-        .results-table th { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.6); font-weight: 700; font-size: 0.75em; text-transform: uppercase; letter-spacing: 1px; }
-        .results-table td { color: rgba(255,255,255,0.85); }
-        .total-row td { font-weight: 700; color: #fff !important; background: rgba(91,184,232,0.1) !important; border-top: 1px solid rgba(91,184,232,0.3); }
-        .status { padding: 12px; border-radius: 8px; margin: 12px 0; font-weight: 700; text-align: center; font-family: 'Montserrat', sans-serif; font-size: 0.88em; letter-spacing: 1px; }
-        .status.safe    { background: rgba(42,122,82,0.25);  color: #5DD89A; border: 1px solid rgba(42,122,82,0.4); }
-        .status.warning { background: rgba(245,185,66,0.15); color: #F5B942; border: 1px solid rgba(245,185,66,0.3); }
-        .status.danger  { background: rgba(220,53,69,0.2);   color: #ff8090; border: 1px solid rgba(220,53,69,0.35); }
+
+        /* Input side — graph paper grid texture like the Jeppesen E6B */
+        .input-section {
+            padding: 28px;
+            border-right: 1px solid rgba(255,255,255,0.08);
+            background-image:
+                linear-gradient(rgba(91,184,232,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(91,184,232,0.04) 1px, transparent 1px);
+            background-size: 24px 24px;
+            background-color: #111820;
+        }
+        .results-section { padding: 28px; background: #0E141C; }
+
+        .input-section h2, .results-section h2 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.72em; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 3px;
+            color: rgba(245,185,66,0.7); /* amber — like E6B scale markings */
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(245,185,66,0.15);
+            padding-bottom: 8px;
+        }
+        .input-group { margin-bottom: 16px; }
+        .input-group label {
+            display: block; margin-bottom: 5px;
+            font-weight: 600; font-size: 0.82em;
+            color: rgba(255,255,255,0.6);
+            text-transform: uppercase; letter-spacing: 1px;
+            font-family: 'Montserrat', sans-serif;
+        }
+        .input-group input {
+            width: 100%; padding: 11px 14px;
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(245,185,66,0.2);
+            border-radius: 6px; font-size: 1.05em;
+            color: #F5B942; /* amber readout like an instrument */
+            font-family: 'Courier New', monospace;
+            font-weight: bold; letter-spacing: 1px;
+        }
+        .input-group input:focus {
+            outline: none;
+            border-color: #F5B942;
+            box-shadow: 0 0 0 3px rgba(245,185,66,0.12);
+            color: #fff;
+        }
+        .input-group small { color: rgba(255,255,255,0.3); font-size: 0.73em; margin-top: 4px; display: block; }
+        .results-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+        .results-table th, .results-table td { padding: 9px 11px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.85em; }
+        .results-table th {
+            background: rgba(245,185,66,0.08);
+            color: rgba(245,185,66,0.7);
+            font-weight: 700; font-size: 0.7em;
+            text-transform: uppercase; letter-spacing: 1.5px;
+            font-family: 'Montserrat', sans-serif;
+        }
+        .results-table td { color: rgba(255,255,255,0.8); font-family: 'Courier New', monospace; }
+        .total-row td { font-weight: 700; color: #F5B942 !important; background: rgba(245,185,66,0.07) !important; border-top: 1px solid rgba(245,185,66,0.25); }
+        .status { padding: 11px; border-radius: 6px; margin: 12px 0; font-weight: 700; text-align: center; font-family: 'Montserrat', sans-serif; font-size: 0.85em; letter-spacing: 2px; }
+        .status.safe    { background: rgba(42,122,82,0.2);   color: #5DD89A; border: 1px solid rgba(42,122,82,0.4); }
+        .status.warning { background: rgba(245,185,66,0.12); color: #F5B942; border: 1px solid rgba(245,185,66,0.3); }
+        .status.danger  { background: rgba(220,53,69,0.18);  color: #ff8090; border: 1px solid rgba(220,53,69,0.35); }
         .button-group { display: flex; gap: 10px; margin-top: 20px; }
-        .calc-button  { flex:1; padding:13px; border:none; border-radius:8px; font-size:0.92em; font-weight:700; font-family:'Montserrat',sans-serif; cursor:pointer; background:#2A7A52; color:white; transition:background 0.2s; }
-        .calc-button:hover { background:#359966; }
-        .print-button { flex:1; padding:13px; border:1px solid rgba(255,255,255,0.2); border-radius:8px; font-size:0.92em; font-weight:700; font-family:'Montserrat',sans-serif; cursor:pointer; background:transparent; color:rgba(255,255,255,0.7); transition:background 0.2s; }
-        .print-button:hover { background:rgba(255,255,255,0.08); }
+        /* CX-3 style amber calculate button */
+        .calc-button {
+            flex:1; padding:13px; border:none; border-radius:6px;
+            font-size:0.88em; font-weight:700; font-family:'Montserrat',sans-serif;
+            cursor:pointer; letter-spacing:1px;
+            background: #D4831A;
+            color: #fff;
+            box-shadow: 0 0 12px rgba(212,131,26,0.35);
+            transition: background 0.2s, box-shadow 0.2s;
+        }
+        .calc-button:hover { background:#F5A030; box-shadow:0 0 20px rgba(245,160,48,0.45); }
+        .print-button {
+            flex:1; padding:13px; border:1px solid rgba(255,255,255,0.15);
+            border-radius:6px; font-size:0.88em; font-weight:700;
+            font-family:'Montserrat',sans-serif; cursor:pointer;
+            background: rgba(255,255,255,0.04); color:rgba(255,255,255,0.6);
+            transition:background 0.2s;
+        }
+        .print-button:hover { background:rgba(255,255,255,0.09); }
 
         /* CG Scale */
-        .cg-section { background: rgba(255,255,255,0.04); padding: 18px; border-radius: 8px; margin: 16px 0; border-left: 3px solid #2A7A52; }
-        .cg-section h4 { font-family:'Montserrat',sans-serif; font-size:0.82em; font-weight:700; color:rgba(255,255,255,0.6); margin-bottom:14px; text-transform:uppercase; letter-spacing:1px; }
+        .cg-section {
+            background: rgba(0,0,0,0.3);
+            padding: 16px; border-radius: 8px; margin: 14px 0;
+            border-left: 3px solid #D4831A;
+        }
+        .cg-section h4 { font-family:'Montserrat',sans-serif; font-size:0.75em; font-weight:700; color:rgba(245,185,66,0.65); margin-bottom:14px; text-transform:uppercase; letter-spacing:2px; }
         .cg-scale-container { margin: 16px 0; }
         .cg-scale { position:relative; height:40px; border-radius:20px; overflow:hidden; margin-bottom:15px; background:linear-gradient(90deg,#e74c3c 0%,#e74c3c 15%,#27ae60 15%,#27ae60 85%,#e74c3c 85%,#e74c3c 100%); }
         .safe-zone { position:absolute; left:15%; width:70%; height:100%; background:linear-gradient(90deg,#f39c12 0%,#27ae60 20%,#27ae60 80%,#f39c12 100%); }
@@ -110,74 +180,93 @@
         </ul>
     </nav>
 
-    <!-- HERO BANNER -->
-    <div style="position:relative;height:220px;overflow:hidden;background:linear-gradient(135deg,#0C1F14,#0D2B3A);">
-        <img src="https://images.unsplash.com/photo-1474552226712-ac184abbf097?w=1400&q=80" alt="E6B Flight Computer" style="width:100%;height:100%;object-fit:cover;object-position:center 60%;opacity:0.4;">
-        <div style="position:absolute;inset:0;background:linear-gradient(to right,rgba(12,31,20,0.88) 0%,rgba(12,31,20,0.4) 100%);display:flex;align-items:center;padding:0 52px;">
-            <div>
-                <div style="font-family:'Montserrat',sans-serif;font-size:0.72em;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:#5BB8E8;margin-bottom:8px;">N7798E · 1959 Cessna 150</div>
-                <h1 style="font-family:'Montserrat',sans-serif;font-weight:900;font-size:2em;line-height:1.1;">Weight &amp; <span style="color:#5BB8E8;">Balance</span></h1>
-                <p style="color:rgba(255,255,255,0.55);font-size:0.88em;margin-top:6px;">CG Calculator · Envelope Check · Maneuvering Speed</p>
+    <!-- HERO — flight computer inspiration, no brand names -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;height:220px;overflow:hidden;position:relative;">
+        <div style="position:relative;background:#130F06;overflow:hidden;">
+            <img src="images/e6b-manual.jpg" alt="Manual flight computer" style="width:100%;height:100%;object-fit:cover;object-position:center top;opacity:0.5;" onerror="this.style.display='none'">
+            <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(245,185,66,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(245,185,66,0.05) 1px,transparent 1px);background-size:20px 20px;"></div>
+            <div style="position:absolute;inset:0;background:linear-gradient(to right,rgba(10,8,4,0.75),rgba(10,8,4,0.15));"></div>
+            <div style="position:absolute;bottom:18px;left:20px;font-family:'Courier New',monospace;font-size:0.7em;letter-spacing:2px;color:rgba(245,185,66,0.55);">CIRCULAR SLIDE RULE</div>
+        </div>
+        <div style="position:relative;background:#080A10;overflow:hidden;">
+            <img src="images/e6b-digital.jpg" alt="Digital flight computer" style="width:100%;height:100%;object-fit:cover;object-position:center top;opacity:0.45;" onerror="this.style.display='none'">
+            <div style="position:absolute;inset:0;background:linear-gradient(to left,rgba(8,10,18,0.75),rgba(8,10,18,0.15));"></div>
+            <div style="position:absolute;bottom:18px;right:20px;font-family:'Courier New',monospace;font-size:0.7em;letter-spacing:2px;color:rgba(91,184,232,0.55);text-align:right;">DIGITAL FLIGHT COMPUTER</div>
+        </div>
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;z-index:10;">
+            <div style="background:rgba(8,10,14,0.88);border:1px solid rgba(245,185,66,0.22);border-radius:12px;padding:14px 32px;backdrop-filter:blur(8px);">
+                <div style="font-family:'Montserrat',sans-serif;font-size:0.65em;font-weight:700;letter-spacing:4px;color:rgba(245,185,66,0.6);margin-bottom:6px;">N7798E · 1959 CESSNA 150</div>
+                <div style="font-family:'Montserrat',sans-serif;font-weight:900;font-size:1.5em;color:#fff;white-space:nowrap;">Weight &amp; <span style="color:#F5B942;">Balance</span></div>
             </div>
         </div>
     </div>
 
     <div class="page">
         <div class="wb-calculator">
-            <div class="wb-content" style="display:grid;grid-template-columns:1fr 1fr;">
-            
             <div class="wb-content">
                 <div class="input-section">
-                    <h2>Aircraft Configuration</h2>
-                    
+                    <h2>Load Configuration</h2>
+
                     <div class="input-group">
-                        <label for="pilot-weight">Pilot + Co-Pilot (lbs)</label>
-                        <input type="number" id="pilot-weight" value="340" min="0" max="400">
-                        <small>Station: 32.0" | Max: ~400 lbs total</small>
+                        <label for="pilot-weight">Pilot (lbs)</label>
+                        <input type="number" id="pilot-weight" value="170" min="0" max="300" oninput="calculate()">
+                        <small>Front left seat · Station 35.0"</small>
                     </div>
-                    
+
+                    <div class="input-group">
+                        <label for="copilot-weight">Co-Pilot / Passenger (lbs)</label>
+                        <input type="number" id="copilot-weight" value="0" min="0" max="300" oninput="calculate()">
+                        <small>Front right seat · Station 35.0" · Leave 0 if solo</small>
+                    </div>
+
                     <div class="input-group">
                         <label for="baggage-weight">Baggage (lbs)</label>
-                        <input type="number" id="baggage-weight" value="0" min="0" max="120">
-                        <small>Station: 95.0" | Max: 120 lbs</small>
+                        <input type="number" id="baggage-weight" value="0" min="0" max="120" oninput="calculate()">
+                        <small>Baggage shelf · Station 95.0" · Max 120 lbs</small>
                     </div>
-                    
+
                     <div class="input-group">
                         <label for="fuel-gallons">Fuel (gallons)</label>
-                        <input type="number" id="fuel-gallons" value="22" min="0" max="22" step="0.1">
-                        <small>Max: 22 gal | Weight: <span id="fuel-weight-display">132.0 lbs</span> (6 lbs/gal)</small>
+                        <input type="number" id="fuel-gallons" value="22" min="0" max="22" step="0.5" oninput="calculate()">
+                        <small>Max 22 gal · 6 lb/gal · Station 36.5" · = <span id="fuel-weight-display">132.0 lbs</span></small>
                     </div>
-                    
+
                     <div class="button-group">
-                        <button class="calc-button" onclick="calculate()">Calculate W&B</button>
+                        <button class="calc-button" onclick="calculate()">Recalculate</button>
                         <button class="print-button" onclick="window.print()">Print Sheet</button>
                     </div>
                 </div>
-                
+
                 <div class="results-section">
-                    <h2>Results</h2>
-                    
+                    <h2>W&amp;B Results</h2>
+
                     <table class="results-table">
                         <thead>
                             <tr>
                                 <th>Item</th>
                                 <th>Weight (lbs)</th>
                                 <th>Arm (in)</th>
-                                <th>Moment (in-lbs)</th>
+                                <th>Moment</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td>Empty Weight</td>
+                                <td>Empty Aircraft</td>
                                 <td>1049.2</td>
                                 <td>33.23</td>
-                                <td>34865.5</td>
+                                <td>34,865.5</td>
                             </tr>
                             <tr>
-                                <td>Pilot + Co-Pilot</td>
-                                <td id="pilot-display">340</td>
-                                <td>32.0</td>
-                                <td id="pilot-moment">10880</td>
+                                <td>Pilot</td>
+                                <td id="pilot-display">170</td>
+                                <td>35.0</td>
+                                <td id="pilot-moment">5,950</td>
+                            </tr>
+                            <tr>
+                                <td>Co-Pilot / Pax</td>
+                                <td id="copilot-display">0</td>
+                                <td>35.0</td>
+                                <td id="copilot-moment">0</td>
                             </tr>
                             <tr>
                                 <td>Baggage</td>
@@ -188,49 +277,49 @@
                             <tr>
                                 <td>Fuel</td>
                                 <td id="fuel-display">132.0</td>
-                                <td>31.0</td>
-                                <td id="fuel-moment">4092</td>
+                                <td>36.5</td>
+                                <td id="fuel-moment">4,818</td>
                             </tr>
                             <tr class="total-row">
-                                <td><strong>TOTAL</strong></td>
-                                <td id="total-weight"><strong>1521.2</strong></td>
-                                <td id="total-cg"><strong>33.28</strong></td>
-                                <td id="total-moment"><strong>49837.5</strong></td>
+                                <td><strong>GROSS WEIGHT</strong></td>
+                                <td id="total-weight"><strong>1351.2</strong></td>
+                                <td id="total-cg"><strong>33.6"</strong></td>
+                                <td id="total-moment"><strong>45,633</strong></td>
                             </tr>
                         </tbody>
                     </table>
-                    
-                    <div id="status" class="status danger">OVERWEIGHT</div>
-                    
+
+                    <div id="status" class="status safe">WITHIN LIMITS</div>
+
                     <div class="cg-section">
-                        <h4>Center of Gravity Position</h4>
+                        <h4>CG Envelope Position</h4>
                         <div class="cg-scale-container">
                             <div class="cg-scale">
                                 <div class="safe-zone" id="safe-zone"></div>
                                 <div class="cg-indicator" id="cg-indicator">
                                     <div class="cg-pointer"></div>
-                                    <span class="cg-value" id="cg-value">33.28"</span>
+                                    <span class="cg-value" id="cg-value">33.6"</span>
                                 </div>
                             </div>
                             <div class="scale-labels">
                                 <span id="forward-label">32.20"</span>
-                                <span>34.00"</span>
+                                <span>34.10"</span>
                                 <span id="aft-label">36.00"</span>
                             </div>
                         </div>
-                        <p id="cg-limits"><strong>CG Limits:</strong> Forward: 32.96" | Aft: 36.00"</p>
-                        <p id="cg-margin">Margin from limits will be calculated</p>
+                        <p id="cg-limits" style="font-size:0.82em;color:rgba(255,255,255,0.5);margin-top:8px;"></p>
+                        <p id="cg-margin" style="font-size:0.78em;color:rgba(255,255,255,0.35);margin-top:4px;"></p>
                     </div>
-                    
+
                     <div id="flight-characteristics" class="flight-characteristics char-normal">
-                        <h4>Normal CG Range</h4>
-                        <p>Aircraft exhibits normal flight characteristics with predictable handling qualities.</p>
+                        <h4>CG Within Limits</h4>
+                        <p>Normal flight characteristics. Predictable handling.</p>
                     </div>
-                    
+
                     <div class="va-box">
                         <h4>Maneuvering Speed (Va)</h4>
-                        <p id="va-speed" style="font-size:1.2em;font-weight:700;color:#fff;margin:4px 0;"><strong>107 MPH</strong></p>
-                        <p>Va = 106 × √(Weight / 1500)</p>
+                        <p id="va-speed" style="font-size:1.2em;font-weight:700;color:#fff;margin:4px 0;">107 MPH</p>
+                        <p>Va = 106 × √(Gross Weight ÷ 1500)</p>
                     </div>
                 </div>
             </div>
@@ -238,8 +327,8 @@
 
         <div class="disclaimer">
             <h4>⚠ Important Disclaimer</h4>
-            <p><strong style="color:rgba(255,255,255,0.75);">This calculator is designed specifically for 1959–1960 Cessna 150 aircraft.</strong></p>
-            <p>Always verify all calculations against your aircraft's official POH and current W&amp;B documentation. The pilot in command is solely responsible for ensuring the aircraft is loaded within approved limits before flight.</p>
+            <p><strong style="color:rgba(255,255,255,0.75);">Designed for N7798E — 1959 Cessna 150. Verify all values against the actual aircraft POH.</strong></p>
+            <p>The pilot in command is solely responsible for ensuring the aircraft is loaded within approved limits before every flight.</p>
         </div>
     </div>
 
@@ -248,72 +337,83 @@
     </div>
 
     <script>
-    <script>
-        function showComingSoon() {
-            alert('Additional aircraft calculators coming soon!');
+        // ── N7798E Cessna 150 Constants ──
+        // Empty weight & moment from actual aircraft W&B data
+        const EMPTY_WEIGHT  = 1049.2;
+        const EMPTY_MOMENT  = 34865.5;  // arm = 33.23"
+        const FRONT_ARM     = 35.0;     // front seats station
+        const BAGGAGE_ARM   = 95.0;     // baggage shelf station
+        const FUEL_ARM      = 36.5;     // fuel tanks station
+        const FUEL_LBS_GAL  = 6.0;      // avgas weight
+        const MAX_GROSS     = 1500.0;   // max gross weight lbs
+        const MAX_BAGGAGE   = 120.0;    // max baggage lbs
+        const MAX_FUEL_GAL  = 22.0;
+
+        // CG limits per POH (interpolated between weight breakpoints)
+        function interpolateCGLimits(weight) {
+            // Cessna 150: forward limit shifts aft as weight increases
+            if (weight <= 1200) return { forward: 32.20, aft: 36.00 };
+            if (weight >= 1500) return { forward: 33.40, aft: 36.00 };
+            const ratio = (weight - 1200) / (1500 - 1200);
+            return { forward: 32.20 + ratio * (33.40 - 32.20), aft: 36.00 };
         }
 
-        function interpolateCGLimits(weight) {
-            if (weight <= 1250) {
-                return { forward: 32.20, aft: 36.00 };
-            } else if (weight >= 1500) {
-                return { forward: 33.40, aft: 36.00 };
-            } else {
-                const ratio = (weight - 1250) / (1500 - 1250);
-                const forward = 32.20 + ratio * (33.40 - 32.20);
-                return { forward: forward, aft: 36.00 };
-            }
-        }
-        
         function calculate() {
-            const pilotWeight = parseFloat(document.getElementById('pilot-weight').value) || 0;
-            const baggageWeight = parseFloat(document.getElementById('baggage-weight').value) || 0;
-            const fuelGallons = parseFloat(document.getElementById('fuel-gallons').value) || 0;
-            
-            const fuelWeight = fuelGallons * 6.0;
-            document.getElementById('fuel-weight-display').textContent = fuelWeight.toFixed(1) + ' lbs';
-            
-            const emptyWeight = 1049.2;
-            const emptyMoment = 34865.5;
-            const pilotArm = 32.0;
-            const baggageArm = 95.0;
-            const fuelArm = 31.0;
-            
-            const pilotMoment = pilotWeight * pilotArm;
-            const baggageMoment = baggageWeight * baggageArm;
-            const fuelMoment = fuelWeight * fuelArm;
-            
-            const totalWeight = emptyWeight + pilotWeight + baggageWeight + fuelWeight;
-            const totalMoment = emptyMoment + pilotMoment + baggageMoment + fuelMoment;
-            const totalCG = totalMoment / totalWeight;
-            
-            // Update display
-            document.getElementById('pilot-display').textContent = pilotWeight;
-            document.getElementById('baggage-display').textContent = baggageWeight;
-            document.getElementById('fuel-display').textContent = fuelWeight.toFixed(1);
-            document.getElementById('pilot-moment').textContent = pilotMoment.toFixed(0);
-            document.getElementById('baggage-moment').textContent = baggageMoment.toFixed(0);
-            document.getElementById('fuel-moment').textContent = fuelMoment.toFixed(0);
-            document.getElementById('total-weight').innerHTML = '<strong>' + totalWeight.toFixed(1) + '</strong>';
-            document.getElementById('total-cg').innerHTML = '<strong>' + totalCG.toFixed(2) + '</strong>';
-            document.getElementById('total-moment').innerHTML = '<strong>' + totalMoment.toFixed(0) + '</strong>';
-            
-            // Get CG limits for current weight
+            const pilotWt    = Math.max(0, parseFloat(document.getElementById('pilot-weight').value)   || 0);
+            const copilotWt  = Math.max(0, parseFloat(document.getElementById('copilot-weight').value) || 0);
+            const baggageWt  = Math.max(0, parseFloat(document.getElementById('baggage-weight').value) || 0);
+            const fuelGal    = Math.max(0, Math.min(MAX_FUEL_GAL, parseFloat(document.getElementById('fuel-gallons').value) || 0));
+
+            const fuelWt     = fuelGal * FUEL_LBS_GAL;
+
+            // Moments
+            const pilotMom   = pilotWt   * FRONT_ARM;
+            const copilotMom = copilotWt * FRONT_ARM;
+            const baggageMom = baggageWt * BAGGAGE_ARM;
+            const fuelMom    = fuelWt    * FUEL_ARM;
+
+            const totalWeight = EMPTY_WEIGHT + pilotWt + copilotWt + baggageWt + fuelWt;
+            const totalMoment = EMPTY_MOMENT + pilotMom + copilotMom + baggageMom + fuelMom;
+            const totalCG     = totalMoment / totalWeight;
+
+            // ── Update table ──
+            const fmt = (n, dec=1) => n.toFixed(dec);
+            const fmtM = (n) => Math.round(n).toLocaleString();
+
+            document.getElementById('fuel-weight-display').textContent = fmt(fuelWt) + ' lbs';
+            document.getElementById('pilot-display').textContent   = fmt(pilotWt, 0);
+            document.getElementById('copilot-display').textContent = fmt(copilotWt, 0);
+            document.getElementById('baggage-display').textContent = fmt(baggageWt, 0);
+            document.getElementById('fuel-display').textContent    = fmt(fuelWt);
+            document.getElementById('pilot-moment').textContent    = fmtM(pilotMom);
+            document.getElementById('copilot-moment').textContent  = fmtM(copilotMom);
+            document.getElementById('baggage-moment').textContent  = fmtM(baggageMom);
+            document.getElementById('fuel-moment').textContent     = fmtM(fuelMom);
+
+            const wEl = document.getElementById('total-weight');
+            const cEl = document.getElementById('total-cg');
+            const mEl = document.getElementById('total-moment');
+            wEl.innerHTML = '<strong>' + fmt(totalWeight) + '</strong>';
+            cEl.innerHTML = '<strong>' + fmt(totalCG, 2) + '"</strong>';
+            mEl.innerHTML = '<strong>' + fmtM(totalMoment) + '</strong>';
+
+            // ── CG limits & scale ──
             const cgLimits = interpolateCGLimits(totalWeight);
-            
-            // Update CG scale
             updateCGScale(totalCG, cgLimits);
-            
-            // Update status
-            updateStatus(totalWeight, totalCG, cgLimits, baggageWeight, fuelGallons);
-            
-            // Update flight characteristics
+            updateStatus(totalWeight, totalCG, cgLimits, baggageWt, fuelGal);
             updateFlightCharacteristics(totalCG, cgLimits);
-            
-            // Calculate Va
-            const vaMax = 106;
-            const currentVa = vaMax * Math.sqrt(totalWeight / 1500);
-            document.getElementById('va-speed').innerHTML = '<strong>' + currentVa.toFixed(0) + ' MPH</strong>';
+
+            // ── Va ──
+            const va = 106 * Math.sqrt(Math.min(totalWeight, MAX_GROSS) / MAX_GROSS);
+            document.getElementById('va-speed').textContent = va.toFixed(0) + ' MPH';
+
+            // ── CG info text ──
+            document.getElementById('cg-limits').innerHTML =
+                'CG Limits: <strong style="color:#F5B942">' + fmt(cgLimits.forward,2) + '"</strong> fwd &nbsp;|&nbsp; <strong style="color:#F5B942">' + fmt(cgLimits.aft,2) + '"</strong> aft';
+            const mFwd = totalCG - cgLimits.forward;
+            const mAft = cgLimits.aft - totalCG;
+            document.getElementById('cg-margin').textContent =
+                fmt(mFwd,2) + '" from forward limit · ' + fmt(mAft,2) + '" from aft limit';
         }
         
         function updateCGScale(currentCG, cgLimits) {
