@@ -8,12 +8,14 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/theme.css">
+    <script src="js/theme.js"></script>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: 'Open Sans', sans-serif;
-            background: linear-gradient(160deg, #0C1F14 0%, #0D1E20 50%, #0B1C2D 100%);
-            color: #fff;
+            background: var(--body-bg);
+            color: var(--text);
             min-height: 100vh;
         }
 
@@ -178,6 +180,7 @@
             <li><a href="wb.html" class="active">W&amp;B</a></li>
             <li><a href="dashboard.html" class="portal">Member Portal</a></li>
         </ul>
+        <button id="themeBtn" onclick="toggleTheme()" style="background:none;border:none;cursor:pointer;padding:6px 8px;font-size:1.05em;line-height:1;opacity:0.7;" title="Toggle theme">☀️</button>
     </nav>
 
     <!-- HERO — flight computer inspiration, no brand names -->

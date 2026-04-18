@@ -8,12 +8,16 @@ const ALLOWED_ORIGINS = [
     'http://localhost:3000'
 ];
 
+// Netlify deploy preview pattern — matches any branch/PR preview URL
+const NETLIFY_PREVIEW_RE = /^https:\/\/[a-z0-9-]+--[a-z0-9-]+\.netlify\.app$/;
+
 // Only allow A-Z and 0-9 in ICAO codes (strict whitelist)
 const ICAO_RE = /^[A-Z0-9]{3,4}$/;
 
 function getCorsHeaders(event) {
     const origin = event.headers?.origin || '';
-    const allowed = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+    const isAllowed = ALLOWED_ORIGINS.includes(origin) || NETLIFY_PREVIEW_RE.test(origin);
+    const allowed = isAllowed ? origin : ALLOWED_ORIGINS[0];
     return {
         'Access-Control-Allow-Origin': allowed,
         'Access-Control-Allow-Headers': 'Content-Type',

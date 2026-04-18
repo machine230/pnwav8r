@@ -5,10 +5,52 @@
 [functions]
   node_bundler = "esbuild"
 
-[dev]
-  functions = "netlify/functions"
-  publish = "."
+# ── Security headers ─────────────────────────────────────────
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options        = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy        = "strict-origin-when-cross-origin"
+    Permissions-Policy     = "camera=(), microphone=(), geolocation=()"
+    X-XSS-Protection       = "1; mode=block"
 
-[functions.proxyWeather]
-  node_bundler = "esbuild"
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
 
+[[headers]]
+  for = "/js/*"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
+
+[[headers]]
+  for = "/css/*"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
+
+[[headers]]
+  for = "/images/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
+
+# ── Clean URL aliases ─────────────────────────────────────────
+[[redirects]]
+  from = "/dashboard"  to = "/dashboard.html"  status = 200
+[[redirects]]
+  from = "/schedule"   to = "/schedule.html"   status = 200
+[[redirects]]
+  from = "/squawks"    to = "/squawks.html"    status = 200
+[[redirects]]
+  from = "/post-flight" to = "/post-flight.html" status = 200
+[[redirects]]
+  from = "/directory"  to = "/directory.html"  status = 200
+[[redirects]]
+  from = "/admin"      to = "/admin.html"      status = 200
+[[redirects]]
+  from = "/weather"    to = "/weather.html"    status = 200
+[[redirects]]
+  from = "/wb"         to = "/wb.html"         status = 200
+[[redirects]]
+  from = "/directory"  to = "/directory.html"  status = 200

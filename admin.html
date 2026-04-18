@@ -4,155 +4,301 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin — PNWAV8R</title>
-    <link rel="stylesheet" href="css/style.css">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/theme.css">
+    <script src="js/theme.js"></script>
+    <style>body{visibility:hidden}</style>
     <style>
-        .club-nav { background:rgba(255,255,255,0.97); backdrop-filter:blur(10px); padding:0.9rem 0; position:sticky; top:0; z-index:1000; box-shadow:0 2px 20px rgba(0,0,0,0.08); }
-        .club-nav-inner { max-width:1100px; margin:0 auto; padding:0 24px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
-        .club-nav-logo { font-size:1.6em; font-weight:900; letter-spacing:2px; color:#2c3e50; text-decoration:none; }
-        .club-nav-links { display:flex; gap:6px; }
-        .club-nav-links a { text-decoration:none; color:#2c3e50; font-weight:500; padding:7px 16px; border-radius:20px; font-size:0.9em; transition:all 0.2s; }
-        .club-nav-links a:hover, .club-nav-links a.active { background:linear-gradient(135deg,#667eea,#764ba2); color:white; }
-        .page-wrap { max-width:1100px; margin:0 auto; padding:32px 24px; }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        /* Tabs */
-        .admin-tabs { display:flex; gap:4px; margin-bottom:28px; border-bottom:2px solid #e9ecef; }
-        .admin-tab { padding:10px 22px; background:none; border:none; font-size:0.95em; font-weight:600; color:#2c3e50; cursor:pointer; border-bottom:3px solid transparent; margin-bottom:-2px; transition:all 0.2s; }
-        .admin-tab.active { color:#667eea; border-bottom-color:#667eea; }
-        .admin-tab:hover:not(.active) { color:#667eea; background:#f0f2ff; border-radius:8px 8px 0 0; }
-
-        .tab-panel { display:none; }
-        .tab-panel.active { display:block; }
-
-        /* Section card */
-        .admin-card { background:rgba(255,255,255,0.97); border-radius:14px; box-shadow:0 4px 20px rgba(0,0,0,0.07); margin-bottom:24px; overflow:hidden; }
-        .admin-card-header { padding:20px 28px; border-bottom:2px solid #f0f2f5; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
-        .admin-card-header h3 { font-size:1em; font-weight:700; color:#2c3e50; margin:0; }
-        .admin-card-body { padding:0; }
-
-        /* Table */
-        .admin-table { width:100%; border-collapse:collapse; }
-        .admin-table th { background:#f8f9fa; padding:12px 20px; text-align:left; font-size:0.75em; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#95a5a6; }
-        .admin-table td { padding:14px 20px; border-top:1px solid #f0f2f5; font-size:0.9em; color:#2c3e50; vertical-align:middle; }
-        .admin-table tr:hover td { background:#fafbfc; }
-
-        /* Badges */
-        .badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:0.75em; font-weight:700; }
-        .badge-green  { background:#d4edda; color:#155724; }
-        .badge-red    { background:#f8d7da; color:#721c24; }
-        .badge-blue   { background:#cce5ff; color:#004085; }
-        .badge-grey   { background:#e9ecef; color:#6c757d; }
-        .badge-orange { background:#ffe5cc; color:#7d3c00; }
-        .badge-warn   { background:#ffeeba; color:#856404; }
-
-        /* Action buttons */
-        .tbl-btn { padding:5px 14px; border-radius:8px; font-size:0.82em; font-weight:600; cursor:pointer; border:none; transition:all 0.2s; }
-        .tbl-btn-primary { background:#667eea; color:white; }
-        .tbl-btn-danger  { background:#f8d7da; color:#721c24; border:1px solid #f5c6cb; }
-        .tbl-btn-success { background:#d4edda; color:#155724; border:1px solid #c3e6cb; }
-        .tbl-btn-warn    { background:#fff3cd; color:#856404; border:1px solid #ffeeba; }
-        .tbl-btn + .tbl-btn { margin-left:6px; }
-
-        /* Add member form */
-        .add-member-form { padding:24px 28px; background:#f8f9fa; border-top:2px solid #e9ecef; }
-        .add-member-form h4 { font-size:0.8em; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#95a5a6; margin:0 0 16px; }
-        .form-row { display:grid; grid-template-columns:1fr 1fr 1fr auto; gap:12px; align-items:end; flex-wrap:wrap; }
-        @media(max-width:700px) { .form-row { grid-template-columns:1fr 1fr; } }
-        .form-field label { display:block; font-size:0.82em; font-weight:600; color:#495057; margin-bottom:5px; }
-        .form-field input, .form-field select {
-            width:100%; padding:10px 12px; border:2px solid #dee2e6; border-radius:8px;
-            font-size:0.9em; box-sizing:border-box; font-family:inherit;
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background: var(--body-bg);
+            color: var(--text);
+            min-height: 100vh;
         }
-        .form-field input:focus, .form-field select:focus { outline:none; border-color:#667eea; }
-        .form-submit { padding:10px 20px; background:linear-gradient(135deg,#667eea,#764ba2); color:white; border:none; border-radius:8px; font-weight:700; cursor:pointer; font-size:0.9em; white-space:nowrap; }
 
-        /* Aircraft status control */
-        .status-options { display:flex; gap:10px; flex-wrap:wrap; }
-        .status-opt { padding:8px 18px; border-radius:20px; border:2px solid #e9ecef; background:white; font-size:0.85em; font-weight:600; cursor:pointer; transition:all 0.2s; color:#2c3e50; }
-        .status-opt:hover { border-color:#667eea; }
-        .status-opt.active-available    { background:#d4edda; border-color:#28a745; color:#155724; }
-        .status-opt.active-flying       { background:#cce5ff; border-color:#007bff; color:#004085; }
-        .status-opt.active-maintenance  { background:#ffe5cc; border-color:#d35400; color:#7d3c00; }
-        .status-opt.active-squawk       { background:#f8d7da; border-color:#dc3545; color:#721c24; }
+        /* ── NAV ── */
+        .club-nav {
+            position: sticky; top: 0; z-index: 1000;
+            background: rgba(12,31,20,0.97);
+            box-shadow: 0 2px 16px rgba(0,0,0,0.5);
+        }
+        .club-nav-inner {
+            max-width: 1100px; margin: 0 auto;
+            padding: 0 28px; height: 64px;
+            display: flex; align-items: center;
+            justify-content: space-between; gap: 16px;
+        }
+        .club-nav-logo {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 900; font-size: 1.25em;
+            color: #fff; text-decoration: none; letter-spacing: 1px;
+        }
+        .club-nav-logo span { color: #5BB8E8; }
+        .club-nav-links { display: flex; gap: 4px; align-items: center; }
+        .club-nav-links a {
+            text-decoration: none; color: rgba(255,255,255,0.7);
+            font-family: 'Montserrat', sans-serif; font-weight: 700;
+            font-size: 0.84em; padding: 7px 13px; border-radius: 6px;
+            transition: color 0.2s, background 0.2s;
+        }
+        .club-nav-links a:hover, .club-nav-links a.active {
+            color: #fff; background: rgba(255,255,255,0.09);
+        }
+        #navUser { font-size: 0.82em; color: rgba(255,255,255,0.45); font-family: 'Montserrat', sans-serif; }
+        .hamburger-btn { display: none; background: none; border: none; cursor: pointer; padding: 8px; }
+        .hamburger-btn span { display: block; width: 22px; height: 2px; background: #fff; border-radius: 2px; margin: 5px 0; }
 
-        /* Squawk resolve */
-        .squawk-row td:first-child { max-width:320px; }
-        .empty-row td { color:#adb5bd; text-align:center; padding:28px; }
+        /* ── PAGE ── */
+        .page-wrap { max-width: 1100px; margin: 0 auto; padding: 32px 24px 64px; }
 
-        /* Table scroll wrapper for mobile */
-        .table-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+        /* ── TABS ── */
+        .admin-tabs {
+            display: flex; gap: 4px; margin-bottom: 24px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            flex-wrap: wrap;
+        }
+        .admin-tab {
+            padding: 9px 20px; background: none; border: none;
+            font-family: 'Montserrat', sans-serif; font-size: 0.84em; font-weight: 700;
+            color: rgba(255,255,255,0.45); cursor: pointer;
+            border-bottom: 2px solid transparent; margin-bottom: -1px;
+            transition: color 0.2s;
+        }
+        .admin-tab.active { color: #5BB8E8; border-bottom-color: #5BB8E8; }
+        .admin-tab:hover:not(.active) { color: rgba(255,255,255,0.8); }
 
-        /* Filter bar */
-        .filter-bar { display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; padding:18px 20px; background:#f8f9fa; border-bottom:2px solid #e9ecef; }
-        .filter-bar label { display:block; font-size:0.78em; font-weight:700; color:#6c757d; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px; }
-        .filter-bar input, .filter-bar select { padding:8px 12px; border:2px solid #dee2e6; border-radius:8px; font-size:0.88em; font-family:inherit; box-sizing:border-box; }
-        .filter-bar input:focus, .filter-bar select:focus { outline:none; border-color:#667eea; }
-        .filter-bar .ff { flex:1; min-width:140px; }
-        .filter-bar .ff-narrow { flex:0 0 auto; }
-        .filter-btn { padding:8px 16px; border-radius:8px; font-size:0.85em; font-weight:600; cursor:pointer; border:none; }
-        .filter-btn-apply { background:#667eea; color:white; }
-        .filter-btn-clear  { background:#e9ecef; color:#495057; }
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
 
-        /* Reservation modal */
-        .res-modal-bg { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:2000; align-items:center; justify-content:center; padding:16px; box-sizing:border-box; }
-        .res-modal-bg.open { display:flex; }
-        .res-modal-box { background:white; border-radius:20px; padding:32px; width:100%; max-width:480px; box-shadow:0 20px 60px rgba(0,0,0,0.2); box-sizing:border-box; }
-        .res-modal-box h2 { font-size:1.05em; font-weight:700; color:#2c3e50; margin:0 0 20px; }
-        .res-field { margin-bottom:14px; }
-        .res-field label { display:block; font-size:0.8em; font-weight:700; color:#7f8c8d; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:5px; }
-        .res-field input, .res-field select { width:100%; padding:11px 14px; border:2px solid #e9ecef; border-radius:10px; font-size:0.92em; box-sizing:border-box; font-family:inherit; }
-        .res-field input:focus, .res-field select:focus { outline:none; border-color:#667eea; }
-        .res-modal-actions { display:flex; gap:10px; margin-top:20px; }
-        .res-modal-actions button { flex:1; padding:11px; border-radius:10px; font-size:0.92em; font-weight:700; cursor:pointer; border:none; }
-        .res-modal-cancel { background:white; color:#7f8c8d; border:2px solid #e9ecef !important; }
-        .res-modal-save   { background:linear-gradient(135deg,#667eea,#764ba2); color:white; }
+        /* ── CARDS ── */
+        .admin-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.09);
+            border-radius: 14px; margin-bottom: 20px; overflow: hidden;
+        }
+        .admin-card-header {
+            padding: 18px 24px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            display: flex; align-items: center; justify-content: space-between;
+            flex-wrap: wrap; gap: 12px;
+        }
+        .admin-card-header h3 {
+            font-family: 'Montserrat', sans-serif; font-size: 0.9em; font-weight: 700;
+            color: rgba(255,255,255,0.9); margin: 0;
+        }
 
-        /* Hamburger nav */
-        .hamburger-btn { display:none; background:none; border:none; cursor:pointer; padding:8px; flex-shrink:0; }
-        .hamburger-btn span { display:block; width:22px; height:2px; background:#2c3e50; border-radius:2px; margin:5px 0; }
+        /* ── TABLES ── */
+        .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .admin-table { width: 100%; border-collapse: collapse; }
+        .admin-table th {
+            background: rgba(255,255,255,0.04); padding: 11px 18px;
+            text-align: left; font-family: 'Montserrat', sans-serif;
+            font-size: 0.7em; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 1px; color: rgba(255,255,255,0.35);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .admin-table td {
+            padding: 13px 18px; border-top: 1px solid rgba(255,255,255,0.06);
+            font-size: 0.88em; color: rgba(255,255,255,0.85); vertical-align: middle;
+        }
+        .admin-table tr:hover td { background: rgba(255,255,255,0.03); }
+        .empty-row td { color: rgba(255,255,255,0.3); text-align: center; padding: 28px; }
 
-        @media(max-width:680px) {
-            .hamburger-btn { display:block; }
-            .club-nav-inner { position:relative; flex-wrap:nowrap; }
-            .club-nav-links { display:none; position:absolute; top:100%; left:0; right:0; flex-direction:column; background:white; padding:8px 24px 16px; box-shadow:0 8px 24px rgba(0,0,0,0.12); z-index:999; border-top:1px solid #f0f2f5; }
-            .club-nav-links.nav-open { display:flex; }
-            .club-nav-links a { padding:12px 4px; border-bottom:1px solid #f0f2f5; border-radius:0; font-size:1em; }
-            .club-nav-links span { display:block; }
-            #navUser { font-size:0.85em; }
-            .page-wrap { padding:16px; }
+        /* ── BADGES ── */
+        .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.72em; font-weight: 700; }
+        .badge-green  { background: rgba(42,122,82,0.2);   color: #5DD89A; border: 1px solid rgba(42,122,82,0.35); }
+        .badge-red    { background: rgba(220,53,69,0.15);  color: #ff8090; border: 1px solid rgba(220,53,69,0.3); }
+        .badge-blue   { background: rgba(91,184,232,0.15); color: #5BB8E8; border: 1px solid rgba(91,184,232,0.3); }
+        .badge-grey   { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.12); }
+        .badge-orange { background: rgba(212,131,26,0.15); color: #F5B942; border: 1px solid rgba(212,131,26,0.3); }
+        .badge-warn   { background: rgba(245,185,66,0.15); color: #F5B942; border: 1px solid rgba(245,185,66,0.3); }
 
-            /* Tabs wrap on small screens */
-            .admin-tabs { flex-wrap:wrap; gap:2px; }
-            .admin-tab { font-size:0.82em; padding:8px 12px; }
+        /* ── TABLE BUTTONS ── */
+        .tbl-btn {
+            padding: 5px 13px; border-radius: 6px; font-size: 0.8em;
+            font-weight: 700; cursor: pointer; border: none;
+            font-family: 'Montserrat', sans-serif; transition: opacity 0.2s;
+        }
+        .tbl-btn:hover { opacity: 0.82; }
+        .tbl-btn + .tbl-btn { margin-left: 5px; }
+        .tbl-btn-primary { background: #2A7A52; color: #fff; }
+        .tbl-btn-danger  { background: rgba(220,53,69,0.18); color: #ff8090; border: 1px solid rgba(220,53,69,0.3); }
+        .tbl-btn-success { background: rgba(42,122,82,0.2);  color: #5DD89A; border: 1px solid rgba(42,122,82,0.35); }
+        .tbl-btn-warn    { background: rgba(245,185,66,0.15); color: #F5B942; border: 1px solid rgba(245,185,66,0.3); }
 
-            /* Add member form: single column */
-            .form-row { grid-template-columns:1fr !important; }
+        /* ── ADD MEMBER FORM ── */
+        .add-member-form {
+            padding: 20px 24px;
+            background: rgba(255,255,255,0.03);
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
+        .add-member-form h4 {
+            font-family: 'Montserrat', sans-serif; font-size: 0.7em; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 2px;
+            color: rgba(255,255,255,0.35); margin: 0 0 14px;
+        }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 12px; align-items: end; }
+        .form-field label {
+            display: block; font-size: 0.75em; font-weight: 700;
+            color: rgba(255,255,255,0.4); text-transform: uppercase;
+            letter-spacing: 0.5px; margin-bottom: 5px;
+        }
+        .form-field input, .form-field select {
+            width: 100%; padding: 9px 12px;
+            border: 1px solid rgba(255,255,255,0.12); border-radius: 7px;
+            font-size: 0.9em; font-family: inherit;
+            background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.9);
+        }
+        .form-field input:focus, .form-field select:focus {
+            outline: none; border-color: #5BB8E8;
+        }
+        .form-field input::placeholder { color: rgba(255,255,255,0.22); }
+        .form-submit {
+            padding: 9px 20px; background: #2A7A52; color: #fff;
+            border: none; border-radius: 7px; font-weight: 700; cursor: pointer;
+            font-family: 'Montserrat', sans-serif; font-size: 0.88em; white-space: nowrap;
+            transition: background 0.2s;
+        }
+        .form-submit:hover { background: #359966; }
 
-            /* Action buttons larger touch targets */
-            .tbl-btn { padding:8px 14px; min-height:36px; }
-            .form-submit { padding:12px 20px; min-height:44px; }
+        /* ── AIRCRAFT STATUS ── */
+        .status-options { display: flex; gap: 8px; flex-wrap: wrap; }
+        .status-opt {
+            padding: 7px 16px; border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.05); font-size: 0.84em; font-weight: 700;
+            cursor: pointer; transition: all 0.2s;
+            color: rgba(255,255,255,0.65); font-family: 'Montserrat', sans-serif;
+        }
+        .status-opt:hover { border-color: rgba(255,255,255,0.3); color: #fff; }
+        .status-opt.active-available    { background: rgba(42,122,82,0.2);   border-color: rgba(42,122,82,0.5);   color: #5DD89A; }
+        .status-opt.active-flying       { background: rgba(91,184,232,0.15); border-color: rgba(91,184,232,0.4);  color: #5BB8E8; }
+        .status-opt.active-maintenance  { background: rgba(212,131,26,0.15); border-color: rgba(212,131,26,0.4);  color: #F5B942; }
+        .status-opt.active-squawk       { background: rgba(220,53,69,0.15);  border-color: rgba(220,53,69,0.4);   color: #ff8090; }
 
-            /* Status options wrap */
-            .status-options { flex-direction:column; }
-            .status-opt { width:100%; text-align:center; padding:12px; }
+        /* ── FILTER BAR ── */
+        .filter-bar {
+            display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end;
+            padding: 16px 20px;
+            background: rgba(255,255,255,0.03);
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+        }
+        .filter-bar label {
+            display: block; font-size: 0.72em; font-weight: 700;
+            color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;
+        }
+        .filter-bar input, .filter-bar select {
+            padding: 8px 12px; border: 1px solid rgba(255,255,255,0.12); border-radius: 7px;
+            font-size: 0.88em; font-family: inherit;
+            background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.85);
+        }
+        .filter-bar input:focus, .filter-bar select:focus { outline: none; border-color: #5BB8E8; }
+        .filter-bar select option { background: #0D1E20; }
+        .ff { flex: 1; min-width: 140px; }
+        .ff-narrow { flex: 0 0 auto; }
+        .filter-btn { padding: 8px 16px; border-radius: 7px; font-size: 0.84em; font-weight: 700; cursor: pointer; border: none; font-family: 'Montserrat', sans-serif; }
+        .filter-btn-apply { background: #2A7A52; color: #fff; }
+        .filter-btn-apply:hover { background: #359966; }
+        .filter-btn-clear { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.65); }
 
-            /* Tach + maint note fields */
-            .admin-card-body div[style*="display:flex"] { flex-wrap:wrap !important; }
+        /* ── SECTION LABELS (within card bodies) ── */
+        .section-lbl {
+            font-family: 'Montserrat', sans-serif; font-size: 0.7em; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 1.5px;
+            color: rgba(255,255,255,0.3); margin-bottom: 10px;
+        }
+
+        /* ── MODALS ── */
+        .modal-bg {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.6); z-index: 2000;
+            align-items: center; justify-content: center; padding: 16px;
+        }
+        .modal-bg.open { display: flex; }
+        .modal-box {
+            background: #111E2A;
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 18px; padding: 32px;
+            width: 100%; max-width: 480px;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+        }
+        .modal-box h2 {
+            font-family: 'Montserrat', sans-serif; font-size: 1em; font-weight: 700;
+            color: #fff; margin: 0 0 20px;
+        }
+        .modal-field { margin-bottom: 14px; }
+        .modal-field label {
+            display: block; font-size: 0.75em; font-weight: 700;
+            color: rgba(255,255,255,0.4); text-transform: uppercase;
+            letter-spacing: 0.5px; margin-bottom: 5px;
+        }
+        .modal-field input, .modal-field textarea {
+            width: 100%; padding: 11px 14px;
+            border: 1px solid rgba(255,255,255,0.12); border-radius: 8px;
+            font-size: 0.92em; font-family: inherit;
+            background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.9);
+        }
+        .modal-field input:focus, .modal-field textarea:focus {
+            outline: none; border-color: #5BB8E8;
+        }
+        .modal-field input::placeholder, .modal-field textarea::placeholder { color: rgba(255,255,255,0.22); }
+        .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+        .modal-actions button { flex: 1; padding: 11px; border-radius: 8px; font-size: 0.92em; font-weight: 700; cursor: pointer; border: none; font-family: 'Montserrat', sans-serif; }
+        .modal-cancel { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.65); border: 1px solid rgba(255,255,255,0.12) !important; }
+        .modal-save   { background: #2A7A52; color: #fff; }
+        .modal-save:hover { background: #359966; }
+
+        /* ── ADMIN CARD BODY PADDING ── */
+        .card-body-pad { padding: 24px; }
+        .inline-form { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
+        .inline-form .form-field { flex: 0 0 180px; }
+
+        /* ── MSG COLORS ── */
+        .msg-ok  { color: #5DD89A; }
+        .msg-err { color: #ff8090; }
+
+        /* ── MOBILE ── */
+        @media(max-width: 680px) {
+            .hamburger-btn { display: block; }
+            .club-nav-inner { position: relative; }
+            .club-nav-links {
+                display: none; position: absolute; top: 64px; left: 0; right: 0;
+                flex-direction: column; background: rgba(12,31,20,0.99);
+                padding: 12px 24px 24px;
+                border-bottom: 1px solid rgba(255,255,255,0.1); z-index: 999;
+            }
+            .club-nav-links.nav-open { display: flex; }
+            .club-nav-links a { padding: 12px 8px; border-bottom: 1px solid rgba(255,255,255,0.08); border-radius: 0; font-size: 1em; width: 100%; }
+            .page-wrap { padding: 16px; }
+            .admin-tabs { gap: 2px; }
+            .admin-tab { font-size: 0.78em; padding: 8px 11px; }
+            .form-row { grid-template-columns: 1fr; }
+            .tbl-btn { padding: 7px 12px; min-height: 36px; }
+            .form-submit { padding: 11px 18px; min-height: 42px; }
+            .status-options { flex-direction: column; }
+            .status-opt { text-align: center; padding: 11px; }
         }
     </style>
 </head>
 <body>
     <nav class="club-nav">
         <div class="club-nav-inner">
-            <a href="dashboard.html" class="club-nav-logo">PNWAV8R</a>
+            <a href="dashboard.html" class="club-nav-logo">PNW<span>AV8R</span></a>
             <div id="navLinks" class="club-nav-links">
                 <a href="dashboard.html">Dashboard</a>
                 <a href="schedule.html">Schedule</a>
                 <a href="squawks.html">Squawks</a>
                 <a href="post-flight.html">Post-Flight</a>
+                <a href="directory.html">Directory</a>
                 <a href="admin.html" class="active">Admin</a>
             </div>
             <div id="navUser"></div>
+            <button id="themeBtn" onclick="toggleTheme()" style="background:none;border:none;cursor:pointer;padding:6px 8px;font-size:1.05em;line-height:1;opacity:0.7;" title="Toggle theme">☀️</button>
             <button class="hamburger-btn" onclick="toggleNav()" aria-label="Menu">
                 <span></span><span></span><span></span>
             </button>
@@ -174,29 +320,26 @@
             <div class="admin-card">
                 <div class="admin-card-header">
                     <h3>Club Members</h3>
+                    <span id="memberTotal" style="font-size:0.78em;color:rgba(255,255,255,0.35);font-family:'Montserrat',sans-serif"></span>
                 </div>
-                <div class="admin-card-body">
-                    <div class="table-scroll">
+                <div class="table-scroll">
                     <table class="admin-table">
                         <thead>
                             <tr>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Phone</th>
-                                <th>Membership</th>
-                                <th>PIC Status</th>
-                                <th>Role</th>
-                                <th>Actions</th>
+                                <th>Name</th><th>Email</th><th>Phone</th>
+                                <th>Membership</th><th>PIC</th><th>Role</th><th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="memberTableBody">
-                            <tr><td colspan="7" style="text-align:center;color:#adb5bd;padding:28px">Loading…</td></tr>
+                            <tr><td colspan="7" style="text-align:center;color:rgba(255,255,255,0.3);padding:28px">Loading…</td></tr>
                         </tbody>
                     </table>
-                    </div>
                 </div>
                 <div class="add-member-form">
-                    <h4>Add New Member</h4>
+                    <h4>Invite New Member</h4>
+                    <p style="font-size:0.8em;color:rgba(255,255,255,0.4);margin-bottom:14px;line-height:1.5">
+                        Adds the member to the club roster and sends them an email with a link to set their password and log in.
+                    </p>
                     <div class="form-row">
                         <div class="form-field">
                             <label>Full Name</label>
@@ -210,11 +353,19 @@
                             <label>Phone</label>
                             <input type="tel" id="newPhone" placeholder="(206) 555-1234">
                         </div>
-                        <div>
-                            <button class="form-submit" onclick="addMember()">Add Member</button>
+                        <div class="form-field" style="flex:0 0 auto">
+                            <label>Role</label>
+                            <select id="newRole" style="padding:10px 12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:#fff;font-family:inherit;font-size:0.9em">
+                                <option value="member">Member</option>
+                                <option value="ap">A&amp;P (Maintenance)</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+                        <div style="display:flex;align-items:flex-end">
+                            <button class="form-submit" onclick="inviteMember()">Send Invite</button>
                         </div>
                     </div>
-                    <div id="addMemberMsg" style="margin-top:10px;font-size:0.88em"></div>
+                    <div id="addMemberMsg" style="margin-top:10px;font-size:0.85em"></div>
                 </div>
             </div>
         </div>
@@ -223,9 +374,9 @@
         <div class="tab-panel" id="tab-aircraft">
             <div class="admin-card">
                 <div class="admin-card-header"><h3>N7798E — Aircraft Status</h3></div>
-                <div class="admin-card-body" style="padding:28px">
+                <div class="card-body-pad">
                     <div style="margin-bottom:24px">
-                        <div style="font-size:0.8em;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#95a5a6;margin-bottom:12px">Set Status</div>
+                        <div class="section-lbl">Set Status</div>
                         <div class="status-options" id="statusOptions">
                             <button class="status-opt" onclick="setAircraftStatus('available')">Available</button>
                             <button class="status-opt" onclick="setAircraftStatus('flying')">In the Air</button>
@@ -234,9 +385,9 @@
                         </div>
                     </div>
                     <div style="margin-bottom:24px">
-                        <div style="font-size:0.8em;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#95a5a6;margin-bottom:12px">Update Tach Time</div>
-                        <div style="display:flex;gap:12px;align-items:flex-end">
-                            <div class="form-field" style="flex:0 0 180px">
+                        <div class="section-lbl">Update Tach Time</div>
+                        <div class="inline-form">
+                            <div class="form-field">
                                 <label>Current Tach</label>
                                 <input type="number" id="tachUpdate" step="0.1" min="0" placeholder="e.g. 2849.6">
                             </div>
@@ -244,9 +395,9 @@
                         </div>
                         <div id="tachMsg" style="margin-top:8px;font-size:0.85em"></div>
                     </div>
-                    <div>
-                        <div style="font-size:0.8em;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#95a5a6;margin-bottom:12px">Maintenance Note</div>
-                        <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
+                    <div style="margin-bottom:24px">
+                        <div class="section-lbl">Maintenance Note</div>
+                        <div class="inline-form">
                             <div class="form-field" style="flex:1;min-width:200px">
                                 <label>Note (shown on dashboard)</label>
                                 <input type="text" id="maintNote" placeholder="Annual due, oil change, etc." maxlength="500">
@@ -254,6 +405,24 @@
                             <button class="form-submit" onclick="saveMaintNote()">Save Note</button>
                         </div>
                         <div id="maintMsg" style="margin-top:8px;font-size:0.85em"></div>
+                    </div>
+                    <div>
+                        <div class="section-lbl">Maintenance Window (blocks calendar booking)</div>
+                        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px;">
+                            <div class="form-field" style="flex:1;min-width:200px">
+                                <label>Grounded From</label>
+                                <input type="datetime-local" id="adminGroundedFrom">
+                            </div>
+                            <div class="form-field" style="flex:1;min-width:200px">
+                                <label>Expected Return (optional)</label>
+                                <input type="datetime-local" id="adminGroundedUntil">
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                            <button class="form-submit" onclick="saveGroundingPeriod()">Save Window</button>
+                            <button class="form-submit" style="background:rgba(220,53,69,0.25);border-color:rgba(220,53,69,0.4);color:#ff8090;" onclick="clearGroundingPeriod()">Clear Window</button>
+                        </div>
+                        <div id="groundingMsg" style="margin-top:8px;font-size:0.85em"></div>
                     </div>
                 </div>
             </div>
@@ -263,32 +432,24 @@
         <div class="tab-panel" id="tab-squawks">
             <div class="admin-card">
                 <div class="admin-card-header"><h3>Open Squawks</h3></div>
-                <div class="admin-card-body">
-                    <div class="table-scroll">
+                <div class="table-scroll">
                     <table class="admin-table">
-                        <thead>
-                            <tr><th>Description</th><th>Reported By</th><th>Date</th><th>Action</th></tr>
-                        </thead>
+                        <thead><tr><th>Description</th><th>Reported By</th><th>Date</th><th>Action</th></tr></thead>
                         <tbody id="squawkTableBody">
-                            <tr><td colspan="4" style="text-align:center;color:#adb5bd;padding:28px">Loading…</td></tr>
+                            <tr><td colspan="4" style="text-align:center;color:rgba(255,255,255,0.3);padding:28px">Loading…</td></tr>
                         </tbody>
                     </table>
-                    </div>
                 </div>
             </div>
             <div class="admin-card">
                 <div class="admin-card-header"><h3>Resolved Squawks</h3></div>
-                <div class="admin-card-body">
-                    <div class="table-scroll">
+                <div class="table-scroll">
                     <table class="admin-table">
-                        <thead>
-                            <tr><th>Description</th><th>Reported By</th><th>Resolved By</th><th>Date</th></tr>
-                        </thead>
+                        <thead><tr><th>Description</th><th>Reported By</th><th>Resolved By</th><th>Date</th></tr></thead>
                         <tbody id="resolvedTableBody">
-                            <tr><td colspan="4" style="text-align:center;color:#adb5bd;padding:28px">Loading…</td></tr>
+                            <tr><td colspan="4" style="text-align:center;color:rgba(255,255,255,0.3);padding:28px">Loading…</td></tr>
                         </tbody>
                     </table>
-                    </div>
                 </div>
             </div>
         </div>
@@ -297,13 +458,13 @@
         <div class="tab-panel" id="tab-inspections">
             <div class="admin-card">
                 <div class="admin-card-header"><h3>FAA Required Inspections — N7798E</h3></div>
-                <div class="admin-card-body">
-                    <div class="table-scroll">
+                <div class="table-scroll">
                     <table class="admin-table">
                         <thead><tr><th>Inspection</th><th>Interval</th><th>Last Completed</th><th>Next Due</th><th>Status</th><th>Action</th></tr></thead>
-                        <tbody id="inspTableBody"><tr><td colspan="6" style="text-align:center;padding:28px;color:#adb5bd">Loading…</td></tr></tbody>
+                        <tbody id="inspTableBody">
+                            <tr><td colspan="6" style="text-align:center;padding:28px;color:rgba(255,255,255,0.3)">Loading…</td></tr>
+                        </tbody>
                     </table>
-                    </div>
                 </div>
             </div>
         </div>
@@ -313,23 +474,19 @@
             <div class="admin-card">
                 <div class="admin-card-header">
                     <h3>All Reservations</h3>
-                    <div style="display:flex;gap:8px">
+                    <div style="display:flex;gap:6px">
                         <button class="tbl-btn tbl-btn-primary" onclick="setResFilter('upcoming')" id="resFiltUpcoming" style="border-radius:16px">Upcoming</button>
-                        <button class="tbl-btn tbl-btn-warn" onclick="setResFilter('past')" id="resFiltPast" style="border-radius:16px">Past</button>
-                        <button class="tbl-btn" onclick="setResFilter('all')" id="resFiltAll" style="border-radius:16px;background:#e9ecef;color:#495057">All</button>
+                        <button class="tbl-btn tbl-btn-warn"    onclick="setResFilter('past')"     id="resFiltPast"     style="border-radius:16px">Past</button>
+                        <button class="tbl-btn tbl-btn-primary" onclick="setResFilter('all')"      id="resFiltAll"      style="border-radius:16px;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.6)">All</button>
                     </div>
                 </div>
-                <div class="admin-card-body">
-                    <div class="table-scroll">
+                <div class="table-scroll">
                     <table class="admin-table">
-                        <thead>
-                            <tr><th>Pilot</th><th>Date</th><th>Start</th><th>End</th><th>Purpose</th><th>Actions</th></tr>
-                        </thead>
+                        <thead><tr><th>Pilot</th><th>Date</th><th>Start</th><th>End</th><th>Purpose</th><th>Actions</th></tr></thead>
                         <tbody id="resTableBody">
-                            <tr><td colspan="6" style="text-align:center;color:#adb5bd;padding:28px">Loading…</td></tr>
+                            <tr><td colspan="6" style="text-align:center;color:rgba(255,255,255,0.3);padding:28px">Loading…</td></tr>
                         </tbody>
                     </table>
-                    </div>
                 </div>
             </div>
         </div>
@@ -341,9 +498,7 @@
                 <div class="filter-bar">
                     <div class="ff">
                         <label>Pilot</label>
-                        <select id="flightFilterPilot">
-                            <option value="">All Pilots</option>
-                        </select>
+                        <select id="flightFilterPilot"><option value="">All Pilots</option></select>
                     </div>
                     <div class="ff">
                         <label>From</label>
@@ -358,25 +513,70 @@
                         <button class="filter-btn filter-btn-clear" onclick="clearFlightFilters()">Clear</button>
                     </div>
                 </div>
-                <div class="admin-card-body">
-                    <div class="table-scroll">
+                <div class="table-scroll">
                     <table class="admin-table">
                         <thead>
                             <tr><th>Pilot</th><th>Date</th><th>Tach Start</th><th>Tach End</th><th>Hours</th><th>Dry Rate Cost</th><th>Fuel</th><th>Oil Added</th><th>Notes</th><th>Delete</th></tr>
                         </thead>
                         <tbody id="flightTableBody">
-                            <tr><td colspan="10" style="text-align:center;color:#adb5bd;padding:28px">Loading…</td></tr>
+                            <tr><td colspan="10" style="text-align:center;color:rgba(255,255,255,0.3);padding:28px">Loading…</td></tr>
                         </tbody>
                         <tfoot id="flightTableFoot"></tfoot>
                     </table>
-                    </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Reservation edit modal -->
+    <div class="modal-bg" id="resModal">
+        <div class="modal-box">
+            <h2>Edit Reservation</h2>
+            <div class="modal-field">
+                <label>Start Date &amp; Time</label>
+                <input type="datetime-local" id="resEditStart">
+            </div>
+            <div class="modal-field">
+                <label>End Date &amp; Time</label>
+                <input type="datetime-local" id="resEditEnd">
+            </div>
+            <div class="modal-field">
+                <label>Purpose (optional)</label>
+                <input type="text" id="resEditPurpose" placeholder="e.g. Cross-country, Training…" maxlength="200">
+            </div>
+            <div id="resEditMsg" style="font-size:0.85em;margin-top:6px"></div>
+            <div class="modal-actions">
+                <button class="modal-cancel" onclick="closeResEdit()">Cancel</button>
+                <button class="modal-save"   onclick="saveReservation()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inspection edit modal -->
+    <div class="modal-bg" id="inspModal">
+        <div class="modal-box">
+            <h2>Update Inspection</h2>
+            <div id="inspEditName" style="font-size:0.85em;color:rgba(255,255,255,0.4);margin-bottom:20px"></div>
+            <div class="modal-field">
+                <label>Last Completed Date</label>
+                <input type="date" id="inspEditDate">
+            </div>
+            <div class="modal-field">
+                <label>Notes (optional)</label>
+                <textarea id="inspEditNotes" rows="3" maxlength="1000" placeholder="e.g. Done by ABC Aviation, work order #123"></textarea>
+            </div>
+            <div id="inspEditMsg" style="font-size:0.85em;margin-top:6px"></div>
+            <div class="modal-actions">
+                <button class="modal-cancel" onclick="closeInspEdit()">Cancel</button>
+                <button class="modal-save"   onclick="saveInspection()">Save</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config.js"></script>
+    <script src="js/club-config.js"></script>
+    <script src="js/supabase-client.js"></script>
+    <script src="js/utils.js"></script>
     <script src="js/auth.js"></script>
     <script>
         let currentMember = null;
@@ -387,13 +587,15 @@
             const session = await requireAdmin();
             if (!session) return;
             currentMember = await getCurrentMember();
-            renderNavUser();
-            const { data: plane } = await _supabase.from('airplanes').select('*').eq('tail_number', AIRPLANE_TAIL).single();
+            renderNavUser(currentMember);
+            const { data: plane } = await _supabase.from('airplanes').select('*,grounded_from,grounded_until').eq('tail_number', AIRPLANE_TAIL).single();
             airplaneId = plane?.id;
             if (plane) {
                 currentAircraftStatus = plane.status;
                 highlightStatus(plane.status);
                 document.getElementById('tachUpdate').value = plane.current_tach || '';
+                if (plane.grounded_from)  document.getElementById('adminGroundedFrom').value  = plane.grounded_from.slice(0,16);
+                if (plane.grounded_until) document.getElementById('adminGroundedUntil').value = plane.grounded_until.slice(0,16);
                 document.getElementById('maintNote').value  = plane.notes || '';
             }
             await Promise.all([ loadMembers(), loadSquawks(), loadFlights(), loadInspections(), loadReservations() ]);
@@ -411,67 +613,99 @@
         async function loadMembers() {
             const { data } = await _supabase.from('members').select('*').order('name');
             const tbody = document.getElementById('memberTableBody');
+            const total = document.getElementById('memberTotal');
             if (!data?.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="7">No members yet.</td></tr>'; return; }
+
+            const active = data.filter(m => m.membership_active).length;
+            if (total) total.textContent = `${active} active · ${data.length} total`;
+
             const roleBadge = { admin:'badge-orange', ap:'badge-warn', member:'badge-grey' };
+            const roleLabel = { admin:'Admin', ap:'A&amp;P', member:'Member' };
             tbody.innerHTML = data.map(m => `
-                <tr>
-                    <td><strong>${escapeHtml(m.name)}</strong></td>
-                    <td>${escapeHtml(m.email)}</td>
-                    <td>${escapeHtml(m.phone) || '—'}</td>
+                <tr style="${!m.membership_active ? 'opacity:0.5' : ''}">
+                    <td><strong>${escapeHtml(m.name || '—')}</strong></td>
+                    <td style="font-size:0.88em">${escapeHtml(m.email)}</td>
+                    <td style="font-size:0.88em">${escapeHtml(m.phone) || '<span style="color:rgba(255,255,255,0.3)">—</span>'}</td>
                     <td><span class="badge ${m.membership_active ? 'badge-green' : 'badge-red'}">${m.membership_active ? 'Active' : 'Inactive'}</span></td>
-                    <td><span class="badge ${m.pic_status ? 'badge-blue' : 'badge-grey'}">${m.pic_status ? 'Current' : 'Not Current'}</span></td>
-                    <td><span class="badge ${roleBadge[m.role] || 'badge-grey'}">${escapeHtml(m.role === 'ap' ? 'A&P' : m.role)}</span></td>
-                    <td>
+                    <td><span class="badge ${m.pic_status ? 'badge-blue' : 'badge-grey'}">${m.pic_status ? '✓ PIC' : '—'}</span></td>
+                    <td><span class="badge ${roleBadge[m.role] || 'badge-grey'}">${roleLabel[m.role] || escapeHtml(m.role)}</span></td>
+                    <td style="white-space:nowrap">
                         <button class="tbl-btn ${m.membership_active ? 'tbl-btn-danger' : 'tbl-btn-success'}"
                             onclick="toggleMembership('${escapeHtml(m.id)}', ${!!m.membership_active})">
                             ${m.membership_active ? 'Deactivate' : 'Activate'}
                         </button>
                         <button class="tbl-btn ${m.pic_status ? 'tbl-btn-warn' : 'tbl-btn-primary'}"
                             onclick="togglePIC('${escapeHtml(m.id)}', ${!!m.pic_status})">
-                            ${m.pic_status ? 'Remove PIC' : 'Set PIC'}
+                            ${m.pic_status ? 'PIC ✓' : 'Set PIC'}
                         </button>
                         ${m.role !== 'admin' ? `
                         <button class="tbl-btn tbl-btn-warn"
                             onclick="cycleRole('${escapeHtml(m.id)}', '${escapeHtml(m.role)}')">
-                            ${m.role === 'ap' ? '→ Member' : '→ A&P'}
+                            ${m.role === 'ap' ? '→ Member' : '→ A&amp;P'}
                         </button>` : ''}
+                        <button class="tbl-btn" style="background:rgba(91,184,232,0.12);border-color:rgba(91,184,232,0.3);color:#5BB8E8"
+                            onclick="resendInvite('${escapeHtml(m.email)}', '${escapeHtml(m.name || m.email)}')">
+                            Re-invite
+                        </button>
                     </td>
                 </tr>`).join('');
         }
 
-        async function addMember() {
+        async function inviteMember() {
             const name  = document.getElementById('newName').value.trim();
             const email = document.getElementById('newEmail').value.trim().toLowerCase();
             const phone = document.getElementById('newPhone').value.trim();
+            const role  = document.getElementById('newRole').value;
             const msg   = document.getElementById('addMemberMsg');
 
-            if (!name || name.length < 2 || name.length > 100) { msg.style.color='#dc3545'; msg.textContent='Name must be 2–100 characters.'; return; }
-            if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { msg.style.color='#dc3545'; msg.textContent='Enter a valid email address.'; return; }
-            if (phone && phone.replace(/\D/g,'').length > 15) { msg.style.color='#dc3545'; msg.textContent='Phone number is too long.'; return; }
+            if (!name || name.length < 2)  { msg.className='msg-err'; msg.textContent='Enter the member\'s full name.'; return; }
+            if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { msg.className='msg-err'; msg.textContent='Enter a valid email address.'; return; }
 
-            // Pre-create the member record by email — when the member first signs in via Supabase Auth,
-            // the auth trigger updates the id to match their auth UUID.
-            // Admin must also create their auth account in Supabase → Authentication → Users
-            const { error } = await _supabase.from('members').upsert({
-                name, email, phone: phone || null,
-                membership_active: true, pic_status: false, role: 'member'
-            }, { onConflict: 'email' });
+            const btn = document.querySelector('.add-member-form .form-submit');
+            btn.disabled = true; btn.textContent = 'Sending…';
+            msg.className = ''; msg.textContent = '';
 
-            if (error) {
-                console.error('[addMember]', error);
-                msg.style.color='#dc3545';
-                msg.textContent = error.code === '23505'
-                    ? 'A member with that email already exists.'
-                    : 'Failed to add member. Please try again.';
-                return;
+            try {
+                const { data: { session } } = await _supabase.auth.getSession();
+                const res = await fetch('/.netlify/functions/inviteMember', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${session.access_token}`
+                    },
+                    body: JSON.stringify({ name, email, phone: phone || null, role })
+                });
+                const result = await res.json();
+                if (!res.ok) {
+                    msg.className = 'msg-err';
+                    msg.textContent = result.error || 'Failed to send invite.';
+                    return;
+                }
+                msg.className = 'msg-ok';
+                msg.textContent = result.message || `Invite sent to ${email}!`;
+                document.getElementById('newName').value  = '';
+                document.getElementById('newEmail').value = '';
+                document.getElementById('newPhone').value = '';
+                document.getElementById('newRole').value  = 'member';
+                loadMembers();
+            } catch (e) {
+                msg.className = 'msg-err';
+                msg.textContent = 'Network error. Is the Netlify function deployed?';
+            } finally {
+                btn.disabled = false; btn.textContent = 'Send Invite';
             }
+        }
 
-            msg.style.color='#28a745';
-            msg.textContent = `${name} added. Now go to Supabase → Authentication → Users → Add user to create their login with email: ${email}`;
-            document.getElementById('newName').value = '';
-            document.getElementById('newEmail').value = '';
-            document.getElementById('newPhone').value = '';
-            loadMembers();
+        async function resendInvite(email, name) {
+            if (!confirm(`Re-send invite email to ${name} (${email})?`)) return;
+            const { data: { session } } = await _supabase.auth.getSession();
+            const res = await fetch('/.netlify/functions/inviteMember', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+                body: JSON.stringify({ name, email, role: 'member' })
+            });
+            const result = await res.json();
+            alert(result.message || result.error || 'Done.');
         }
 
         async function toggleMembership(id, current) {
@@ -511,20 +745,49 @@
         async function updateTach() {
             const val = parseFloat(document.getElementById('tachUpdate').value);
             const msg = document.getElementById('tachMsg');
-            if (isNaN(val) || val < 0 || val > 99999) { msg.style.color='#dc3545'; msg.textContent='Enter a valid tach number (0–99999).'; return; }
-            if (!airplaneId) { msg.style.color='#dc3545'; msg.textContent='Aircraft not loaded.'; return; }
+            if (isNaN(val) || val < 0 || val > 99999) { msg.className='msg-err'; msg.textContent='Enter a valid tach number (0–99999).'; return; }
+            if (!airplaneId) { msg.className='msg-err'; msg.textContent='Aircraft not loaded.'; return; }
             await _supabase.from('airplanes').update({ current_tach: val, updated_at: new Date().toISOString() }).eq('id', airplaneId);
-            msg.style.color='#28a745'; msg.textContent='Tach updated.';
+            msg.className='msg-ok'; msg.textContent='Tach updated.';
             setTimeout(() => msg.textContent = '', 2000);
+        }
+
+        async function saveGroundingPeriod() {
+            const fromVal  = document.getElementById('adminGroundedFrom').value;
+            const untilVal = document.getElementById('adminGroundedUntil').value;
+            const msg      = document.getElementById('groundingMsg');
+            if (!fromVal) { msg.className='msg-err'; msg.textContent='Please set a "Grounded From" date.'; return; }
+            const { error } = await _supabase.from('airplanes').update({
+                grounded_from:  new Date(fromVal).toISOString(),
+                grounded_until: untilVal ? new Date(untilVal).toISOString() : null,
+                updated_at:     new Date().toISOString()
+            }).eq('id', airplaneId);
+            if (error) { msg.className='msg-err'; msg.textContent='Save failed. Try again.'; return; }
+            msg.className='msg-ok'; msg.textContent='Maintenance window saved. Calendar is now blocked.';
+            setTimeout(() => msg.textContent = '', 3000);
+        }
+
+        async function clearGroundingPeriod() {
+            const msg = document.getElementById('groundingMsg');
+            const { error } = await _supabase.from('airplanes').update({
+                grounded_from:  null,
+                grounded_until: null,
+                updated_at:     new Date().toISOString()
+            }).eq('id', airplaneId);
+            if (error) { msg.className='msg-err'; msg.textContent='Clear failed. Try again.'; return; }
+            document.getElementById('adminGroundedFrom').value  = '';
+            document.getElementById('adminGroundedUntil').value = '';
+            msg.className='msg-ok'; msg.textContent='Maintenance window cleared.';
+            setTimeout(() => msg.textContent = '', 3000);
         }
 
         async function saveMaintNote() {
             const note = document.getElementById('maintNote').value.trim();
             const msg  = document.getElementById('maintMsg');
-            if (note.length > 1000) { msg.style.color='#dc3545'; msg.textContent='Note must be 1000 characters or less.'; return; }
-            if (!airplaneId) { msg.style.color='#dc3545'; msg.textContent='Aircraft not loaded.'; return; }
+            if (note.length > 1000) { msg.className='msg-err'; msg.textContent='Note must be 1000 characters or less.'; return; }
+            if (!airplaneId) { msg.className='msg-err'; msg.textContent='Aircraft not loaded.'; return; }
             await _supabase.from('airplanes').update({ notes: note || null, updated_at: new Date().toISOString() }).eq('id', airplaneId);
-            msg.style.color='#28a745'; msg.textContent='Note saved.';
+            msg.className='msg-ok'; msg.textContent='Note saved.';
             setTimeout(() => msg.textContent = '', 2000);
         }
 
@@ -565,8 +828,6 @@
                 resolved_by: currentMember.id,
                 resolved_at: new Date().toISOString()
             }).eq('id', id);
-
-            // If no more open squawks, restore aircraft to available
             const { count } = await _supabase.from('squawks')
                 .select('*', { count:'exact', head:true }).eq('airplane_id', airplaneId).eq('status', 'open');
             if (count === 0 && currentAircraftStatus === 'squawk') {
@@ -582,8 +843,7 @@
             if (!data?.length) return;
             data.forEach(m => {
                 const opt = document.createElement('option');
-                opt.value = m.id;
-                opt.textContent = m.name;
+                opt.value = m.id; opt.textContent = m.name;
                 sel.appendChild(opt);
             });
         }
@@ -601,14 +861,12 @@
             const toDate   = document.getElementById('flightFilterTo')?.value    || '';
 
             const tbody = document.getElementById('flightTableBody');
-            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#adb5bd;padding:28px">Loading…</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:rgba(255,255,255,0.3);padding:28px">Loading…</td></tr>';
 
             let q = _supabase.from('flight_logs')
-                .select('*, members(name)')
-                .eq('airplane_id', airplaneId)
+                .select('*, members(name)').eq('airplane_id', airplaneId)
                 .or('is_deleted.is.null,is_deleted.eq.false')
-                .order('completed_at', { ascending: false })
-                .limit(100);
+                .order('completed_at', { ascending: false }).limit(100);
 
             if (pilotId)  q = q.eq('member_id', pilotId);
             if (fromDate) q = q.gte('completed_at', fromDate + 'T00:00:00');
@@ -616,17 +874,18 @@
 
             const { data } = await q;
 
-            if (!data?.length) { tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:#adb5bd;padding:28px">No flight logs found.</td></tr>'; document.getElementById('flightTableFoot').innerHTML = ''; return; }
+            if (!data?.length) {
+                tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:rgba(255,255,255,0.3);padding:28px">No flight logs found.</td></tr>';
+                document.getElementById('flightTableFoot').innerHTML = '';
+                return;
+            }
 
             let totalHrs = 0, totalCost = 0;
             tbody.innerHTML = data.map(f => {
-                // Use stored columns; fall back to tach calculation for older rows
                 const hrs  = f.flight_hours  != null ? f.flight_hours
-                           : (f.tach_start != null && f.tach_end != null) ? Math.round((f.tach_end - f.tach_start) * 10) / 10
-                           : null;
+                           : (f.tach_start != null && f.tach_end != null) ? Math.round((f.tach_end - f.tach_start) * 10) / 10 : null;
                 const cost = f.flight_cost   != null ? f.flight_cost
-                           : hrs != null ? Math.round(hrs * 65 * 100) / 100
-                           : null;
+                           : hrs != null ? Math.round(hrs * 65 * 100) / 100 : null;
                 if (hrs  != null) totalHrs  += hrs;
                 if (cost != null) totalCost += cost;
 
@@ -649,7 +908,7 @@
                     <td>${f.tach_start ?? '—'}</td>
                     <td>${f.tach_end ?? '—'}</td>
                     <td><strong>${timeStr}</strong></td>
-                    <td><strong style="color:#28a745">${costStr}</strong></td>
+                    <td><strong style="color:#5DD89A">${costStr}</strong></td>
                     <td>${fuelStr}</td>
                     <td>${oilStr}</td>
                     <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escapeHtml(f.notes)}">${escapeHtml(f.notes) || '—'}</td>
@@ -657,24 +916,21 @@
                 </tr>`;
             }).join('');
 
-            // Totals row
             document.getElementById('flightTableFoot').innerHTML = `
-                <tr style="background:#f0f4ff;font-weight:700;border-top:2px solid #667eea">
-                    <td colspan="4" style="padding:12px 20px;font-size:0.85em;color:#667eea;text-transform:uppercase;letter-spacing:1px">
+                <tr style="background:rgba(42,122,82,0.1);border-top:1px solid rgba(42,122,82,0.3)">
+                    <td colspan="4" style="padding:12px 18px;font-family:'Montserrat',sans-serif;font-size:0.72em;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,0.35)">
                         TOTALS — ${data.length} flight${data.length !== 1 ? 's' : ''}
                     </td>
-                    <td style="padding:12px 20px;font-size:1em;color:#2c3e50">${totalHrs.toFixed(1)} hr</td>
-                    <td style="padding:12px 20px;font-size:1em;color:#28a745">$${totalCost.toFixed(2)}</td>
-                    <td colspan="4" style="padding:12px 20px;font-size:0.8em;color:#95a5a6">$65/hr dry rate</td>
+                    <td style="padding:12px 18px;font-weight:700;color:#fff">${totalHrs.toFixed(1)} hr</td>
+                    <td style="padding:12px 18px;font-weight:700;color:#5DD89A">$${totalCost.toFixed(2)}</td>
+                    <td colspan="4" style="padding:12px 18px;font-size:0.8em;color:rgba(255,255,255,0.3)">$65/hr dry rate</td>
                 </tr>`;
         }
 
         async function deleteFlightLog(id) {
             if (!confirm('Soft-delete this flight log? It will be hidden from all views but not permanently removed.')) return;
             const { error } = await _supabase.from('flight_logs').update({
-                is_deleted:  true,
-                deleted_by:  currentMember.id,
-                deleted_at:  new Date().toISOString()
+                is_deleted: true, deleted_by: currentMember.id, deleted_at: new Date().toISOString()
             }).eq('id', id);
             if (error) { console.error('[deleteFlightLog]', error); alert('Delete failed. Please try again.'); return; }
             loadFlights();
@@ -686,8 +942,7 @@
         function setResFilter(f) {
             resFilter = f;
             ['upcoming','past','all'].forEach(k => {
-                document.getElementById('resFilt' + k.charAt(0).toUpperCase() + k.slice(1))
-                    .style.opacity = (k === f) ? '1' : '0.55';
+                document.getElementById('resFilt' + k.charAt(0).toUpperCase() + k.slice(1)).style.opacity = (k === f) ? '1' : '0.5';
             });
             loadReservations();
         }
@@ -695,34 +950,32 @@
         async function loadReservations() {
             if (!airplaneId) return;
             const tbody = document.getElementById('resTableBody');
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#adb5bd;padding:28px">Loading…</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:rgba(255,255,255,0.3);padding:28px">Loading…</td></tr>';
 
             let q = _supabase.from('reservations')
-                .select('*, member:members(name,email)')
-                .eq('airplane_id', airplaneId)
+                .select('*, member:members(name,email)').eq('airplane_id', airplaneId)
                 .order('start_time', { ascending: false });
 
             const now = new Date().toISOString();
             if (resFilter === 'upcoming') q = q.gte('start_time', now);
-            else if (resFilter === 'past')   q = q.lt('start_time', now);
+            else if (resFilter === 'past') q = q.lt('start_time', now);
 
             const { data, error } = await q.limit(80);
-            if (error) { console.error('[loadReservations]', error); tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#dc3545;padding:28px">Failed to load reservations. Please refresh.</td></tr>'; return; }
+            if (error) { console.error('[loadReservations]', error); tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#ff8090;padding:28px">Failed to load. Please refresh.</td></tr>'; return; }
             if (!data?.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="6">No reservations found.</td></tr>'; return; }
 
             tbody.innerHTML = data.map(r => {
                 const start = new Date(r.start_time);
                 const end   = new Date(r.end_time);
-                const isPast = start < new Date();
-                return `<tr style="${isPast ? 'opacity:0.65' : ''}">
-                    <td><strong>${escapeHtml(r.member?.name) || '—'}</strong><br><small style="color:#7f8c8d">${escapeHtml(r.member?.email) || ''}</small></td>
+                return `<tr style="${start < new Date() ? 'opacity:0.6' : ''}">
+                    <td><strong>${escapeHtml(r.member?.name) || '—'}</strong><br><small style="color:rgba(255,255,255,0.35)">${escapeHtml(r.member?.email) || ''}</small></td>
                     <td>${start.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</td>
                     <td>${start.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}</td>
                     <td>${end.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}</td>
                     <td>${escapeHtml(r.purpose) || '—'}</td>
                     <td>
                         <button class="tbl-btn tbl-btn-primary" onclick="openResEdit('${escapeHtml(r.id)}','${start.toISOString()}','${end.toISOString()}','${escapeHtml(r.purpose||'')}')">Edit</button>
-                        <button class="tbl-btn tbl-btn-danger" onclick="deleteReservation('${escapeHtml(r.id)}')">Delete</button>
+                        <button class="tbl-btn tbl-btn-danger"  onclick="deleteReservation('${escapeHtml(r.id)}')">Delete</button>
                     </td>
                 </tr>`;
             }).join('');
@@ -738,10 +991,8 @@
         let editResId = null;
         function openResEdit(id, startIso, endIso, purpose) {
             editResId = id;
-            // Convert ISO to local datetime-local format
             const toLocal = iso => {
-                const d = new Date(iso);
-                const pad = n => String(n).padStart(2,'0');
+                const d = new Date(iso), pad = n => String(n).padStart(2,'0');
                 return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
             };
             document.getElementById('resEditStart').value   = toLocal(startIso);
@@ -758,40 +1009,28 @@
             const purposeVal = document.getElementById('resEditPurpose').value.trim();
             const msg        = document.getElementById('resEditMsg');
 
-            if (!startVal || !endVal) { msg.style.color='#dc3545'; msg.textContent='Start and end times are required.'; return; }
-            const start = new Date(startVal);
-            const end   = new Date(endVal);
-            if (end <= start) { msg.style.color='#dc3545'; msg.textContent='End time must be after start time.'; return; }
-            if ((end - start) > 12 * 3600000) { msg.style.color='#dc3545'; msg.textContent='Reservation cannot exceed 12 hours.'; return; }
+            if (!startVal || !endVal) { msg.className='msg-err'; msg.textContent='Start and end times are required.'; return; }
+            const start = new Date(startVal), end = new Date(endVal);
+            if (end <= start) { msg.className='msg-err'; msg.textContent='End time must be after start time.'; return; }
+            if ((end - start) > 12 * 3600000) { msg.className='msg-err'; msg.textContent='Reservation cannot exceed 12 hours.'; return; }
 
             const { error } = await _supabase.from('reservations').update({
-                start_time: start.toISOString(),
-                end_time:   end.toISOString(),
-                purpose:    purposeVal || null
+                start_time: start.toISOString(), end_time: end.toISOString(), purpose: purposeVal || null
             }).eq('id', editResId);
 
-            if (error) { console.error('[saveReservation]', error); msg.style.color='#dc3545'; msg.textContent='Save failed. Please try again.'; return; }
-            msg.style.color='#28a745'; msg.textContent='Saved!';
+            if (error) { console.error('[saveReservation]', error); msg.className='msg-err'; msg.textContent='Save failed. Please try again.'; return; }
+            msg.className='msg-ok'; msg.textContent='Saved!';
             setTimeout(() => { closeResEdit(); loadReservations(); }, 700);
         }
 
-        function fmtDate(iso) { return new Date(iso).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }
-        function toggleNav()  { document.getElementById('navLinks').classList.toggle('nav-open'); }
-
         // ── Inspections ──
         async function loadInspections() {
-            const { data } = await _supabase
-                .from('inspections')
-                .select('*')
-                .eq('airplane_id', airplaneId)
-                .order('name');
-
+            const { data } = await _supabase.from('inspections').select('*').eq('airplane_id', airplaneId).order('name');
             const tbody = document.getElementById('inspTableBody');
             if (!data?.length) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:28px;color:#adb5bd">No inspections found. Run the SQL setup script first.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:28px;color:rgba(255,255,255,0.3)">No inspections found. Run the SQL setup script first.</td></tr>';
                 return;
             }
-
             const today = new Date(); today.setHours(0,0,0,0);
             tbody.innerHTML = data.map(insp => {
                 let status = 'unknown', dueText = '—', nextDue = '—';
@@ -809,14 +1048,14 @@
                 const interval = insp.interval_days === 365 ? '12 months' : insp.interval_days === 730 ? '24 months' : insp.interval_days + 'd';
                 return `<tr>
                     <td>
-                        <strong>${insp.name}</strong>
-                        <div style="font-size:0.8em;color:#7f8c8d;margin-top:2px">${insp.description || ''}</div>
+                        <strong>${escapeHtml(insp.name)}</strong>
+                        <div style="font-size:0.78em;color:rgba(255,255,255,0.35);margin-top:2px">${escapeHtml(insp.description) || ''}</div>
                     </td>
                     <td>${interval}</td>
                     <td>${insp.last_completed ? fmtDate(insp.last_completed) : '—'}</td>
                     <td>${nextDue}</td>
-                    <td><span class="badge ${badgeMap[status]}">${labelMap[status]}</span> <small style="color:#7f8c8d">${dueText}</small></td>
-                    <td><button class="tbl-btn tbl-btn-primary" onclick="openInspEdit('${insp.id}','${insp.name}','${insp.last_completed||''}','${insp.notes||''}')">Update</button></td>
+                    <td><span class="badge ${badgeMap[status]}">${labelMap[status]}</span> <small style="color:rgba(255,255,255,0.35);margin-left:4px">${dueText}</small></td>
+                    <td><button class="tbl-btn tbl-btn-primary" onclick="openInspEdit('${escapeHtml(insp.id)}','${escapeHtml(insp.name)}','${insp.last_completed||''}','${escapeHtml(insp.notes||'')}')">Update</button></td>
                 </tr>`;
             }).join('');
         }
@@ -830,76 +1069,24 @@
             document.getElementById('inspEditMsg').textContent = '';
             document.getElementById('inspModal').classList.add('open');
         }
-        function closeInspEdit() {
-            document.getElementById('inspModal').classList.remove('open');
-        }
+        function closeInspEdit() { document.getElementById('inspModal').classList.remove('open'); }
+
         async function saveInspection() {
             const date  = document.getElementById('inspEditDate').value;
             const notes = document.getElementById('inspEditNotes').value.trim();
             const msg   = document.getElementById('inspEditMsg');
-            if (!date) { msg.style.color='#dc3545'; msg.textContent='Please enter a completion date.'; return; }
+            if (!date) { msg.className='msg-err'; msg.textContent='Please enter a completion date.'; return; }
             const { error } = await _supabase.from('inspections').update({
-                last_completed: date,
-                notes: notes || null,
-                updated_at: new Date().toISOString(),
-                updated_by: currentMember.id
+                last_completed: date, notes: notes || null,
+                updated_at: new Date().toISOString(), updated_by: currentMember.id
             }).eq('id', editInspId);
-            if (error) { console.error('[saveInspection]', error); msg.style.color='#dc3545'; msg.textContent='Save failed. Please try again.'; return; }
-            msg.style.color='#28a745'; msg.textContent='Saved!';
+            if (error) { console.error('[saveInspection]', error); msg.className='msg-err'; msg.textContent='Save failed. Please try again.'; return; }
+            msg.className='msg-ok'; msg.textContent='Saved!';
             setTimeout(() => { closeInspEdit(); loadInspections(); }, 800);
         }
-    </script>
 
-    <!-- Reservation edit modal -->
-    <div class="res-modal-bg" id="resModal">
-        <div class="res-modal-box">
-            <h2>Edit Reservation</h2>
-            <div class="res-field">
-                <label>Start Date &amp; Time</label>
-                <input type="datetime-local" id="resEditStart">
-            </div>
-            <div class="res-field">
-                <label>End Date &amp; Time</label>
-                <input type="datetime-local" id="resEditEnd">
-            </div>
-            <div class="res-field">
-                <label>Purpose (optional)</label>
-                <input type="text" id="resEditPurpose" placeholder="e.g. Cross-country, Training…" maxlength="200">
-            </div>
-            <div id="resEditMsg" style="font-size:0.88em;margin-top:6px"></div>
-            <div class="res-modal-actions">
-                <button class="res-modal-cancel" onclick="closeResEdit()">Cancel</button>
-                <button class="res-modal-save"   onclick="saveReservation()">Save Changes</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Inspection edit modal -->
-    <div style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2000;align-items:center;justify-content:center;padding:16px;box-sizing:border-box" id="inspModal" class="">
-        <div style="background:white;border-radius:20px;padding:32px;width:100%;max-width:440px;box-shadow:0 20px 60px rgba(0,0,0,0.2);box-sizing:border-box">
-            <h2 style="font-size:1.1em;font-weight:700;color:#2c3e50;margin-bottom:6px">Update Inspection</h2>
-            <div id="inspEditName" style="font-size:0.9em;color:#7f8c8d;margin-bottom:24px"></div>
-            <div style="margin-bottom:16px">
-                <label style="font-size:0.8em;font-weight:700;color:#7f8c8d;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:6px">Last Completed Date</label>
-                <input type="date" id="inspEditDate" style="width:100%;padding:12px 16px;border:2px solid #e9ecef;border-radius:10px;font-size:0.95em;box-sizing:border-box">
-            </div>
-            <div style="margin-bottom:16px">
-                <label style="font-size:0.8em;font-weight:700;color:#7f8c8d;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:6px">Notes (optional)</label>
-                <textarea id="inspEditNotes" rows="3" maxlength="1000" placeholder="e.g. Done by ABC Aviation, work order #123" style="width:100%;padding:12px 16px;border:2px solid #e9ecef;border-radius:10px;font-size:0.95em;box-sizing:border-box;resize:vertical"></textarea>
-            </div>
-            <div style="display:flex;gap:12px;margin-top:8px">
-                <button onclick="closeInspEdit()" style="padding:12px 20px;background:white;color:#7f8c8d;border:2px solid #e9ecef;border-radius:10px;font-size:0.95em;font-weight:600;cursor:pointer">Cancel</button>
-                <button onclick="saveInspection()" style="flex:1;padding:12px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:10px;font-size:0.95em;font-weight:700;cursor:pointer">Save</button>
-            </div>
-            <div id="inspEditMsg" style="font-size:0.88em;margin-top:10px"></div>
-        </div>
-    </div>
-    <script>
-        // Make modal open/close work with the class toggle
-        const inspModalEl = document.getElementById('inspModal');
-        new MutationObserver(() => {
-            inspModalEl.style.display = inspModalEl.classList.contains('open') ? 'flex' : 'none';
-        }).observe(inspModalEl, { attributes: true, attributeFilter: ['class'] });
+        function fmtDate(iso) { return new Date(iso).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }
+        function toggleNav()  { document.getElementById('navLinks').classList.toggle('nav-open'); }
     </script>
 </body>
 </html>

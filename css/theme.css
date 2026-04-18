@@ -1,0 +1,78 @@
+/* ─────────────────────────────────────────────────────────────
+   CSS Custom Properties — dark (default) + light override
+   Load this BEFORE any page <style> block so variables resolve.
+───────────────────────────────────────────────────────────── */
+
+:root {
+  /* Brand */
+  --green:      #2A7A52;
+  --green-lt:   #359966;
+  --sky:        #5BB8E8;
+  --amber:      #F5B942;
+  --magenta:    #D4439A;
+  --red:        #dc3545;
+
+  /* Layout */
+  --body-bg:    linear-gradient(160deg, #0C1F14 0%, #0D1E20 50%, #0B1C2D 100%);
+  --nav-bg:     rgba(12, 31, 20, 0.97);   /* always dark — brand identity */
+  --surface:    rgba(255, 255, 255, 0.05);
+  --surface-hi: rgba(255, 255, 255, 0.09);
+  --modal-bg:   #111E2A;
+
+  /* Borders */
+  --border:     rgba(255, 255, 255, 0.10);
+  --border-dim: rgba(255, 255, 255, 0.06);
+
+  /* Text */
+  --text:       rgba(255, 255, 255, 0.92);
+  --text-dim:   rgba(255, 255, 255, 0.55);
+  --text-muted: rgba(255, 255, 255, 0.35);
+  --text-faint: rgba(255, 255, 255, 0.20);
+
+  /* Inputs */
+  --input-bg:    rgba(255, 255, 255, 0.07);
+  --input-text:  rgba(255, 255, 255, 0.90);
+  --placeholder: rgba(255, 255, 255, 0.30);
+
+  /* Status — bg / border / text */
+  --ok-bg:    rgba( 42, 122,  82, 0.15);  --ok-border:    rgba( 42, 122,  82, 0.40);  --ok-text:    #5DD89A;
+  --err-bg:   rgba(220,  53,  69, 0.12);  --err-border:   rgba(220,  53,  69, 0.35);  --err-text:   #ff8090;
+  --warn-bg:  rgba(245, 185,  66, 0.12);  --warn-border:  rgba(245, 185,  66, 0.30);  --warn-text:  #F5B942;
+  --info-bg:  rgba( 91, 184, 232, 0.12);  --info-border:  rgba( 91, 184, 232, 0.30);  --info-text:  #5BB8E8;
+}
+
+/* Light theme — applied via html.light-theme class toggled by theme.js */
+html.light-theme {
+  --body-bg:    linear-gradient(160deg, #e6f0ea 0%, #e8eff3 50%, #e2eaf4 100%);
+  /* --nav-bg stays dark (brand identity) */
+  --surface:    rgba(255, 255, 255, 0.80);
+  --surface-hi: rgba(255, 255, 255, 0.95);
+  --modal-bg:   #f8fafb;
+
+  --border:     rgba(0, 0, 0, 0.10);
+  --border-dim: rgba(0, 0, 0, 0.06);
+
+  --text:       #1a2a1e;
+  --text-dim:   #4a6550;
+  --text-muted: #7a9080;
+  --text-faint: #aab8ae;
+
+  --input-bg:    rgba(255, 255, 255, 0.90);
+  --input-text:  #1a2a1e;
+  --placeholder: #8a9e90;
+
+  --ok-bg:    rgba( 42, 122,  82, 0.10);  --ok-border:    rgba( 42, 122,  82, 0.30);  --ok-text:    #1a6040;
+  --err-bg:   rgba(220,  53,  69, 0.08);  --err-border:   rgba(220,  53,  69, 0.28);  --err-text:   #a02030;
+  --warn-bg:  rgba(180, 120,   0, 0.09);  --warn-border:  rgba(180, 120,   0, 0.28);  --warn-text:  #7a5000;
+  --info-bg:  rgba( 30,  90, 160, 0.08);  --info-border:  rgba( 30,  90, 160, 0.24);  --info-text:  #1a5a9a;
+}
+
+/* ── Global resets ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Open Sans', sans-serif;
+  background: var(--body-bg);
+  color: var(--text);
+  min-height: 100vh;
+}

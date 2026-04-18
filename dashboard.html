@@ -8,18 +8,21 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/theme.css">
+    <script src="js/theme.js"></script>
+    <style>body{visibility:hidden}</style>
     <style>
         *, *::before, *::after { box-sizing: border-box; }
 
         /* ── BASE — PNW dark + subtle sectional chart lat/lon grid ── */
         body {
             font-family: 'Open Sans', sans-serif;
-            background: #0B1C2D;
+            background: var(--body-bg);
             background-image:
                 linear-gradient(rgba(212,67,154,0.04) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(212,67,154,0.04) 1px, transparent 1px);
             background-size: 48px 48px;
-            color: #fff;
+            color: var(--text);
             margin: 0;
             min-height: 100vh;
         }
@@ -271,10 +274,12 @@
                 <a href="schedule.html">Schedule</a>
                 <a href="squawks.html">Squawks</a>
                 <a href="post-flight.html">Post-Flight</a>
+                <a href="directory.html">Directory</a>
                 <a href="#" onclick="openProfile(); return false;">Profile</a>
                 <span id="adminLink" style="display:none"><a href="admin.html">Admin</a></span>
             </div>
             <div id="navUser"></div>
+            <button id="themeBtn" onclick="toggleTheme()" style="background:none;border:none;cursor:pointer;padding:6px 8px;font-size:1.05em;line-height:1;opacity:0.7;" title="Toggle theme">☀️</button>
             <button class="hamburger-btn" onclick="toggleNav()" aria-label="Menu">
                 <span></span><span></span><span></span>
             </button>
@@ -428,7 +433,9 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/config.js"></script>
+    <script src="js/club-config.js"></script>
+    <script src="js/supabase-client.js"></script>
+    <script src="js/utils.js"></script>
     <script src="js/auth.js"></script>
     <script>
         const SLOT_HRS = [6,7,8,9,10,11,12,13,14,15,16,17,18,19,20];
@@ -449,7 +456,7 @@
                 return;
             }
 
-            renderNavUser();
+            renderNavUser(currentMember);
             if (isAdmin(currentMember)) document.getElementById('adminLink').style.display = 'inline';
 
             await Promise.all([loadAirplane(), loadReservations(), loadSquawks(), loadInspections(), loadMyFlightLog()]);
@@ -587,12 +594,12 @@
                 const cost = f.flight_cost  != null ? f.flight_cost
                            : hrs != null ? Math.round(hrs * 65 * 100) / 100 : null;
                 const date = new Date(f.completed_at).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
-                return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f0f2f5;gap:12px;flex-wrap:wrap">
-                    <div style="font-size:0.85em;color:#7f8c8d;min-width:80px">${date}</div>
-                    <div style="flex:1;font-size:0.88em;color:#2c3e50;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(f.notes) || '—'}</div>
+                return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.07);gap:12px;flex-wrap:wrap">
+                    <div style="font-size:0.85em;color:rgba(255,255,255,0.45);min-width:80px">${date}</div>
+                    <div style="flex:1;font-size:0.88em;color:rgba(255,255,255,0.85);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(f.notes) || '—'}</div>
                     <div style="text-align:right;flex-shrink:0">
-                        <span style="font-weight:700;color:#2c3e50">${hrs != null ? hrs.toFixed(1) + ' hr' : '—'}</span>
-                        <span style="color:#28a745;font-weight:700;margin-left:12px">${cost != null ? '$' + cost.toFixed(2) : '—'}</span>
+                        <span style="font-weight:700;color:#fff">${hrs != null ? hrs.toFixed(1) + ' hr' : '—'}</span>
+                        <span style="color:#5DD89A;font-weight:700;margin-left:12px">${cost != null ? '$' + cost.toFixed(2) : '—'}</span>
                     </div>
                 </div>`;
             }).join('');
@@ -838,7 +845,7 @@
                 currentMember.name  = name;
                 currentMember.phone = phone;
                 msg.className = 'profile-msg success'; msg.textContent = 'Profile updated!';
-                renderNavUser();
+                renderNavUser(currentMember);
                 setTimeout(closeProfile, 1200);
             }
         }

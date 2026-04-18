@@ -1,103 +1,118 @@
-// Auth helpers
+// ─────────────────────────────────────────────────────────────
+//  Auth helpers — load after supabase-client.js and utils.js
+// ─────────────────────────────────────────────────────────────
 
-// ── Security: HTML escaping to prevent XSS ──────────────────────────────────
-function escapeHtml(str) {
-    if (str === null || str === undefined) return '';
-    return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#x27;');
-}
+// ── Role checks ──────────────────────────────────────────────
+function isAdmin(m)    { return m?.role === 'admin'; }
+function isAP(m)       { return m?.role === 'ap'; }
+function isAdminOrAP(m){ return m?.role === 'admin' || m?.role === 'ap'; }
 
-// ── Role helpers ─────────────────────────────────────────────────────────────
-function isAdmin(member)     { return member?.role === 'admin'; }
-function isAP(member)        { return member?.role === 'ap'; }
-function isAdminOrAP(member) { return isAdmin(member) || isAP(member); }
+// ── Auth guards ──────────────────────────────────────────────
 
-// ── Auth ─────────────────────────────────────────────────────────────────────
-async function getSession() {
-    const { data: { session } } = await _supabase.auth.getSession();
-    return session;
-}
-
+// requireAuth — hides page body until session confirmed.
+// Prevents any flash of protected content for unauthenticated users.
 async function requireAuth() {
-    const session = await getSession();
-    if (!session) {
-        window.location.href = '/login.html';
-        return null;
-    }
+  document.body.style.visibility = 'hidden';
+
+  const { data: { session } } = await _supabase.auth.getSession();
+  if (session) {
+    document.body.style.visibility = 'visible';
     return session;
+  }
+
+  // Session may still be loading (JWT refresh in flight) — wait up to 5s
+  return new Promise(resolve => {
+    let done = false;
+    const { data: { subscription } } = _supabase.auth.onAuthStateChange((event, sess) => {
+      if (done) return;
+      if (event !== 'INITIAL_SESSION' && event !== 'SIGNED_IN') return;
+      done = true;
+      subscription.unsubscribe();
+      if (!sess) { window.location.href = '/login.html'; resolve(null); return; }
+      document.body.style.visibility = 'visible';
+      resolve(sess);
+    });
+    setTimeout(() => {
+      if (done) return;
+      done = true;
+      subscription.unsubscribe();
+      window.location.href = '/login.html';
+    }, 5000);
+  });
 }
 
+// requireAdmin — admin pages only; redirects others to dashboard
 async function requireAdmin() {
-    const session = await requireAuth();
-    if (!session) return null;
-    const { data: member } = await _supabase
-        .from('members').select('role').eq('id', session.user.id).single();
-    if (!member || member.role !== 'admin') {
-        window.location.href = '/dashboard.html';
-        return null;
-    }
-    return session;
+  const session = await requireAuth();
+  if (!session) return null;
+  const { data: m } = await _supabase
+    .from('members').select('role').eq('id', session.user.id).single();
+  if (m?.role !== 'admin') { window.location.href = '/dashboard.html'; return null; }
+  return session;
 }
 
+// requireAdminOrAP — admin + A&P pages; redirects members to dashboard
 async function requireAdminOrAP() {
-    const session = await requireAuth();
-    if (!session) return null;
-    const { data: member } = await _supabase
-        .from('members').select('role').eq('id', session.user.id).single();
-    if (!member || !['admin','ap'].includes(member.role)) {
-        window.location.href = '/dashboard.html';
-        return null;
-    }
-    return session;
+  const session = await requireAuth();
+  if (!session) return null;
+  const { data: m } = await _supabase
+    .from('members').select('role').eq('id', session.user.id).single();
+  if (!['admin', 'ap'].includes(m?.role)) {
+    window.location.href = '/dashboard.html'; return null;
+  }
+  return session;
 }
 
+// ── Member data ──────────────────────────────────────────────
 async function getCurrentMember() {
-    const session = await getSession();
-    if (!session) return null;
-    const { data } = await _supabase
-        .from('members').select('*').eq('id', session.user.id).single();
-    return data;
+  const { data: { session } } = await _supabase.auth.getSession();
+  if (!session) return null;
+  const { data } = await _supabase
+    .from('members').select('*').eq('id', session.user.id).single();
+  return data;
 }
 
 async function signOut() {
-    await _supabase.auth.signOut();
-    window.location.href = '/index.html';
+  await _supabase.auth.signOut();
+  window.location.href = '/index.html';
 }
 
-async function renderNavUser() {
-    const member = await getCurrentMember();
-    const el = document.getElementById('navUser');
-    if (!el || !member) return;
+// ── Nav user widget ──────────────────────────────────────────
+// Renders name + role badge + sign-out into #navUser element.
+// Call after getCurrentMember() resolves.
+function renderNavUser(member) {
+  const el = document.getElementById('navUser');
+  if (!el || !member) return;
 
-    const roleStyles = {
-        admin:  'background:linear-gradient(135deg,#667eea,#764ba2);color:white',
-        ap:     'background:linear-gradient(135deg,#e67e22,#d35400);color:white',
-        member: 'background:#e9ecef;color:#6c757d'
-    };
-    const roleLabels = { admin:'Admin', ap:'A&P', member:'Member' };
-    const badgeStyle = roleStyles[member.role] || roleStyles.member;
-    const badgeLabel = roleLabels[member.role] || 'Member';
+  const roleStyle = {
+    admin:  'background:linear-gradient(135deg,#667eea,#764ba2)',
+    ap:     'background:linear-gradient(135deg,#e67e22,#d35400)',
+    member: 'background:rgba(255,255,255,0.12)'
+  };
+  const roleLabel = { admin: 'Admin', ap: 'A&P', member: 'Member' };
 
-    el.innerHTML = '';
+  el.innerHTML = '';
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'display:flex;align-items:center;gap:8px;white-space:nowrap';
 
-    const nameSpan = document.createElement('span');
-    nameSpan.style.cssText = 'font-weight:600;color:#2c3e50';
-    nameSpan.textContent = member.name || member.email;
+  const nm = document.createElement('span');
+  nm.style.cssText = 'font-weight:600;color:rgba(255,255,255,0.9);font-size:0.85em;max-width:140px;overflow:hidden;text-overflow:ellipsis';
+  nm.textContent = member.name || member.email;
 
-    const badgeSpan = document.createElement('span');
-    badgeSpan.setAttribute('style', `margin-left:8px;${badgeStyle};font-size:0.7em;font-weight:700;padding:2px 8px;border-radius:10px;letter-spacing:0.5px;text-transform:uppercase`);
-    badgeSpan.textContent = badgeLabel;
+  const badge = document.createElement('span');
+  badge.style.cssText = `${roleStyle[member.role] || roleStyle.member};color:#fff;font-size:0.68em;font-weight:700;padding:2px 8px;border-radius:10px;letter-spacing:0.5px;text-transform:uppercase;font-family:'Montserrat',sans-serif`;
+  badge.textContent = roleLabel[member.role] || 'Member';
 
-    const signOutBtn = document.createElement('button');
-    signOutBtn.setAttribute('style', 'margin-left:12px;background:none;border:1px solid #bdc3c7;padding:4px 14px;border-radius:20px;cursor:pointer;font-size:0.85em;color:#7f8c8d');
-    signOutBtn.textContent = 'Sign out';
-    signOutBtn.onclick = signOut;
+  const btn = document.createElement('button');
+  btn.style.cssText = 'background:none;border:1px solid rgba(255,255,255,0.22);padding:4px 12px;border-radius:20px;cursor:pointer;font-size:0.8em;color:rgba(255,255,255,0.55);white-space:nowrap';
+  btn.textContent = 'Sign out';
+  btn.onclick = signOut;
 
-    el.appendChild(nameSpan);
-    el.appendChild(badgeSpan);
-    el.appendChild(signOutBtn);
+  wrap.append(nm, badge, btn);
+  el.appendChild(wrap);
+}
+
+// ── Nav toggle (mobile hamburger) ────────────────────────────
+function toggleNav() {
+  document.getElementById('navLinks')?.classList.toggle('open');
 }
