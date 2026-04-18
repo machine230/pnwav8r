@@ -37,20 +37,41 @@
 
 # ── Clean URL aliases ─────────────────────────────────────────
 [[redirects]]
-  from = "/dashboard"  to = "/dashboard.html"  status = 200
+  from   = "/dashboard"
+  to     = "/dashboard.html"
+  status = 200
+
 [[redirects]]
-  from = "/schedule"   to = "/schedule.html"   status = 200
+  from   = "/schedule"
+  to     = "/schedule.html"
+  status = 200
+
 [[redirects]]
-  from = "/squawks"    to = "/squawks.html"    status = 200
+  from   = "/squawks"
+  to     = "/squawks.html"
+  status = 200
+
 [[redirects]]
-  from = "/post-flight" to = "/post-flight.html" status = 200
+  from   = "/post-flight"
+  to     = "/post-flight.html"
+  status = 200
+
 [[redirects]]
-  from = "/directory"  to = "/directory.html"  status = 200
+  from   = "/directory"
+  to     = "/directory.html"
+  status = 200
+
 [[redirects]]
-  from = "/admin"      to = "/admin.html"      status = 200
+  from   = "/admin"
+  to     = "/admin.html"
+  status = 200
+
 [[redirects]]
-  from = "/weather"    to = "/weather.html"    status = 200
+  from   = "/weather"
+  to     = "/weather.html"
+  status = 200
+
 [[redirects]]
-  from = "/wb"         to = "/wb.html"         status = 200
-[[redirects]]
-  from = "/directory"  to = "/directory.html"  status = 200
+  from   = "/wb"
+  to     = "/wb.html"
+  status = 200
