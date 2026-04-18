@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/theme.css">
-    <script src="js/theme.js"></script>
+    <script src="js/theme.js?v=3"></script>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -126,7 +126,6 @@
     <img class="bg-img" src="images/n7798e.png" alt="" onerror="this.style.display='none'">
     <div class="bg-overlay"></div>
 
-    <button id="themeBtn" onclick="toggleTheme()" style="position:fixed;top:16px;right:16px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:6px;cursor:pointer;padding:6px 10px;font-size:1em;z-index:10;" title="Toggle theme">☀️</button>
 
     <div class="login-wrap">
         <a href="index.html" class="site-logo">PNW<span>AV8R</span></a>
@@ -144,8 +143,8 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/club-config.js"></script>
-    <script src="js/supabase-client.js"></script>
+    <script src="js/club-config.js?v=3"></script>
+    <script src="js/supabase-client.js?v=3"></script>
     <script>
         async function signIn() {
             const email = document.getElementById('email').value.trim();

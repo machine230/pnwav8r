@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-    <script src="js/theme.js"></script>
+    <script src="js/theme.js?v=3"></script>
     <style>body{visibility:hidden}</style>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -176,7 +176,6 @@
             </div>
             <div style="display:flex;align-items:center;gap:6px">
                 <div id="navUser"></div>
-                <button id="themeBtn" class="theme-btn" onclick="toggleTheme()" title="Toggle theme">☀️</button>
             </div>
             <button class="hamburger-btn" onclick="toggleNav()" aria-label="Menu">
                 <span></span><span></span><span></span>
@@ -218,10 +217,10 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/club-config.js"></script>
-    <script src="js/supabase-client.js"></script>
-    <script src="js/utils.js"></script>
-    <script src="js/auth.js"></script>
+    <script src="js/club-config.js?v=3"></script>
+    <script src="js/supabase-client.js?v=3"></script>
+    <script src="js/utils.js?v=3"></script>
+    <script src="js/auth.js?v=3"></script>
     <script>
         const SLOT_HRS  = Array.from({length:24},(_,i)=>i);
         const MIN_SLOTS = 2;
@@ -240,7 +239,11 @@
         const TODAY    = new Date(); TODAY.setHours(0,0,0,0);
         const MAX_DATE = new Date(TODAY); MAX_DATE.setMonth(MAX_DATE.getMonth() + 3);
 
+        // Failsafe: never leave page blank more than 8 seconds
+        setTimeout(() => { document.body.style.visibility = 'visible'; }, 8000);
+
         document.addEventListener('DOMContentLoaded', async () => {
+          try {
             const session = await requireAuth();
             if (!session) return;
             currentMember = await getCurrentMember();
@@ -278,6 +281,10 @@
                 .on('postgres_changes', { event:'*', schema:'public', table:'reservations' },
                     debounce(async () => { await loadReservations(); renderWeek(); }, 500))
                 .subscribe();
+          } catch (err) {
+            console.error('[schedule] init error:', err);
+            document.body.style.visibility = 'visible';
+          }
         });
 
         function getWeekStart(d) {

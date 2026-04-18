@@ -25,7 +25,7 @@ async function requireAuth() {
     let done = false;
     const { data: { subscription } } = _supabase.auth.onAuthStateChange((event, sess) => {
       if (done) return;
-      if (event !== 'INITIAL_SESSION' && event !== 'SIGNED_IN') return;
+      if (event !== 'INITIAL_SESSION' && event !== 'SIGNED_IN' && event !== 'TOKEN_REFRESHED') return;
       done = true;
       subscription.unsubscribe();
       if (!sess) { window.location.href = '/login.html'; resolve(null); return; }
@@ -114,5 +114,5 @@ function renderNavUser(member) {
 
 // ── Nav toggle (mobile hamburger) ────────────────────────────
 function toggleNav() {
-  document.getElementById('navLinks')?.classList.toggle('open');
+  document.getElementById('navLinks')?.classList.toggle('nav-open');
 }
