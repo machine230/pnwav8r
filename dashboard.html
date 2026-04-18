@@ -363,10 +363,10 @@
         <div class="dash-card" style="margin-bottom:24px">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">
                 <div class="dash-card-title" style="margin-bottom:0">My Flight Log</div>
-                <div id="myFlightLogTotal" style="font-size:0.82em;color:#95a5a6;font-weight:600"></div>
+                <div id="myFlightLogTotal" style="font-size:0.82em;color:rgba(255,255,255,0.4);font-weight:600"></div>
             </div>
             <div id="myFlightLog">
-                <div style="color:#adb5bd;font-size:0.9em;text-align:center;padding:20px 0">No flights logged yet.</div>
+                <div style="color:rgba(255,255,255,0.35);font-size:0.9em;text-align:center;padding:20px 0">No flights logged yet.</div>
             </div>
         </div>
 
@@ -655,7 +655,7 @@
                 const day = new Date(miniWeekStart); day.setDate(day.getDate() + c);
                 const isToday = day.toDateString() === today.toDateString();
                 html += `<th class="${isToday ? 'today-col' : ''}">
-                    <div style="font-size:0.8em;color:#95a5a6">${DAYS_SHORT[day.getDay()]}</div>
+                    <div style="font-size:0.8em;color:rgba(255,255,255,0.4)">${DAYS_SHORT[day.getDay()]}</div>
                     <div class="wc-num">${day.getDate()}</div>
                 </th>`;
             }
