@@ -53,10 +53,3 @@ function debounce(fn, ms) {
   let t;
   return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
 }
-
-// Get Sunday-start week containing date d
-function weekStart(d) {
-  const s = new Date(d); s.setHours(0, 0, 0, 0);
-  s.setDate(s.getDate() - s.getDay());
-  return s;
-}
