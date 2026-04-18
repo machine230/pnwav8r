@@ -14,14 +14,10 @@
     <style>
         *, *::before, *::after { box-sizing: border-box; }
 
-        /* ── BASE — PNW dark + subtle sectional chart lat/lon grid ── */
+        /* ── BASE ── */
         body {
             font-family: 'Open Sans', sans-serif;
-            background: var(--body-bg);
-            background-image:
-                linear-gradient(rgba(212,67,154,0.04) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(212,67,154,0.04) 1px, transparent 1px);
-            background-size: 48px 48px;
+            background: linear-gradient(160deg, #0b1f14 0%, #0d1e24 55%, #0a1a2e 100%);
             color: var(--text);
             margin: 0;
             min-height: 100vh;
@@ -98,43 +94,46 @@
         .ac-btn.primary:hover { background:#359966; }
 
         /* ── DOCS ROW ── */
-        .docs-row { display:flex; gap:12px; margin-bottom:22px; flex-wrap:wrap; }
+        .docs-row { display:flex; gap:12px; margin-bottom:24px; flex-wrap:wrap; }
         .doc-tile {
             display:flex; align-items:center; gap:12px;
-            background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);
+            background: linear-gradient(135deg, rgba(10,30,20,0.85), rgba(9,22,36,0.80));
+            border:1px solid rgba(91,184,232,0.20);
+            border-left: 3px solid rgba(91,184,232,0.5);
             border-radius:12px; padding:13px 20px;
-            text-decoration:none; color:rgba(255,255,255,0.8);
+            text-decoration:none; color:rgba(255,255,255,0.88);
             font-weight:600; font-size:0.88em;
             transition:all 0.2s; flex:1; min-width:180px;
         }
-        .doc-tile:hover { background:rgba(91,184,232,0.1); border-color:rgba(91,184,232,0.4); color:#fff; }
+        .doc-tile:hover { background:linear-gradient(135deg,rgba(91,184,232,0.12),rgba(91,184,232,0.06)); border-color:rgba(91,184,232,0.55); color:#fff; transform:translateY(-1px); box-shadow:0 4px 16px rgba(91,184,232,0.12); }
         .doc-icon { font-size:1.6em; flex-shrink:0; }
         .doc-info { line-height:1.35; }
-        .doc-label { font-size:0.68em; text-transform:uppercase; letter-spacing:1.5px; color:rgba(255,255,255,0.4); font-weight:700; font-family:'Montserrat',sans-serif; }
+        .doc-label { font-size:0.68em; text-transform:uppercase; letter-spacing:1.5px; color:#5BB8E8; opacity:0.7; font-weight:700; font-family:'Montserrat',sans-serif; }
 
         /* ── LAYOUT ── */
         .dash-grid { display:grid; grid-template-columns:2fr 1fr; gap:20px; }
         @media(max-width:768px){ .dash-grid { grid-template-columns:1fr; } }
 
-        /* ── CARDS — dark glass with sectional border ── */
+        /* ── CARDS ── */
         .dash-card {
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.08);
+            background: linear-gradient(160deg, rgba(11,30,20,0.88) 0%, rgba(9,22,38,0.85) 100%);
+            border: 1px solid rgba(91,184,232,0.16);
             border-radius: 14px; padding: 22px 26px;
             margin-bottom: 20px;
             position: relative; overflow: hidden;
+            box-shadow: 0 2px 16px rgba(0,0,0,0.30);
         }
-        /* Subtle magenta left-border — like a sectional airway line */
+        /* Magenta→sky left accent bar */
         .dash-card::before {
             content:''; position:absolute;
-            left:0; top:16px; bottom:16px; width:3px;
-            background: linear-gradient(to bottom, #D4439A, #5BB8E8);
-            border-radius:2px;
+            left:0; top:0; bottom:0; width:3px;
+            background: linear-gradient(to bottom, #D4439A 0%, #5BB8E8 100%);
         }
         .dash-card-title {
-            font-size:0.7em; font-weight:700;
-            text-transform:uppercase; letter-spacing:2px;
-            color: rgba(255,255,255,0.4);
+            font-size:0.68em; font-weight:700;
+            text-transform:uppercase; letter-spacing:2.5px;
+            color: #5BB8E8;
+            opacity: 0.8;
             margin-bottom:16px; padding-left:10px;
             font-family:'Montserrat',sans-serif;
         }
@@ -142,30 +141,31 @@
         /* ── CALENDAR ── */
         .week-cal { overflow-x:auto; }
         .week-cal table { width:100%; border-collapse:collapse; font-size:0.8em; }
-        .week-cal th { padding:6px 4px; text-align:center; color:rgba(255,255,255,0.45); font-weight:700; font-size:0.82em; border-bottom:1px solid rgba(255,255,255,0.08); font-family:'Montserrat',sans-serif; }
-        .week-cal th .wc-num { font-size:1.3em; font-weight:900; color:rgba(255,255,255,0.8); display:block; }
-        .week-cal th.today-col .wc-num { background:#D4439A; color:white; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; margin:0 auto; }
+        .week-cal th { padding:6px 4px; text-align:center; color:rgba(255,255,255,0.50); font-weight:700; font-size:0.82em; border-bottom:1px solid rgba(91,184,232,0.18); font-family:'Montserrat',sans-serif; }
+        .week-cal th .wc-num { font-size:1.3em; font-weight:900; color:rgba(255,255,255,0.9); display:block; }
+        .week-cal th.today-col { color:#5BB8E8; }
+        .week-cal th.today-col .wc-num { background:#D4439A; color:white; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; margin:0 auto; box-shadow:0 0 10px rgba(212,67,154,0.5); }
         .week-cal td { padding:3px 2px; text-align:center; vertical-align:top; }
         .wc-slot { height:22px; border-radius:4px; margin-bottom:2px; font-size:0.73em; font-weight:600; display:flex; align-items:center; justify-content:center; }
-        .wc-slot.free  { background:rgba(42,122,82,0.2);  color:#5DD89A; }
-        .wc-slot.mine  { background:rgba(212,67,154,0.25); color:#F07EC4; }
-        .wc-slot.taken { background:rgba(91,184,232,0.2);  color:#5BB8E8; }
+        .wc-slot.free  { background:rgba(42,122,82,0.30);  color:#6ee8a4; border:1px solid rgba(42,122,82,0.45); }
+        .wc-slot.mine  { background:rgba(212,67,154,0.30);  color:#F07EC4; border:1px solid rgba(212,67,154,0.45); }
+        .wc-slot.taken { background:rgba(91,184,232,0.25);  color:#7ccfed; border:1px solid rgba(91,184,232,0.40); }
         .wc-slot.past  { background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.2); }
-        .wc-time-col { width:44px; color:rgba(255,255,255,0.3); font-size:0.78em; text-align:right; padding-right:6px; font-family:'Courier New',monospace; }
+        .wc-time-col { width:44px; color:rgba(255,255,255,0.35); font-size:0.78em; text-align:right; padding-right:6px; font-family:'Courier New',monospace; }
         .week-nav-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
-        .wk-btn { padding:5px 14px; border-radius:8px; border:1px solid rgba(255,255,255,0.12); background:rgba(255,255,255,0.05); font-size:0.8em; cursor:pointer; color:rgba(255,255,255,0.7); font-family:'Montserrat',sans-serif; }
-        .wk-btn:hover { background:rgba(255,255,255,0.1); }
-        .wk-title { font-size:0.85em; font-weight:700; color:rgba(255,255,255,0.8); font-family:'Montserrat',sans-serif; }
+        .wk-btn { padding:5px 14px; border-radius:8px; border:1px solid rgba(91,184,232,0.25); background:rgba(91,184,232,0.08); font-size:0.8em; cursor:pointer; color:#5BB8E8; font-family:'Montserrat',sans-serif; transition:all 0.2s; }
+        .wk-btn:hover { background:rgba(91,184,232,0.16); border-color:rgba(91,184,232,0.45); color:#fff; }
+        .wk-title { font-size:0.85em; font-weight:700; color:rgba(255,255,255,0.88); font-family:'Montserrat',sans-serif; }
 
         /* ── SQUAWKS ── */
-        .squawk-item { display:flex; gap:12px; align-items:flex-start; padding:11px 0; border-bottom:1px solid rgba(255,255,255,0.06); }
+        .squawk-item { display:flex; gap:12px; align-items:flex-start; padding:11px 0; border-bottom:1px solid rgba(255,255,255,0.08); }
         .squawk-item:last-child { border-bottom:none; }
-        .squawk-dot { width:9px; height:9px; border-radius:50%; background:#dc3545; margin-top:5px; flex-shrink:0; }
-        .squawk-text { font-size:0.88em; color:rgba(255,255,255,0.85); }
-        .squawk-meta { font-size:0.75em; color:rgba(255,255,255,0.35); margin-top:3px; }
+        .squawk-dot { width:9px; height:9px; border-radius:50%; background:#ff8090; box-shadow:0 0 6px rgba(220,53,69,0.6); margin-top:5px; flex-shrink:0; }
+        .squawk-text { font-size:0.88em; color:rgba(255,255,255,0.90); }
+        .squawk-meta { font-size:0.75em; color:rgba(255,255,255,0.40); margin-top:3px; }
 
         /* ── RESERVATIONS ── */
-        .res-item { display:flex; align-items:center; gap:14px; padding:11px 0; border-bottom:1px solid rgba(255,255,255,0.06); }
+        .res-item { display:flex; align-items:center; gap:14px; padding:11px 0; border-bottom:1px solid rgba(255,255,255,0.08); }
         .res-item:last-child { border-bottom:none; }
         .res-date-box { background:rgba(212,67,154,0.2); border:1px solid rgba(212,67,154,0.4); color:#F07EC4; border-radius:10px; padding:8px 12px; text-align:center; min-width:52px; flex-shrink:0; }
         .res-date-mon { font-size:0.62em; font-weight:700; text-transform:uppercase; letter-spacing:1px; font-family:'Montserrat',sans-serif; }
@@ -174,7 +174,7 @@
         .res-time { font-weight:600; font-size:0.92em; color:rgba(255,255,255,0.9); }
         .res-who  { font-size:0.8em; color:rgba(255,255,255,0.4); margin-top:2px; }
         .res-cancel-btn { font-size:0.75em; color:#ff8090; background:none; border:1px solid rgba(220,53,69,0.35); padding:4px 12px; border-radius:20px; cursor:pointer; }
-        .empty-state { color:rgba(255,255,255,0.3); font-size:0.88em; padding:12px 0; }
+        .empty-state { color:rgba(255,255,255,0.40); font-size:0.88em; padding:12px 0; }
 
         /* ── AIRWORTHY BANNER ── */
         .aw-banner { border-radius:10px; padding:11px 20px; margin-bottom:18px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; font-weight:700; font-size:0.9em; font-family:'Montserrat',sans-serif; }
@@ -601,8 +601,8 @@
                 const cost = f.flight_cost  != null ? f.flight_cost
                            : hrs != null ? Math.round(hrs * 65 * 100) / 100 : null;
                 const date = new Date(f.completed_at).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
-                return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.07);gap:12px;flex-wrap:wrap">
-                    <div style="font-size:0.85em;color:rgba(255,255,255,0.45);min-width:80px">${date}</div>
+                return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(91,184,232,0.12);gap:12px;flex-wrap:wrap">
+                    <div style="font-size:0.85em;color:rgba(255,255,255,0.55);min-width:80px">${date}</div>
                     <div style="flex:1;font-size:0.88em;color:rgba(255,255,255,0.85);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(f.notes) || '—'}</div>
                     <div style="text-align:right;flex-shrink:0">
                         <span style="font-weight:700;color:#fff">${hrs != null ? hrs.toFixed(1) + ' hr' : '—'}</span>
