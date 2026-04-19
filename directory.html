@@ -293,7 +293,7 @@
 
                 await loadMembers();
             } catch (err) {
-                console.error('[directory] init error:', err);
+                console.error('[directory] init error:', err?.message || err);
                 document.body.style.visibility = 'visible';
             }
         });

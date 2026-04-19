@@ -282,7 +282,7 @@
                     debounce(async () => { await loadReservations(); renderWeek(); }, 500))
                 .subscribe();
           } catch (err) {
-            console.error('[schedule] init error:', err);
+            console.error('[schedule] init error:', err?.message || err);
             document.body.style.visibility = 'visible';
           }
         });
@@ -537,7 +537,7 @@
 
             btn.disabled = false; btn.textContent = 'Confirm Reservation';
             if (error) {
-                console.error('[confirmBooking]', error);
+                console.error('[confirmBooking]', error?.message || error);
                 msg.className = 'book-msg error';
                 msg.textContent = 'Booking failed. Please try again or refresh.';
             } else {

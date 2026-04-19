@@ -350,7 +350,7 @@
                         </div>
                         <div class="form-field">
                             <label>Phone</label>
-                            <input type="tel" id="newPhone" placeholder="(206) 555-1234">
+                            <input type="tel" id="newPhone" placeholder="(206) 555-1234" pattern="[\d\s\+\-\(\)]+" maxlength="20">
                         </div>
                         <div class="form-field" style="flex:0 0 auto">
                             <label>Role</label>
@@ -388,7 +388,7 @@
                         <div class="inline-form">
                             <div class="form-field">
                                 <label>Current Tach</label>
-                                <input type="number" id="tachUpdate" step="0.1" min="0" placeholder="e.g. 2849.6">
+                                <input type="number" id="tachUpdate" step="0.1" min="0" max="99999.9" placeholder="e.g. 2849.6">
                             </div>
                             <button class="form-submit" onclick="updateTach()">Update</button>
                         </div>
@@ -931,7 +931,7 @@
             const { error } = await _supabase.from('flight_logs').update({
                 is_deleted: true, deleted_by: currentMember.id, deleted_at: new Date().toISOString()
             }).eq('id', id);
-            if (error) { console.error('[deleteFlightLog]', error); alert('Delete failed. Please try again.'); return; }
+            if (error) { console.error('[deleteFlightLog]', error?.message || error); alert('Delete failed. Please try again.'); return; }
             loadFlights();
         }
 
@@ -960,7 +960,7 @@
             else if (resFilter === 'past') q = q.lt('start_time', now);
 
             const { data, error } = await q.limit(80);
-            if (error) { console.error('[loadReservations]', error); tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#ff8090;padding:28px">Failed to load. Please refresh.</td></tr>'; return; }
+            if (error) { console.error('[loadReservations]', error?.message || error); tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#ff8090;padding:28px">Failed to load. Please refresh.</td></tr>'; return; }
             if (!data?.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="6">No reservations found.</td></tr>'; return; }
 
             tbody.innerHTML = data.map(r => {
@@ -983,7 +983,7 @@
         async function deleteReservation(id) {
             if (!confirm('Delete this reservation? This cannot be undone.')) return;
             const { error } = await _supabase.from('reservations').delete().eq('id', id);
-            if (error) { console.error('[deleteReservation]', error); alert('Delete failed. Please try again.'); return; }
+            if (error) { console.error('[deleteReservation]', error?.message || error); alert('Delete failed. Please try again.'); return; }
             loadReservations();
         }
 
@@ -1017,7 +1017,7 @@
                 start_time: start.toISOString(), end_time: end.toISOString(), purpose: purposeVal || null
             }).eq('id', editResId);
 
-            if (error) { console.error('[saveReservation]', error); msg.className='msg-err'; msg.textContent='Save failed. Please try again.'; return; }
+            if (error) { console.error('[saveReservation]', error?.message || error); msg.className='msg-err'; msg.textContent='Save failed. Please try again.'; return; }
             msg.className='msg-ok'; msg.textContent='Saved!';
             setTimeout(() => { closeResEdit(); loadReservations(); }, 700);
         }
@@ -1079,7 +1079,7 @@
                 last_completed: date, notes: notes || null,
                 updated_at: new Date().toISOString(), updated_by: currentMember.id
             }).eq('id', editInspId);
-            if (error) { console.error('[saveInspection]', error); msg.className='msg-err'; msg.textContent='Save failed. Please try again.'; return; }
+            if (error) { console.error('[saveInspection]', error?.message || error); msg.className='msg-err'; msg.textContent='Save failed. Please try again.'; return; }
             msg.className='msg-ok'; msg.textContent='Saved!';
             setTimeout(() => { closeInspEdit(); loadInspections(); }, 800);
         }

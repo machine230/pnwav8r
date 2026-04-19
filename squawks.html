@@ -470,7 +470,7 @@
 
             const { error } = await _supabase.from('squawks').update(update).eq('id', id);
             if (error) {
-                console.error('[saveUpdate]', error);
+                console.error('[saveUpdate]', error?.message || error);
                 msgEl.style.color = '#ff8090';
                 msgEl.textContent = 'Save failed. Please try again.';
                 return;

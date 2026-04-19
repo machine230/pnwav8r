@@ -421,7 +421,7 @@
             </div>
             <div class="form-group">
                 <label class="form-label">Phone</label>
-                <input type="tel" class="form-input" id="profilePhone" placeholder="e.g. 206-555-1234">
+                <input type="tel" class="form-input" id="profilePhone" placeholder="e.g. 206-555-1234" pattern="[\d\s\+\-\(\)]+" maxlength="20">
             </div>
             <div class="modal-actions">
                 <button class="close-btn" onclick="closeProfile()">Cancel</button>
@@ -469,7 +469,7 @@
             _supabase.channel('airplanes').on('postgres_changes',    { event:'*', schema:'public', table:'airplanes'    }, debounce(loadAirplane, 500)).subscribe();
             _supabase.channel('squawks').on('postgres_changes',      { event:'*', schema:'public', table:'squawks'      }, debounce(loadSquawks, 500)).subscribe();
           } catch (err) {
-            console.error('[dashboard] init error:', err);
+            console.error('[dashboard] init error:', err?.message || err);
             document.body.style.visibility = 'visible';
           }
         });
@@ -823,7 +823,7 @@
                 return;
             }
             const { error } = await _supabase.from('reservations').update({ status: 'cancelled' }).eq('id', id);
-            if (error) { console.error('[cancelReservation]', error); alert('Cancel failed. Please try again.'); return; }
+            if (error) { console.error('[cancelReservation]', error?.message || error); alert('Cancel failed. Please try again.'); return; }
             loadReservations();
         }
 
@@ -846,7 +846,7 @@
 
             const { error } = await _supabase.from('members').update({ name, phone, profile_completed: true }).eq('id', currentMember.id);
             if (error) {
-                console.error('[saveProfile]', error);
+                console.error('[saveProfile]', error?.message || error);
                 msg.className = 'profile-msg error'; msg.textContent = 'Save failed. Please try again.';
             } else {
                 currentMember.name  = name;

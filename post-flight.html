@@ -240,12 +240,12 @@
                     <div class="pf-row">
                         <div class="pf-field">
                             <label>Tach Start</label>
-                            <input type="number" id="tachStart" step="0.1" min="0" placeholder="e.g. 2847.3" oninput="calcFlight()">
+                            <input type="number" id="tachStart" step="0.1" min="0" max="99999.9" placeholder="e.g. 2847.3" oninput="calcFlight()">
                             <small>Tach at engine start</small>
                         </div>
                         <div class="pf-field">
                             <label>Tach End <span style="color:#ff8090">*</span></label>
-                            <input type="number" id="tachEnd" step="0.1" min="0" placeholder="e.g. 2849.6" oninput="calcFlight()">
+                            <input type="number" id="tachEnd" step="0.1" min="0" max="99999.9" placeholder="e.g. 2849.6" oninput="calcFlight()">
                             <small>Tach at engine shutdown</small>
                         </div>
                     </div>
@@ -285,7 +285,7 @@
                     <div class="fuel-details" id="fuelDetailsFueled">
                         <div class="pf-field">
                             <label>Gallons Added <span style="color:#ff8090">*</span></label>
-                            <input type="number" id="fuelAddedGallons" step="0.1" min="0" placeholder="e.g. 10.5">
+                            <input type="number" id="fuelAddedGallons" step="0.1" min="0" max="30" placeholder="e.g. 10.5">
                             <small>Enter 0 if tanks were not filled</small>
                         </div>
                     </div>
@@ -293,11 +293,11 @@
                         <div class="pf-row" style="margin-bottom:12px">
                             <div class="pf-field">
                                 <label>Left Tank Remaining (gal) <span style="color:#ff8090">*</span></label>
-                                <input type="number" id="fuelLeftTank" step="0.5" min="0" placeholder="e.g. 5.0">
+                                <input type="number" id="fuelLeftTank" step="0.5" min="0" max="13" placeholder="e.g. 5.0">
                             </div>
                             <div class="pf-field">
                                 <label>Right Tank Remaining (gal) <span style="color:#ff8090">*</span></label>
-                                <input type="number" id="fuelRightTank" step="0.5" min="0" placeholder="e.g. 4.5">
+                                <input type="number" id="fuelRightTank" step="0.5" min="0" max="13" placeholder="e.g. 4.5">
                             </div>
                         </div>
                         <div class="pf-field">
@@ -567,7 +567,7 @@
             });
 
             if (logErr) {
-                console.error('[postFlight submit]', logErr);
+                console.error('[postFlight submit]', logErr?.message || logErr);
                 showError('Failed to save flight log. Please try again.');
                 btn.disabled = false; btn.textContent = 'Submit Post-Flight Report'; return;
             }
@@ -597,7 +597,7 @@
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ description: desc, reporter: currentMember.name || currentMember.email, tail: AIRPLANE_TAIL })
-                    }).catch(err => console.error('Squawk notification failed:', err));
+                    }).catch(err => console.error('Squawk notification failed:', err?.message || err));
                 }
                 if (selectedGround) {
                     await _supabase.from('airplanes').update({ status: 'squawk' }).eq('id', airplaneId);
