@@ -48,19 +48,21 @@ export const handler = async (event) => {
 
     try {
         const base = 'https://aviationweather.gov/api/data';
-        const [metarRes, tafRes] = await Promise.all([
+        const [metarRes, tafRes, airportRes] = await Promise.all([
             fetch(`${base}/metar?ids=${icao}&format=json&hours=2`),
-            fetch(`${base}/taf?ids=${icao}&format=json`)
+            fetch(`${base}/taf?ids=${icao}&format=json`),
+            fetch(`${base}/airport?ids=${icao}&format=json`)
         ]);
 
         // NOAA returns 204 No Content for airports with no data
-        const metar = (metarRes.ok && metarRes.status !== 204) ? await metarRes.json() : [];
-        const taf   = (tafRes.ok  && tafRes.status  !== 204) ? await tafRes.json()  : [];
+        const metar   = (metarRes.ok   && metarRes.status   !== 204) ? await metarRes.json()   : [];
+        const taf     = (tafRes.ok     && tafRes.status     !== 204) ? await tafRes.json()     : [];
+        const airport = (airportRes.ok && airportRes.status !== 204) ? await airportRes.json() : [];
 
         return {
             statusCode: 200,
             headers: cors,
-            body: JSON.stringify({ metar, taf })
+            body: JSON.stringify({ metar, taf, airport })
         };
 
     } catch (err) {
