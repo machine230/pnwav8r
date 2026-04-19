@@ -274,20 +274,28 @@
         let currentMember = null;
         let allMembers    = [];
 
+        // Failsafe: never leave page blank more than 8 seconds
+        setTimeout(() => { document.body.style.visibility = 'visible'; }, 8000);
+
         document.addEventListener('DOMContentLoaded', async () => {
-            const session = await requireAuth();
-            if (!session) return;
+            try {
+                const session = await requireAuth();
+                if (!session) return;
 
-            currentMember = await getCurrentMember();
-            renderNavUser(currentMember);
-            if (isAdmin(currentMember)) document.getElementById('adminLink').style.display = 'inline';
+                currentMember = await getCurrentMember();
+                renderNavUser(currentMember);
+                if (isAdmin(currentMember)) document.getElementById('adminLink').style.display = 'inline';
 
-            // Show privacy note for non-admins
-            if (!isAdmin(currentMember)) {
-                document.getElementById('privacyNote').style.display = 'flex';
+                // Show privacy note for non-admins
+                if (!isAdmin(currentMember)) {
+                    document.getElementById('privacyNote').style.display = 'flex';
+                }
+
+                await loadMembers();
+            } catch (err) {
+                console.error('[directory] init error:', err);
+                document.body.style.visibility = 'visible';
             }
-
-            await loadMembers();
         });
 
         async function loadMembers() {
