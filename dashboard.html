@@ -1087,20 +1087,31 @@
                 bfrCurrent = bfrExpiry > new Date();
             }
 
-            // Medical — duration depends on class and age at issuance
-            // class 1 = 12mo, class 2 = 24mo, class 3 = 60mo (<40) / 24mo (≥40), BasicMed (4) = 48mo
-            let medExpiry = null, medCurrent = false;
+            // Medical — duration per 14 CFR § 61.23(d)
+            // A certificate does NOT downgrade — higher-class privileges expire first,
+            // then the same cert continues under lower-class privileges.
+            // For private pilots we track the FINAL expiry (when 3rd-class privileges end):
+            //   1st class: 72 mo (<40) or 36 mo (≥40) from issue date
+            //   2nd class: 60 mo (<40) or 24 mo (≥40) from issue date
+            //   3rd class: 60 mo (<40) or 24 mo (≥40) from issue date
+            //   BasicMed:  48 mo regardless of age
+            const ageAt = (issueDate, dob) =>
+                (new Date(issueDate) - new Date(dob)) / (365.25 * 86400000);
+
+            let medExpiry = null, medCurrent = false, medPrivilegeNote = '';
             if (m.medical_date) {
-                let months = 24; // conservative default
+                let months = 24; // conservative fallback (3rd class, age ≥ 40)
+                const age = m.date_of_birth ? ageAt(m.medical_date, m.date_of_birth) : null;
                 if (m.medical_class === 1) {
-                    months = 12;
+                    months = (age !== null && age < 40) ? 72 : 36;
+                    medPrivilegeNote = ' (private pilot privileges)';
                 } else if (m.medical_class === 2) {
-                    months = 24;
-                } else if (m.medical_class === 3 && m.date_of_birth) {
-                    const ageAtIssue = (new Date(m.medical_date) - new Date(m.date_of_birth)) / (365.25 * 86400000);
-                    months = ageAtIssue < 40 ? 60 : 24;
+                    months = (age !== null && age < 40) ? 60 : 24;
+                    medPrivilegeNote = ' (private pilot privileges)';
+                } else if (m.medical_class === 3) {
+                    months = (age !== null && age < 40) ? 60 : 24;
                 } else if (m.medical_class === 4) {
-                    months = 48; // BasicMed valid 48 months
+                    months = 48; // BasicMed — 48 months regardless of age
                 }
                 medExpiry = new Date(m.medical_date);
                 medExpiry.setMonth(medExpiry.getMonth() + months);
@@ -1141,7 +1152,7 @@
                     icon:   m.medical_date ? (medCurrent ? '✅' : '⚠️') : '—',
                     label:  'Medical Certificate' + (m.medical_class ? ' — ' + (classLabel[m.medical_class] || '') : ''),
                     detail: m.medical_date
-                        ? (medCurrent ? 'Expires ' + fmtD(medExpiry) : 'Expired ' + fmtD(medExpiry))
+                        ? (medCurrent ? 'Expires ' + fmtD(medExpiry) : 'Expired ' + fmtD(medExpiry)) + medPrivilegeNote
                         : notTracked
                 }
             ];

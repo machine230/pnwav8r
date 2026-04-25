@@ -55,8 +55,14 @@ export const handler = async (event) => {
     const jwt = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
     if (!jwt) return { statusCode: 401, headers: cors, body: JSON.stringify({ error: 'Not authenticated' }) };
 
-    // Validate the JWT with the service role client (no anon key needed)
-    const { data: { user }, error: jwtErr } = await admin.auth.getUser(jwt);
+    // Validate the JWT by creating a user-context client with the JWT as Authorization header.
+    // This is the correct Supabase v2 pattern — admin.auth.getUser(jwt) does NOT work with
+    // a service-role client because it inspects the client's own empty session instead.
+    const userClient = createClient(supabaseUrl, serviceRole, {
+        global: { headers: { Authorization: `Bearer ${jwt}` } },
+        auth:   { autoRefreshToken: false, persistSession: false }
+    });
+    const { data: { user }, error: jwtErr } = await userClient.auth.getUser();
     if (jwtErr || !user) return { statusCode: 401, headers: cors, body: JSON.stringify({ error: 'Invalid session' }) };
 
     const { data: callerMember } = await admin
