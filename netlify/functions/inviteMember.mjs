@@ -1,8 +1,8 @@
 // Netlify serverless function — invites a new club member via Supabase Auth
 // Requires environment variables (set in Netlify dashboard):
-//   SUPABASE_URL            — same as your public URL
+//   SUPABASE_URL            — Supabase project URL
 //   SUPABASE_SERVICE_ROLE   — Supabase → Settings → API → service_role secret key
-//   SITE_URL                — your production URL, e.g. https://pnwav8r.netlify.app
+//   SITE_URL                — e.g. https://pnwav8r.com (used for invite redirect URL)
 
 import { createClient } from '@supabase/supabase-js';
 
@@ -45,20 +45,21 @@ export const handler = async (event) => {
             body: JSON.stringify({ error: 'Server not configured. Add SUPABASE_URL and SUPABASE_SERVICE_ROLE env vars in Netlify.' }) };
     }
 
-    // ── Verify caller is an admin ──
+    // ── Service role client (elevated — only used server-side) ──
+    const admin = createClient(supabaseUrl, serviceRole, {
+        auth: { autoRefreshToken: false, persistSession: false }
+    });
+
+    // ── Verify caller is an admin using their JWT ──
     const authHeader = event.headers?.authorization || '';
     const jwt = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
     if (!jwt) return { statusCode: 401, headers: cors, body: JSON.stringify({ error: 'Not authenticated' }) };
 
-    // Use caller's JWT to look up their own role (anon key — no elevated privileges)
-    const anonKey = process.env.SUPABASE_ANON_KEY || '';
-    const callerClient = createClient(supabaseUrl, anonKey, {
-        global: { headers: { Authorization: `Bearer ${jwt}` } }
-    });
-    const { data: { user } } = await callerClient.auth.getUser();
-    if (!user) return { statusCode: 401, headers: cors, body: JSON.stringify({ error: 'Invalid session' }) };
+    // Validate the JWT with the service role client (no anon key needed)
+    const { data: { user }, error: jwtErr } = await admin.auth.getUser(jwt);
+    if (jwtErr || !user) return { statusCode: 401, headers: cors, body: JSON.stringify({ error: 'Invalid session' }) };
 
-    const { data: callerMember } = await callerClient
+    const { data: callerMember } = await admin
         .from('members').select('role').eq('id', user.id).single();
     if (callerMember?.role !== 'admin') {
         return { statusCode: 403, headers: cors, body: JSON.stringify({ error: 'Admin access required' }) };
@@ -75,11 +76,6 @@ export const handler = async (event) => {
 
     if (!name  || name.length < 2 || name.length > 100)       return { statusCode: 400, headers: cors, body: JSON.stringify({ error: 'Name must be 2–100 characters' }) };
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { statusCode: 400, headers: cors, body: JSON.stringify({ error: 'Valid email required' }) };
-
-    // ── Service role client (elevated — only used server-side) ──
-    const admin = createClient(supabaseUrl, serviceRole, {
-        auth: { autoRefreshToken: false, persistSession: false }
-    });
 
     // 1. Upsert member record (create or update)
     const { error: dbErr } = await admin.from('members').upsert(
