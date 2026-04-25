@@ -55,18 +55,33 @@ export const handler = async (event) => {
     const jwt = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
     if (!jwt) return { statusCode: 401, headers: cors, body: JSON.stringify({ error: 'Not authenticated' }) };
 
-    // Validate the JWT by creating a user-context client with the JWT as Authorization header.
-    // This is the correct Supabase v2 pattern — admin.auth.getUser(jwt) does NOT work with
-    // a service-role client because it inspects the client's own empty session instead.
-    const userClient = createClient(supabaseUrl, serviceRole, {
-        global: { headers: { Authorization: `Bearer ${jwt}` } },
-        auth:   { autoRefreshToken: false, persistSession: false }
-    });
-    const { data: { user }, error: jwtErr } = await userClient.auth.getUser();
-    if (jwtErr || !user) return { statusCode: 401, headers: cors, body: JSON.stringify({ error: 'Invalid session' }) };
+    // Validate the JWT by calling the Supabase auth REST endpoint directly.
+    // SDK-based approaches (auth.getUser / user-context client) have unreliable
+    // behaviour server-side with a service-role client, so we call the endpoint raw.
+    const anonKey = process.env.SUPABASE_ANON_KEY || serviceRole;
+    let userId;
+    try {
+        const authRes = await fetch(`${supabaseUrl}/auth/v1/user`, {
+            headers: {
+                'Authorization': `Bearer ${jwt}`,
+                'apikey': anonKey
+            }
+        });
+        if (!authRes.ok) {
+            const body = await authRes.text();
+            console.error('[inviteMember] auth/v1/user error:', authRes.status, body);
+            return { statusCode: 401, headers: cors, body: JSON.stringify({ error: 'Invalid session' }) };
+        }
+        const userData = await authRes.json();
+        userId = userData?.id;
+    } catch (e) {
+        console.error('[inviteMember] fetch auth error:', e?.message || e);
+        return { statusCode: 401, headers: cors, body: JSON.stringify({ error: 'Auth check failed' }) };
+    }
+    if (!userId) return { statusCode: 401, headers: cors, body: JSON.stringify({ error: 'Invalid session' }) };
 
     const { data: callerMember } = await admin
-        .from('members').select('role').eq('id', user.id).single();
+        .from('members').select('role').eq('id', userId).single();
     if (callerMember?.role !== 'admin') {
         return { statusCode: 403, headers: cors, body: JSON.stringify({ error: 'Admin access required' }) };
     }
