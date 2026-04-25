@@ -283,6 +283,15 @@
                 if (!session) return;
 
                 currentMember = await getCurrentMember();
+                if (!currentMember) {
+                    // Member row missing or membership_active not set — show helpful message
+                    document.getElementById('dirBody').innerHTML =
+                        `<tr><td colspan="5"><div class="dir-state">Your account isn't fully active yet. Ask an admin to ensure your membership is set to active in the Members panel.</div></td></tr>`;
+                    document.getElementById('memberCount').textContent = '—';
+                    document.body.style.visibility = 'visible';
+                    return;
+                }
+
                 renderNavUser(currentMember);
                 if (isAdmin(currentMember)) document.getElementById('adminLink').style.display = 'inline';
 
