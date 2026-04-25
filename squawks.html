@@ -522,6 +522,15 @@
             document.getElementById('groundedUntil').value = '';
             document.getElementById('groundPicker').classList.remove('open');
             renderPlaneStatus('available');
+
+            // Notify any waitlisted members that the plane is back in service
+            if (airplaneId) {
+                fetch('/.netlify/functions/notifyWaitlist', {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body:    JSON.stringify({ airplane_id: airplaneId })
+                }).catch(err => console.error('[ungroundPlane] Waitlist notify failed:', err?.message || err));
+            }
         }
 
         function fmtDate(iso) { return new Date(iso).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit',hour12:true}); }

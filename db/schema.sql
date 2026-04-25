@@ -1,7 +1,8 @@
 -- ═══════════════════════════════════════════════════════════════
---  PNWAV8R — Full Database Schema
---  Paste this entire file into Supabase → SQL Editor → Run
---  Safe to re-run: uses IF NOT EXISTS / CREATE OR REPLACE
+--  PNWAV8R — Full Database Schema (source of truth)
+--  Last reconciled: 2026-04-21 — matches live Supabase tables
+--  NOTE: This is documentation only; the live DB already has
+--  these tables. Run migrations in db/migrations/ for changes.
 -- ═══════════════════════════════════════════════════════════════
 
 -- ── Extensions ──────────────────────────────────────────────
@@ -21,124 +22,132 @@ CREATE TABLE IF NOT EXISTS members (
                        CHECK (role IN ('admin', 'ap', 'member')),
   membership_active  boolean NOT NULL DEFAULT false,
   profile_completed  boolean NOT NULL DEFAULT false,
+  pic_status         boolean NOT NULL DEFAULT false,
+  -- Added in migration 002:
+  bfr_date           date,
+  medical_class      smallint CHECK (medical_class IN (1,2,3)),
+  medical_date       date,
   joined_at          timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS aircraft (
+CREATE TABLE IF NOT EXISTS airplanes (
   id              uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   tail_number     text NOT NULL UNIQUE,
   type            text NOT NULL,
   year            int,
   status          text NOT NULL DEFAULT 'available'
-                    CHECK (status IN ('available', 'flying', 'grounded', 'maintenance')),
-  current_hobbs   numeric(8,1) DEFAULT 0,
+                    CHECK (status IN ('available', 'flying', 'grounded', 'maintenance', 'squawk')),
+  current_tach    numeric(8,1) DEFAULT 0,
+  smoh_base       numeric(8,1),
   grounded_from   timestamptz,
   grounded_until  timestamptz,
   notes           text,
+  updated_at      timestamptz,
   created_at      timestamptz NOT NULL DEFAULT now()
 );
 
 CREATE TABLE IF NOT EXISTS reservations (
   id           uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-  aircraft_id  uuid NOT NULL REFERENCES aircraft(id) ON DELETE CASCADE,
-  member_id    uuid NOT NULL REFERENCES members(id)  ON DELETE CASCADE,
+  airplane_id  uuid NOT NULL REFERENCES airplanes(id) ON DELETE CASCADE,
+  member_id    uuid NOT NULL REFERENCES members(id)   ON DELETE CASCADE,
   start_time   timestamptz NOT NULL,
   end_time     timestamptz NOT NULL,
   status       text NOT NULL DEFAULT 'confirmed'
                  CHECK (status IN ('confirmed', 'cancelled')),
   notes        text,
   created_at   timestamptz NOT NULL DEFAULT now(),
-  CONSTRAINT end_after_start CHECK (end_time > start_time),
-  CONSTRAINT no_overlap EXCLUDE USING gist (
-    aircraft_id WITH =,
-    tstzrange(start_time, end_time, '[)') WITH &&
-  ) WHERE (status = 'confirmed')
+  CONSTRAINT end_after_start CHECK (end_time > start_time)
 );
 
 CREATE TABLE IF NOT EXISTS squawks (
-  id                 uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-  aircraft_id        uuid NOT NULL REFERENCES aircraft(id) ON DELETE CASCADE,
-  reported_by        uuid NOT NULL REFERENCES members(id),
-  description        text NOT NULL,
-  status             text NOT NULL DEFAULT 'open'
-                       CHECK (status IN ('open', 'in_progress', 'resolved', 'deferred')),
-  go_no_go           text CHECK (go_no_go IN ('go', 'caution', 'no_go')),
-  admin_response     text,
-  maintenance_notes  text,
-  resolved_by        uuid REFERENCES members(id),
-  resolved_at        timestamptz,
-  reported_at        timestamptz NOT NULL DEFAULT now()
+  id                   uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  airplane_id          uuid NOT NULL REFERENCES airplanes(id) ON DELETE CASCADE,
+  reported_by          uuid NOT NULL REFERENCES members(id),
+  description          text NOT NULL,
+  status               text NOT NULL DEFAULT 'open'
+                         CHECK (status IN ('open', 'in_progress', 'resolved', 'deferred', 'grounded')),
+  go_no_go             text CHECK (go_no_go IN ('go', 'caution', 'no_go')),
+  admin_response       text,
+  maintenance_notes    text,
+  resolved_by          uuid REFERENCES members(id),
+  status_updated_by    uuid REFERENCES members(id),
+  resolved_at          timestamptz,
+  reported_at          timestamptz NOT NULL DEFAULT now()
 );
 
 CREATE TABLE IF NOT EXISTS flight_logs (
-  id                  uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-  aircraft_id         uuid NOT NULL REFERENCES aircraft(id) ON DELETE CASCADE,
-  member_id           uuid NOT NULL REFERENCES members(id)  ON DELETE CASCADE,
-  reservation_id      uuid REFERENCES reservations(id),
-  hobbs_start         numeric(8,1),
-  hobbs_end           numeric(8,1),
-  flight_hours        numeric(5,1)
-                        GENERATED ALWAYS AS (
-                          CASE WHEN hobbs_end IS NOT NULL AND hobbs_start IS NOT NULL
-                          THEN ROUND((hobbs_end - hobbs_start)::numeric, 1) END
-                        ) STORED,
-  fuel_added_gallons  numeric(5,1),
-  needs_fuel          boolean DEFAULT false,
-  oil_added_quarts    numeric(4,1),
-  oil_qty_end_quarts  numeric(4,1),
-  notes               text,
-  is_deleted          boolean NOT NULL DEFAULT false,
-  completed_at        timestamptz NOT NULL DEFAULT now()
+  id                    uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  airplane_id           uuid NOT NULL REFERENCES airplanes(id) ON DELETE CASCADE,
+  member_id             uuid NOT NULL REFERENCES members(id)   ON DELETE CASCADE,
+  reservation_id        uuid REFERENCES reservations(id),
+  tach_start            numeric(8,1),
+  tach_end              numeric(8,1),
+  flight_hours          numeric(5,1),
+  flight_cost           numeric(8,2),
+  fuel_added_gallons    numeric(5,1),
+  needs_fuel            boolean DEFAULT false,
+  oil_qty_start_quarts  numeric(4,1),
+  oil_added_quarts      numeric(4,1),
+  oil_qty_end_quarts    numeric(4,1),
+  notes                 text,
+  -- Added in migration 002:
+  landings              smallint NOT NULL DEFAULT 0,
+  night_landings        smallint NOT NULL DEFAULT 0,
+  completed_at          timestamptz NOT NULL DEFAULT now()
 );
 
 CREATE TABLE IF NOT EXISTS inspections (
   id             uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-  aircraft_id    uuid NOT NULL REFERENCES aircraft(id) ON DELETE CASCADE,
+  airplane_id    uuid NOT NULL REFERENCES airplanes(id) ON DELETE CASCADE,
   name           text NOT NULL,
   interval_days  int  NOT NULL,
   last_completed date,
   notes          text
 );
 
-CREATE TABLE IF NOT EXISTS announcements (
-  id         uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-  posted_by  uuid NOT NULL REFERENCES members(id),
-  title      text NOT NULL,
-  body       text NOT NULL,
-  pinned     boolean NOT NULL DEFAULT false,
-  created_at timestamptz NOT NULL DEFAULT now()
-);
-
-CREATE TABLE IF NOT EXISTS documents (
+CREATE TABLE IF NOT EXISTS maintenance_blocks (
   id           uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-  aircraft_id  uuid REFERENCES aircraft(id) ON DELETE SET NULL,
-  name         text NOT NULL,
-  description  text,
-  file_url     text NOT NULL,
-  uploaded_by  uuid NOT NULL REFERENCES members(id),
+  airplane_id  uuid REFERENCES airplanes(id) ON DELETE CASCADE,
+  start_time   timestamptz,
+  end_time     timestamptz,
+  reason       text,
   created_at   timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS wb_configs (
+-- Added in migration 002:
+CREATE TABLE IF NOT EXISTS member_documents (
+  id           uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  member_id    uuid NOT NULL REFERENCES members(id) ON DELETE CASCADE,
+  doc_type     text NOT NULL CHECK (doc_type IN ('medical','rating','endorsement','other')),
+  label        text NOT NULL,
+  storage_path text NOT NULL,
+  uploaded_by  uuid REFERENCES members(id),
+  created_at   timestamptz NOT NULL DEFAULT now()
+);
+
+-- Added in migration 002:
+CREATE TABLE IF NOT EXISTS waitlist (
   id          uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-  aircraft_id uuid NOT NULL REFERENCES aircraft(id) ON DELETE CASCADE UNIQUE,
-  config      jsonb NOT NULL DEFAULT '{}'
+  airplane_id uuid NOT NULL REFERENCES airplanes(id) ON DELETE CASCADE,
+  member_id   uuid NOT NULL REFERENCES members(id)   ON DELETE CASCADE,
+  joined_at   timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (airplane_id, member_id)
 );
 
 -- ═══════════════════════════════════════════════════════════════
 --  ROW LEVEL SECURITY
 -- ═══════════════════════════════════════════════════════════════
-ALTER TABLE members       ENABLE ROW LEVEL SECURITY;
-ALTER TABLE aircraft      ENABLE ROW LEVEL SECURITY;
-ALTER TABLE reservations  ENABLE ROW LEVEL SECURITY;
-ALTER TABLE squawks       ENABLE ROW LEVEL SECURITY;
-ALTER TABLE flight_logs   ENABLE ROW LEVEL SECURITY;
-ALTER TABLE inspections   ENABLE ROW LEVEL SECURITY;
-ALTER TABLE announcements ENABLE ROW LEVEL SECURITY;
-ALTER TABLE documents     ENABLE ROW LEVEL SECURITY;
-ALTER TABLE wb_configs    ENABLE ROW LEVEL SECURITY;
+ALTER TABLE members              ENABLE ROW LEVEL SECURITY;
+ALTER TABLE airplanes            ENABLE ROW LEVEL SECURITY;
+ALTER TABLE reservations         ENABLE ROW LEVEL SECURITY;
+ALTER TABLE squawks              ENABLE ROW LEVEL SECURITY;
+ALTER TABLE flight_logs          ENABLE ROW LEVEL SECURITY;
+ALTER TABLE inspections          ENABLE ROW LEVEL SECURITY;
+ALTER TABLE maintenance_blocks   ENABLE ROW LEVEL SECURITY;
+ALTER TABLE member_documents     ENABLE ROW LEVEL SECURITY;
+ALTER TABLE waitlist             ENABLE ROW LEVEL SECURITY;
 
--- Helper functions (run as postgres, not the calling user)
+-- ── Helper functions ─────────────────────────────────────────
 CREATE OR REPLACE FUNCTION is_active_member()
 RETURNS boolean LANGUAGE sql SECURITY DEFINER STABLE AS $$
   SELECT EXISTS (
@@ -151,28 +160,17 @@ RETURNS text LANGUAGE sql SECURITY DEFINER STABLE AS $$
   SELECT role FROM members WHERE id = auth.uid();
 $$;
 
--- Drop all existing policies (safe re-run)
-DO $$ DECLARE r record;
-BEGIN
-  FOR r IN SELECT policyname, tablename FROM pg_policies
-    WHERE schemaname = 'public'
-      AND tablename IN ('members','aircraft','reservations','squawks',
-                        'flight_logs','inspections','announcements',
-                        'documents','wb_configs')
-  LOOP
-    EXECUTE format('DROP POLICY IF EXISTS %I ON %I', r.policyname, r.tablename);
-  END LOOP;
-END $$;
+-- ── Policies ─────────────────────────────────────────────────
 
 -- members
 CREATE POLICY "members_select"  ON members FOR SELECT USING (is_active_member());
 CREATE POLICY "members_update"  ON members FOR UPDATE USING (id = auth.uid());
 CREATE POLICY "members_admin"   ON members FOR ALL    USING (get_role() = 'admin');
 
--- aircraft
-CREATE POLICY "aircraft_select" ON aircraft FOR SELECT USING (is_active_member());
-CREATE POLICY "aircraft_update" ON aircraft FOR UPDATE USING (get_role() IN ('admin','ap'));
-CREATE POLICY "aircraft_admin"  ON aircraft FOR ALL    USING (get_role() = 'admin');
+-- airplanes
+CREATE POLICY "airplanes_select" ON airplanes FOR SELECT USING (is_active_member());
+CREATE POLICY "airplanes_update" ON airplanes FOR UPDATE USING (get_role() IN ('admin','ap'));
+CREATE POLICY "airplanes_admin"  ON airplanes FOR ALL   USING (get_role() = 'admin');
 
 -- reservations
 CREATE POLICY "res_select"  ON reservations FOR SELECT USING (is_active_member());
@@ -191,29 +189,30 @@ CREATE POLICY "fl_update"  ON flight_logs FOR UPDATE USING (member_id = auth.uid
 
 -- inspections
 CREATE POLICY "insp_select" ON inspections FOR SELECT USING (is_active_member());
-CREATE POLICY "insp_all"    ON inspections FOR ALL    USING (get_role() IN ('admin','ap'));
+CREATE POLICY "insp_all"    ON inspections FOR ALL   USING (get_role() IN ('admin','ap'));
 
--- announcements
-CREATE POLICY "ann_select"  ON announcements FOR SELECT USING (is_active_member());
-CREATE POLICY "ann_admin"   ON announcements FOR ALL   USING (get_role() = 'admin');
+-- maintenance_blocks
+CREATE POLICY "mb_select"   ON maintenance_blocks FOR SELECT USING (is_active_member());
+CREATE POLICY "mb_admin"    ON maintenance_blocks FOR ALL   USING (get_role() IN ('admin','ap'));
 
--- documents
-CREATE POLICY "doc_select"  ON documents FOR SELECT USING (is_active_member());
-CREATE POLICY "doc_admin"   ON documents FOR ALL   USING (get_role() = 'admin');
+-- member_documents
+CREATE POLICY "mdoc_member_select" ON member_documents FOR SELECT USING (member_id = auth.uid());
+CREATE POLICY "mdoc_admin_select"  ON member_documents FOR SELECT USING (get_role() IN ('admin','ap'));
+CREATE POLICY "mdoc_admin_all"     ON member_documents FOR ALL   USING (get_role() IN ('admin','ap'));
 
--- wb_configs
-CREATE POLICY "wb_select"   ON wb_configs FOR SELECT USING (is_active_member());
-CREATE POLICY "wb_admin"    ON wb_configs FOR ALL   USING (get_role() = 'admin');
+-- waitlist
+CREATE POLICY "wl_member_all"  ON waitlist FOR ALL    USING (member_id = auth.uid());
+CREATE POLICY "wl_admin_read"  ON waitlist FOR SELECT USING (get_role() IN ('admin','ap'));
 
 -- ═══════════════════════════════════════════════════════════════
 --  SEED — N7798E + standard inspections
 -- ═══════════════════════════════════════════════════════════════
-INSERT INTO aircraft (tail_number, type, year, status, current_hobbs)
+INSERT INTO airplanes (tail_number, type, year, status, current_tach)
 VALUES ('N7798E', 'Cessna 150', 1959, 'available', 0)
 ON CONFLICT (tail_number) DO NOTHING;
 
-INSERT INTO inspections (aircraft_id, name, interval_days)
-SELECT id, name, days FROM aircraft
+INSERT INTO inspections (airplane_id, name, interval_days)
+SELECT id, name, days FROM airplanes
 CROSS JOIN (VALUES
   ('Annual',        365),
   ('100-Hour',      100),

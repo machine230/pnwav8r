@@ -3,7 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PNWAV8R — Pacific Northwest Flying Club</title>
+    <title>PNWAV8R — Pacific Northwest Flying Club · KBFI</title>
+    <meta name="description" content="A small flying club based at KBFI. We share a 1959 Cessna 150 and believe aviation should be accessible to all. Member portal powered by FlightBoard.">
+    <meta name="robots" content="index, follow">
+    <meta property="og:title" content="PNWAV8R — Pacific Northwest Flying Club">
+    <meta property="og:description" content="A small flying club at KBFI sharing a 1959 Cessna 150. Aviation accessible to all.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://pnwav8r.com/">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -174,6 +181,33 @@
             color: #5BB8E8;
         }
 
+        /* FLIGHTBOARD STRIP */
+        .fb-strip {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 16px 36px;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            background: rgba(0,0,0,0.18);
+            font-size: 0.8em;
+            color: rgba(255,255,255,0.38);
+            flex-wrap: wrap;
+        }
+        .fb-strip strong { color: rgba(255,255,255,0.55); font-weight: 700; }
+        .fb-strip-link {
+            color: #5BB8E8;
+            text-decoration: none;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 0.95em;
+            white-space: nowrap;
+            transition: opacity 0.2s;
+        }
+        .fb-strip-link:hover { opacity: 0.75; text-decoration: underline; }
+        .footer-fb-link { color: rgba(255,255,255,0.3); text-decoration: none; transition: color 0.2s; }
+        .footer-fb-link:hover { color: rgba(255,255,255,0.6); }
+
         /* FOOTER */
         footer {
             border-top: 1px solid rgba(255,255,255,0.06);
@@ -237,9 +271,15 @@
         </a>
     </div>
 
+    <div class="fb-strip">
+        <span>PNWAV8R runs on <strong>FlightBoard</strong> — club management software built for small flying clubs.</span>
+        <a href="/product" class="fb-strip-link">Learn more →</a>
+    </div>
+
     <footer>
         <span>© 2026 PNWAV8R Flying Club · KBFI</span>
         <span>Pilot in command is solely responsible for all flight decisions.</span>
+        <span><a href="/product" class="footer-fb-link">Powered by FlightBoard</a></span>
     </footer>
 
     <script>

@@ -262,6 +262,21 @@
         .msg-ok  { color: #5DD89A; }
         .msg-err { color: #ff8090; }
 
+        /* ── DOC UPLOAD (member edit modal) ── */
+        .doc-section { margin-top:24px; padding-top:20px; border-top:1px solid rgba(255,255,255,0.1); }
+        .doc-section h4 { font-family:'Montserrat',sans-serif; font-size:0.72em; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; color:rgba(255,255,255,0.35); margin:0 0 14px; }
+        .doc-upload-row { display:flex; flex-direction:column; gap:8px; }
+        .doc-upload-row select,
+        .doc-upload-row input[type="text"],
+        .doc-upload-row input[type="file"] { width:100%; padding:9px 12px; border:1px solid rgba(255,255,255,0.12); border-radius:7px; font-size:0.88em; font-family:inherit; background:rgba(255,255,255,0.07); color:rgba(255,255,255,0.9); }
+        .doc-upload-row select option { background:#0D1E20; }
+        .doc-upload-row input[type="file"] { color:rgba(255,255,255,0.55); cursor:pointer; }
+        .doc-list { margin-top:12px; display:flex; flex-direction:column; gap:6px; }
+        .doc-list-item { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:8px 12px; background:rgba(255,255,255,0.04); border-radius:8px; border:1px solid rgba(255,255,255,0.08); font-size:0.85em; }
+        .doc-list-item a { color:#5BB8E8; text-decoration:none; font-weight:600; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .doc-list-item a:hover { text-decoration:underline; }
+        .doc-type-tag { font-size:0.72em; font-weight:700; padding:2px 8px; border-radius:12px; background:rgba(91,184,232,0.12); color:#5BB8E8; border:1px solid rgba(91,184,232,0.25); white-space:nowrap; font-family:'Montserrat',sans-serif; }
+
         /* ── MOBILE ── */
         @media(max-width: 680px) {
             .hamburger-btn { display: block; }
@@ -527,6 +542,63 @@
         </div>
     </div>
 
+    <!-- Member edit modal -->
+    <div class="modal-bg" id="memberEditModal">
+        <div class="modal-box" style="max-width:520px;max-height:90vh;overflow-y:auto">
+            <h2>Edit Member — <span id="meModalName" style="color:#5BB8E8"></span></h2>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <div class="modal-field" style="margin-bottom:0">
+                    <label>BFR Date</label>
+                    <input type="date" id="meBfrDate" style="color-scheme:dark">
+                </div>
+                <div class="modal-field" style="margin-bottom:0">
+                    <label>Medical Class</label>
+                    <select id="meMedClass" style="width:100%;padding:11px 14px;border:1px solid rgba(255,255,255,0.12);border-radius:8px;background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.9);font-family:inherit;font-size:0.92em">
+                        <option value="">— not set —</option>
+                        <option value="1">1st Class</option>
+                        <option value="2">2nd Class</option>
+                        <option value="3">3rd Class</option>
+                    </select>
+                </div>
+                <div class="modal-field" style="margin-bottom:0">
+                    <label>Medical Issue Date</label>
+                    <input type="date" id="meMedDate" style="color-scheme:dark">
+                </div>
+                <div class="modal-field" style="margin-bottom:0">
+                    <label>Date of Birth <span style="font-size:0.85em;opacity:0.5">(medical expiry)</span></label>
+                    <input type="date" id="meDob" style="color-scheme:dark">
+                </div>
+            </div>
+
+            <div id="meMsg" style="font-size:0.85em;margin-top:10px"></div>
+            <div class="modal-actions">
+                <button class="modal-cancel" onclick="closeMemberEdit()">Cancel</button>
+                <button class="modal-save" onclick="saveMemberEdit()">Save Changes</button>
+            </div>
+
+            <!-- Document upload section -->
+            <div class="doc-section">
+                <h4>Member Documents</h4>
+                <div class="doc-upload-row">
+                    <select id="meDocType">
+                        <option value="medical">Medical Certificate</option>
+                        <option value="rating">Rating Certificate</option>
+                        <option value="endorsement">Endorsement</option>
+                        <option value="other">Other</option>
+                    </select>
+                    <input type="text" id="meDocLabel" placeholder="Label, e.g. PPL Certificate — Dec 2024" maxlength="120">
+                    <input type="file" id="meDocFile" accept=".pdf,.jpg,.jpeg,.png">
+                    <button class="form-submit" onclick="uploadMemberDoc()" id="meUploadBtn">Upload Document</button>
+                </div>
+                <div id="meDocMsg" style="font-size:0.82em;margin-top:6px"></div>
+                <div class="doc-list" id="meDocList">
+                    <div style="color:rgba(255,255,255,0.3);font-size:0.85em;padding:8px 0">No documents on file.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Reservation edit modal -->
     <div class="modal-bg" id="resModal">
         <div class="modal-box">
@@ -646,6 +718,10 @@
                             onclick="resendInvite('${escapeHtml(m.email)}', '${escapeHtml(m.name || m.email)}')">
                             Re-invite
                         </button>
+                        <button class="tbl-btn" style="background:rgba(212,131,26,0.12);border-color:rgba(212,131,26,0.3);color:#F5B942"
+                            onclick="openMemberEdit('${escapeHtml(m.id)}')">
+                            Edit
+                        </button>
                     </td>
                 </tr>`).join('');
         }
@@ -723,6 +799,138 @@
             if (!confirm(`Change this member's role to ${label}?`)) return;
             await _supabase.from('members').update({ role: newRole }).eq('id', id);
             loadMembers();
+        }
+
+        // ── Member Edit (BFR / Medical / Docs) ──
+        let editMemberId = null;
+
+        async function openMemberEdit(id) {
+            editMemberId = id;
+            const { data: m } = await _supabase
+                .from('members')
+                .select('name, bfr_date, medical_class, medical_date, date_of_birth')
+                .eq('id', id).single();
+            if (!m) { alert('Could not load member data.'); return; }
+
+            document.getElementById('meModalName').textContent = m.name || '—';
+            document.getElementById('meBfrDate').value  = m.bfr_date  || '';
+            document.getElementById('meMedClass').value = m.medical_class || '';
+            document.getElementById('meMedDate').value  = m.medical_date  || '';
+            document.getElementById('meDob').value      = m.date_of_birth || '';
+            document.getElementById('meMsg').textContent = '';
+            document.getElementById('meDocMsg').textContent = '';
+            document.getElementById('meDocLabel').value = '';
+            document.getElementById('meDocFile').value  = '';
+
+            await loadMemberDocs(id);
+            document.getElementById('memberEditModal').classList.add('open');
+        }
+
+        function closeMemberEdit() {
+            document.getElementById('memberEditModal').classList.remove('open');
+            editMemberId = null;
+        }
+
+        async function saveMemberEdit() {
+            const bfrDate  = document.getElementById('meBfrDate').value  || null;
+            const medClass = parseInt(document.getElementById('meMedClass').value) || null;
+            const medDate  = document.getElementById('meMedDate').value  || null;
+            const dob      = document.getElementById('meDob').value      || null;
+            const msg      = document.getElementById('meMsg');
+
+            const { error } = await _supabase.from('members').update({
+                bfr_date:      bfrDate,
+                medical_class: medClass,
+                medical_date:  medDate,
+                date_of_birth: dob
+            }).eq('id', editMemberId);
+
+            if (error) {
+                console.error('[saveMemberEdit]', error?.message || error);
+                msg.className = 'msg-err'; msg.textContent = 'Save failed. ' + (error.message || '');
+            } else {
+                msg.className = 'msg-ok'; msg.textContent = 'Saved!';
+                setTimeout(() => { msg.textContent = ''; }, 2000);
+            }
+        }
+
+        async function loadMemberDocs(memberId) {
+            const { data: docs } = await _supabase
+                .from('member_documents')
+                .select('id, doc_type, label, storage_path, created_at')
+                .eq('member_id', memberId)
+                .order('created_at', { ascending: false });
+
+            const listEl = document.getElementById('meDocList');
+            if (!docs?.length) {
+                listEl.innerHTML = '<div style="color:rgba(255,255,255,0.3);font-size:0.85em;padding:8px 0">No documents on file.</div>';
+                return;
+            }
+
+            // Generate signed URLs for each doc
+            const items = await Promise.all(docs.map(async (d) => {
+                const { data: signed } = await _supabase.storage
+                    .from('member-docs')
+                    .createSignedUrl(d.storage_path, 3600);
+                return { ...d, url: signed?.signedUrl || null };
+            }));
+
+            const typeLabel = { medical:'Medical', rating:'Rating', endorsement:'Endorsement', other:'Other' };
+            listEl.innerHTML = items.map(d => `
+                <div class="doc-list-item">
+                    <span class="doc-type-tag">${typeLabel[d.doc_type] || d.doc_type}</span>
+                    ${d.url
+                        ? `<a href="${d.url}" target="_blank" rel="noopener">${escapeHtml(d.label)}</a>`
+                        : `<span style="color:rgba(255,255,255,0.5)">${escapeHtml(d.label)}</span>`}
+                    <span style="color:rgba(255,255,255,0.25);font-size:0.8em;white-space:nowrap">${new Date(d.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</span>
+                </div>`).join('');
+        }
+
+        async function uploadMemberDoc() {
+            const file    = document.getElementById('meDocFile').files[0];
+            const docType = document.getElementById('meDocType').value;
+            const label   = document.getElementById('meDocLabel').value.trim();
+            const msg     = document.getElementById('meDocMsg');
+            const btn     = document.getElementById('meUploadBtn');
+
+            if (!file)  { msg.className='msg-err'; msg.textContent='Please select a file to upload.'; return; }
+            if (!label) { msg.className='msg-err'; msg.textContent='Please enter a label for this document.'; return; }
+            if (file.size > 10 * 1024 * 1024) { msg.className='msg-err'; msg.textContent='File must be 10 MB or smaller.'; return; }
+
+            btn.disabled = true; btn.textContent = 'Uploading…';
+            msg.textContent = '';
+
+            const storagePath = `${editMemberId}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+            const { error: upErr } = await _supabase.storage
+                .from('member-docs')
+                .upload(storagePath, file, { upsert: false });
+
+            if (upErr) {
+                console.error('[uploadMemberDoc] storage error:', upErr?.message || upErr);
+                msg.className = 'msg-err'; msg.textContent = 'Upload failed: ' + (upErr.message || 'Storage error');
+                btn.disabled = false; btn.textContent = 'Upload Document';
+                return;
+            }
+
+            const { error: dbErr } = await _supabase.from('member_documents').insert({
+                member_id:    editMemberId,
+                doc_type:     docType,
+                label:        label,
+                storage_path: storagePath,
+                uploaded_by:  currentMember.id
+            });
+
+            if (dbErr) {
+                console.error('[uploadMemberDoc] db error:', dbErr?.message || dbErr);
+                msg.className = 'msg-err'; msg.textContent = 'File uploaded but metadata save failed. Contact support.';
+            } else {
+                msg.className = 'msg-ok'; msg.textContent = 'Document uploaded!';
+                document.getElementById('meDocLabel').value = '';
+                document.getElementById('meDocFile').value  = '';
+                await loadMemberDocs(editMemberId);
+                setTimeout(() => { msg.textContent = ''; }, 3000);
+            }
+            btn.disabled = false; btn.textContent = 'Upload Document';
         }
 
         // ── Aircraft ──

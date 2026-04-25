@@ -246,6 +246,25 @@
         .profile-msg.success { color:#5DD89A; }
         .profile-msg.error   { color:#ff8090; }
 
+        /* ── PILOT CURRENCY ── */
+        .currency-row { display:flex; flex-direction:column; gap:8px; }
+        .currency-item { display:flex; align-items:center; gap:12px; padding:11px 14px; border-radius:8px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); }
+        .currency-item.current { background:rgba(42,122,82,0.12); border-color:rgba(42,122,82,0.3); }
+        .currency-item.lapsed  { background:rgba(220,53,69,0.10); border-color:rgba(220,53,69,0.3); }
+        .currency-item.missing { background:rgba(245,185,66,0.08); border-color:rgba(245,185,66,0.25); }
+        .currency-icon { font-size:1.2rem; flex-shrink:0; line-height:1; }
+        .currency-label { font-weight:700; font-size:0.88em; color:rgba(255,255,255,0.88); }
+        .currency-detail { font-size:0.75em; color:rgba(255,255,255,0.4); margin-top:2px; }
+
+        /* ── WAITLIST BANNER ── */
+        .waitlist-banner { border-radius:10px; padding:14px 20px; margin-bottom:18px; display:none; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; background:rgba(245,185,66,0.09); border:1px solid rgba(245,185,66,0.3); color:rgba(255,255,255,0.85); font-size:0.88em; }
+        .waitlist-banner.visible { display:flex; }
+        .waitlist-text { display:flex; align-items:center; gap:10px; flex:1; min-width:0; }
+        .waitlist-btn { padding:8px 18px; border-radius:8px; font-weight:700; font-size:0.84em; cursor:pointer; font-family:'Montserrat',sans-serif; background:rgba(245,185,66,0.18); color:#F5B942; border:1px solid rgba(245,185,66,0.4); transition:background 0.2s; white-space:nowrap; }
+        .waitlist-btn:hover { background:rgba(245,185,66,0.32); }
+        .waitlist-btn.on-list { background:rgba(220,53,69,0.14); color:#ff8090; border-color:rgba(220,53,69,0.4); }
+        .waitlist-btn.on-list:hover { background:rgba(220,53,69,0.28); }
+
         @media(max-width:680px) {
             .hamburger-btn { display:block; }
             .club-nav-inner { flex-wrap:nowrap; }
@@ -325,6 +344,15 @@
             </div>
         </div>
 
+        <!-- Waitlist banner — shown only when aircraft is grounded -->
+        <div class="waitlist-banner" id="waitlistBanner">
+            <div class="waitlist-text">
+                <span>⚠️</span>
+                <span id="waitlistStatusText">N7798E is currently grounded. Join the waitlist to be notified when it's airworthy again.</span>
+            </div>
+            <button class="waitlist-btn" id="waitlistBtn" onclick="toggleWaitlist()">Join Waitlist</button>
+        </div>
+
         <!-- Squawk alert cards -->
         <div class="squawk-alert-section" id="squawkAlertSection">
             <div class="squawk-alert-header">
@@ -356,6 +384,12 @@
                     <div>Flight Checklist</div>
                 </div>
             </a>
+        </div>
+
+        <!-- Pilot Currency -->
+        <div class="dash-card" id="currencyCard" style="display:none;margin-bottom:24px">
+            <div class="dash-card-title">Pilot Currency</div>
+            <div class="currency-row" id="currencyRow"></div>
         </div>
 
         <!-- My Flight Log -->
@@ -441,6 +475,7 @@
         const DAYS_SHORT = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
         let currentMember = null;
+        let airplaneId    = null;
         let reservations  = [];
         let miniWeekStart = getWeekStart(new Date());
 
@@ -462,7 +497,8 @@
             renderNavUser(currentMember);
             if (isAdmin(currentMember)) document.getElementById('adminLink').style.display = 'inline';
 
-            await Promise.all([loadAirplane(), loadReservations(), loadSquawks(), loadInspections(), loadMyFlightLog()]);
+            await Promise.all([loadAirplane(), loadReservations(), loadSquawks(), loadInspections(), loadMyFlightLog(), loadCurrency()]);
+            await loadWaitlistBanner();
 
             const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
             _supabase.channel('reservations').on('postgres_changes', { event:'*', schema:'public', table:'reservations' }, debounce(async () => { await loadReservations(); renderMiniCal(); }, 500)).subscribe();
@@ -492,6 +528,7 @@
         async function loadAirplane() {
             const { data: plane } = await _supabase.from('airplanes').select('*, smoh_base').eq('tail_number', AIRPLANE_TAIL).single();
             if (!plane) return;
+            airplaneId = plane.id;
 
             const statusMap = { available:{cls:'available',label:'Available'}, flying:{cls:'flying',label:'In the Air'}, maintenance:{cls:'maintenance',label:'Maintenance'}, squawk:{cls:'squawk',label:'Squawk — Grounded'} };
             const s = statusMap[plane.status] || statusMap.available;
@@ -855,6 +892,139 @@
                 renderNavUser(currentMember);
                 setTimeout(closeProfile, 1200);
             }
+        }
+
+        async function loadCurrency() {
+            const { data: m } = await _supabase
+                .from('members')
+                .select('bfr_date, medical_class, medical_date, date_of_birth')
+                .eq('id', currentMember.id)
+                .single();
+            if (!m) return;
+
+            // 90-day passenger currency — 3 T&Ls in last 90 days (FAA 61.57a)
+            const cutoff = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
+            const { data: logs90 } = await _supabase
+                .from('flight_logs')
+                .select('landings')
+                .eq('member_id', currentMember.id)
+                .gte('completed_at', cutoff)
+                .or('is_deleted.is.null,is_deleted.eq.false');
+            const landingCount    = (logs90 || []).reduce((s, f) => s + (f.landings || 0), 0);
+            const passengerCurrent = landingCount >= 3;
+
+            // BFR — within 24 calendar months (FAA 61.56)
+            let bfrExpiry = null, bfrCurrent = false;
+            if (m.bfr_date) {
+                bfrExpiry = new Date(m.bfr_date);
+                bfrExpiry.setMonth(bfrExpiry.getMonth() + 24);
+                bfrCurrent = bfrExpiry > new Date();
+            }
+
+            // Medical — duration depends on class and age at issuance
+            let medExpiry = null, medCurrent = false;
+            if (m.medical_date) {
+                let months = 24; // conservative default (3rd class, age ≥ 40)
+                if (m.medical_class === 1) {
+                    months = 12;
+                } else if (m.medical_class === 2) {
+                    months = 24;
+                } else if (m.medical_class === 3 && m.date_of_birth) {
+                    const ageAtIssue = (new Date(m.medical_date) - new Date(m.date_of_birth)) / (365.25 * 86400000);
+                    months = ageAtIssue < 40 ? 60 : 24;
+                }
+                medExpiry = new Date(m.medical_date);
+                medExpiry.setMonth(medExpiry.getMonth() + months);
+                medCurrent = medExpiry > new Date();
+            }
+
+            const card = document.getElementById('currencyCard');
+            const row  = document.getElementById('currencyRow');
+            if (!card || !row) return;
+            card.style.display = '';
+
+            const fmtD = d => d.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+            const classLabel = { 1:'1st Class', 2:'2nd Class', 3:'3rd Class' };
+            const items = [
+                {
+                    cls:    passengerCurrent ? 'current' : 'lapsed',
+                    icon:   passengerCurrent ? '✅' : '⚠️',
+                    label:  '90-Day Passenger Currency',
+                    detail: landingCount + ' of 3 required landings in the past 90 days'
+                },
+                {
+                    cls:    m.bfr_date ? (bfrCurrent ? 'current' : 'lapsed') : 'missing',
+                    icon:   m.bfr_date ? (bfrCurrent ? '✅' : '⚠️') : '❓',
+                    label:  'Biennial Flight Review (BFR)',
+                    detail: m.bfr_date
+                        ? 'Expires ' + fmtD(bfrExpiry)
+                        : 'Not on file — contact admin to update'
+                },
+                {
+                    cls:    m.medical_date ? (medCurrent ? 'current' : 'lapsed') : 'missing',
+                    icon:   m.medical_date ? (medCurrent ? '✅' : '⚠️') : '❓',
+                    label:  'Medical Certificate' + (m.medical_class ? ' — ' + (classLabel[m.medical_class] || '') : ''),
+                    detail: m.medical_date
+                        ? 'Expires ' + fmtD(medExpiry)
+                        : 'Not on file — contact admin to update'
+                }
+            ];
+
+            row.innerHTML = items.map(it =>
+                `<div class="currency-item ${it.cls}">
+                    <span class="currency-icon">${it.icon}</span>
+                    <div>
+                        <div class="currency-label">${it.label}</div>
+                        <div class="currency-detail">${it.detail}</div>
+                    </div>
+                </div>`
+            ).join('');
+        }
+
+        async function loadWaitlistBanner() {
+            if (!airplaneId || !currentMember) return;
+            const { data: plane } = await _supabase
+                .from('airplanes').select('status').eq('id', airplaneId).single();
+            if (!plane || plane.status !== 'squawk') return;
+
+            const { data: myWait } = await _supabase
+                .from('waitlist')
+                .select('id')
+                .eq('airplane_id', airplaneId)
+                .eq('member_id', currentMember.id)
+                .maybeSingle();
+
+            const onList   = !!myWait;
+            const banner   = document.getElementById('waitlistBanner');
+            const btn      = document.getElementById('waitlistBtn');
+            const statusTx = document.getElementById('waitlistStatusText');
+            if (!banner || !btn || !statusTx) return;
+
+            banner.classList.add('visible');
+            if (onList) {
+                btn.textContent = 'Leave Waitlist';
+                btn.classList.add('on-list');
+                statusTx.textContent = "N7798E is grounded — you're on the waitlist. We'll email you when it's back.";
+            } else {
+                btn.textContent = 'Join Waitlist';
+                btn.classList.remove('on-list');
+                statusTx.textContent = 'N7798E is currently grounded. Join the waitlist to be notified when it\'s airworthy again.';
+            }
+        }
+
+        async function toggleWaitlist() {
+            const btn    = document.getElementById('waitlistBtn');
+            const onList = btn.classList.contains('on-list');
+            btn.disabled = true;
+            if (onList) {
+                await _supabase.from('waitlist')
+                    .delete().eq('airplane_id', airplaneId).eq('member_id', currentMember.id);
+            } else {
+                await _supabase.from('waitlist')
+                    .insert({ airplane_id: airplaneId, member_id: currentMember.id });
+            }
+            btn.disabled = false;
+            await loadWaitlistBanner();
         }
 
         function fmtTime(d)  { return d.toLocaleString('en-US',{hour:'numeric',minute:'2-digit',hour12:true}); }

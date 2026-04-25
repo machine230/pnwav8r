@@ -2,6 +2,9 @@
   publish = "."
   functions = "netlify/functions"
 
+[build.processing]
+  skip_processing = false
+
 [functions]
   node_bundler = "esbuild"
 
@@ -76,3 +79,14 @@
   from   = "/wb"
   to     = "/wb.html"
   status = 200
+
+[[redirects]]
+  from   = "/product"
+  to     = "/product.html"
+  status = 200
+
+# ── Custom error pages ─────────────────────────────────────────
+[[redirects]]
+  from   = "/*"
+  to     = "/404.html"
+  status = 404
