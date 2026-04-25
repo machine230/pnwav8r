@@ -1,5 +1,5 @@
 [build]
-  publish = "flightboard-site"
+  publish = "."
 
 # ── Security headers ───────────────────────────────────────────
 [[headers]]
