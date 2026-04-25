@@ -245,13 +245,33 @@
         .profile-msg { font-size:0.85em; margin-top:10px; }
         .profile-msg.success { color:#5DD89A; }
         .profile-msg.error   { color:#ff8090; }
+        .modal-box { max-height:92vh; overflow-y:auto; }
+        .optional-section { margin-top:22px; padding-top:18px; border-top:1px solid rgba(255,255,255,0.08); }
+        .optional-section-title { font-family:'Montserrat',sans-serif; font-weight:700; font-size:0.82em; color:rgba(255,255,255,0.45); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:4px; }
+        .optional-section-note  { font-size:0.78em; color:rgba(255,255,255,0.32); margin-bottom:14px; line-height:1.5; }
+        /* Docs inside profile modal */
+        .profile-doc-section { margin-top:20px; padding-top:16px; border-top:1px solid rgba(255,255,255,0.08); }
+        .profile-doc-upload { display:flex; flex-direction:column; gap:8px; margin-bottom:12px; }
+        .profile-doc-upload select,
+        .profile-doc-upload input[type=text],
+        .profile-doc-upload input[type=file] { padding:9px 12px; border:1px solid rgba(255,255,255,0.12); border-radius:8px; background:rgba(255,255,255,0.07); color:rgba(255,255,255,0.9); font-family:inherit; font-size:0.88em; }
+        .profile-doc-upload input[type=file] { padding:6px 12px; cursor:pointer; }
+        .profile-doc-list { display:flex; flex-direction:column; gap:6px; }
+        .profile-doc-item { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px 12px; border-radius:7px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); font-size:0.82em; }
+        .profile-doc-item a { color:#5BB8E8; text-decoration:none; font-weight:600; }
+        .profile-doc-item a:hover { text-decoration:underline; }
+        .profile-doc-del { background:none; border:none; color:rgba(255,100,100,0.5); cursor:pointer; font-size:1rem; padding:0 4px; line-height:1; }
+        .profile-doc-del:hover { color:rgba(255,100,100,0.9); }
+        .upload-btn { padding:9px 20px; background:rgba(91,184,232,0.12); color:#5BB8E8; border:1px solid rgba(91,184,232,0.3); border-radius:8px; font-family:'Montserrat',sans-serif; font-weight:700; font-size:0.84em; cursor:pointer; transition:background 0.2s; align-self:flex-start; }
+        .upload-btn:hover { background:rgba(91,184,232,0.22); }
+        .upload-btn:disabled { opacity:0.5; cursor:default; }
 
         /* ── PILOT CURRENCY ── */
         .currency-row { display:flex; flex-direction:column; gap:8px; }
         .currency-item { display:flex; align-items:center; gap:12px; padding:11px 14px; border-radius:8px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); }
         .currency-item.current { background:rgba(42,122,82,0.12); border-color:rgba(42,122,82,0.3); }
         .currency-item.lapsed  { background:rgba(220,53,69,0.10); border-color:rgba(220,53,69,0.3); }
-        .currency-item.missing { background:rgba(245,185,66,0.08); border-color:rgba(245,185,66,0.25); }
+        .currency-item.missing { background:rgba(255,255,255,0.03); border-color:rgba(255,255,255,0.1); }
         .currency-icon { font-size:1.2rem; flex-shrink:0; line-height:1; }
         .currency-label { font-weight:700; font-size:0.88em; color:rgba(255,255,255,0.88); }
         .currency-detail { font-size:0.75em; color:rgba(255,255,255,0.4); margin-top:2px; }
@@ -457,9 +477,57 @@
                 <label class="form-label">Phone</label>
                 <input type="tel" class="form-input" id="profilePhone" placeholder="e.g. 206-555-1234" pattern="[\d\s\+\-\(\)]+" maxlength="20">
             </div>
-            <div class="modal-actions">
-                <button class="close-btn" onclick="closeProfile()">Cancel</button>
-                <button class="save-btn" onclick="saveProfile()">Save</button>
+
+            <!-- ── Optional currency tracking ── -->
+            <div class="optional-section">
+                <div class="optional-section-title">Currency Tracking (optional)</div>
+                <div class="optional-section-note">Track your own BFR, medical, and date of birth for the currency card on your dashboard. This is self-managed and not enforced by the club.</div>
+                <div class="form-group">
+                    <label class="form-label">Date of Birth</label>
+                    <input type="date" class="form-input" id="profileDob">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">BFR Date <span style="font-weight:400;color:rgba(255,255,255,0.35)">(most recent)</span></label>
+                    <input type="date" class="form-input" id="profileBfrDate">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Medical Type</label>
+                    <select class="form-input" id="profileMedClass">
+                        <option value="">— Not tracked —</option>
+                        <option value="1">1st Class</option>
+                        <option value="2">2nd Class</option>
+                        <option value="3">3rd Class</option>
+                        <option value="4">BasicMed</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Medical Issue Date</label>
+                    <input type="date" class="form-input" id="profileMedDate">
+                </div>
+            </div>
+
+            <!-- ── Optional document upload ── -->
+            <div class="profile-doc-section">
+                <div class="optional-section-title">My Documents (optional)</div>
+                <div class="optional-section-note">Upload your medical certificate, ratings, or endorsements for your own reference. Files are private to you.</div>
+                <div class="profile-doc-upload">
+                    <select id="profileDocType">
+                        <option value="medical">Medical Certificate</option>
+                        <option value="rating">Rating</option>
+                        <option value="endorsement">Endorsement</option>
+                        <option value="other">Other</option>
+                    </select>
+                    <input type="text" id="profileDocLabel" placeholder="Label (e.g. 3rd Class Medical, PPL)" maxlength="80">
+                    <input type="file" id="profileDocFile" accept=".pdf,.jpg,.jpeg,.png">
+                    <button class="upload-btn" id="profileUploadBtn" onclick="uploadProfileDoc()">Upload Document</button>
+                </div>
+                <div class="profile-doc-msg" id="profileDocMsg" style="font-size:0.83em;margin-bottom:10px"></div>
+                <div class="profile-doc-list" id="profileDocList"><div style="color:rgba(255,255,255,0.25);font-size:0.82em;padding:4px 0">Loading documents…</div></div>
+            </div>
+
+            <div class="modal-actions" style="margin-top:22px">
+                <button class="close-btn" onclick="closeProfile()">Close</button>
+                <button class="save-btn" onclick="saveProfile()">Save Profile</button>
             </div>
             <div class="profile-msg" id="profileMsg"></div>
         </div>
@@ -865,23 +933,51 @@
         }
 
         // Profile
-        function openProfile() {
+        async function openProfile() {
             document.getElementById('profileEmail').value = currentMember.email || '';
             document.getElementById('profileName').value  = currentMember.name  || '';
             document.getElementById('profilePhone').value = currentMember.phone || '';
             document.getElementById('profileMsg').textContent = '';
+            document.getElementById('profileDocMsg').textContent = '';
+
+            // Fetch currency fields from DB
+            const { data: m } = await _supabase
+                .from('members')
+                .select('bfr_date, medical_class, medical_date, date_of_birth')
+                .eq('id', currentMember.id)
+                .single();
+            if (m) {
+                document.getElementById('profileDob').value      = m.date_of_birth || '';
+                document.getElementById('profileBfrDate').value  = m.bfr_date      || '';
+                document.getElementById('profileMedClass').value = m.medical_class != null ? String(m.medical_class) : '';
+                document.getElementById('profileMedDate').value  = m.medical_date  || '';
+            }
+
             document.getElementById('profileModal').classList.add('open');
+            loadProfileDocs();
         }
         function closeProfile() {
             document.getElementById('profileModal').classList.remove('open');
         }
         async function saveProfile() {
-            const name  = document.getElementById('profileName').value.trim();
-            const phone = document.getElementById('profilePhone').value.trim();
-            const msg   = document.getElementById('profileMsg');
+            const name     = document.getElementById('profileName').value.trim();
+            const phone    = document.getElementById('profilePhone').value.trim();
+            const dob      = document.getElementById('profileDob').value      || null;
+            const bfrDate  = document.getElementById('profileBfrDate').value  || null;
+            const medClass = parseInt(document.getElementById('profileMedClass').value) || null;
+            const medDate  = document.getElementById('profileMedDate').value  || null;
+            const msg      = document.getElementById('profileMsg');
             if (!name) { msg.className = 'profile-msg error'; msg.textContent = 'Name is required.'; return; }
 
-            const { error } = await _supabase.from('members').update({ name, phone, profile_completed: true }).eq('id', currentMember.id);
+            const { error } = await _supabase.from('members').update({
+                name,
+                phone,
+                profile_completed: true,
+                date_of_birth:  dob,
+                bfr_date:       bfrDate,
+                medical_class:  medClass,
+                medical_date:   medDate
+            }).eq('id', currentMember.id);
             if (error) {
                 console.error('[saveProfile]', error?.message || error);
                 msg.className = 'profile-msg error'; msg.textContent = 'Save failed. Please try again.';
@@ -890,8 +986,77 @@
                 currentMember.phone = phone;
                 msg.className = 'profile-msg success'; msg.textContent = 'Profile updated!';
                 renderNavUser(currentMember);
-                setTimeout(closeProfile, 1200);
+                await loadCurrency();          // refresh currency card
+                setTimeout(closeProfile, 1400);
             }
+        }
+
+        // ── Profile document helpers ──
+        async function loadProfileDocs() {
+            const listEl = document.getElementById('profileDocList');
+            listEl.innerHTML = '<div style="color:rgba(255,255,255,0.25);font-size:0.82em;padding:4px 0">Loading…</div>';
+            const { data: docs } = await _supabase
+                .from('member_documents')
+                .select('id, doc_type, label, storage_path, created_at')
+                .eq('member_id', currentMember.id)
+                .order('created_at', { ascending: false });
+            if (!docs?.length) {
+                listEl.innerHTML = '<div style="color:rgba(255,255,255,0.25);font-size:0.82em;padding:4px 0">No documents on file.</div>';
+                return;
+            }
+            const items = await Promise.all(docs.map(async d => {
+                const { data: urlData } = await _supabase.storage
+                    .from('member-docs').createSignedUrl(d.storage_path, 3600);
+                const url = urlData?.signedUrl || '#';
+                const typeTag = { medical:'💊 Medical', rating:'🛩 Rating', endorsement:'✍️ Endorsement', other:'📄 Other' }[d.doc_type] || d.doc_type;
+                return `<div class="profile-doc-item">
+                    <span style="color:rgba(255,255,255,0.5);font-size:0.8em">${typeTag}</span>
+                    <a href="${url}" target="_blank" rel="noopener">${escapeHtml(d.label)}</a>
+                    <button class="profile-doc-del" onclick="deleteProfileDoc('${d.id}','${escapeHtml(d.storage_path)}')" title="Remove">✕</button>
+                </div>`;
+            }));
+            listEl.innerHTML = items.join('');
+        }
+
+        async function uploadProfileDoc() {
+            const file    = document.getElementById('profileDocFile').files[0];
+            const label   = document.getElementById('profileDocLabel').value.trim();
+            const docType = document.getElementById('profileDocType').value;
+            const msgEl   = document.getElementById('profileDocMsg');
+            const btn     = document.getElementById('profileUploadBtn');
+            if (!file)  { msgEl.style.color='#ff8090'; msgEl.textContent='Choose a file first.'; return; }
+            if (!label) { msgEl.style.color='#ff8090'; msgEl.textContent='Add a label for this document.'; return; }
+            btn.disabled = true;
+            msgEl.style.color='rgba(255,255,255,0.45)'; msgEl.textContent='Uploading…';
+            const path = `${currentMember.id}/${Date.now()}-${file.name}`;
+            const { error: upErr } = await _supabase.storage.from('member-docs').upload(path, file);
+            if (upErr) {
+                btn.disabled = false;
+                msgEl.style.color='#ff8090'; msgEl.textContent='Upload failed: ' + (upErr.message || '');
+                return;
+            }
+            const { error: dbErr } = await _supabase.from('member_documents').insert({
+                member_id:    currentMember.id,
+                doc_type:     docType,
+                label:        label,
+                storage_path: path
+            });
+            btn.disabled = false;
+            if (dbErr) {
+                msgEl.style.color='#ff8090'; msgEl.textContent='Saved file but DB insert failed: ' + (dbErr.message || '');
+            } else {
+                msgEl.style.color='#5DD89A'; msgEl.textContent='Document uploaded!';
+                document.getElementById('profileDocLabel').value = '';
+                document.getElementById('profileDocFile').value  = '';
+                await loadProfileDocs();
+            }
+        }
+
+        async function deleteProfileDoc(docId, storagePath) {
+            if (!confirm('Remove this document?')) return;
+            await _supabase.storage.from('member-docs').remove([storagePath]);
+            await _supabase.from('member_documents').delete().eq('id', docId);
+            await loadProfileDocs();
         }
 
         async function loadCurrency() {
@@ -911,7 +1076,8 @@
                 .gte('completed_at', cutoff)
                 .or('is_deleted.is.null,is_deleted.eq.false');
             const landingCount    = (logs90 || []).reduce((s, f) => s + (f.landings || 0), 0);
-            const passengerCurrent = landingCount >= 3;
+            const hasLandingData  = (logs90 || []).some(f => f.landings != null);
+            const passengerCurrent = hasLandingData && landingCount >= 3;
 
             // BFR — within 24 calendar months (FAA 61.56)
             let bfrExpiry = null, bfrCurrent = false;
@@ -922,9 +1088,10 @@
             }
 
             // Medical — duration depends on class and age at issuance
+            // class 1 = 12mo, class 2 = 24mo, class 3 = 60mo (<40) / 24mo (≥40), BasicMed (4) = 48mo
             let medExpiry = null, medCurrent = false;
             if (m.medical_date) {
-                let months = 24; // conservative default (3rd class, age ≥ 40)
+                let months = 24; // conservative default
                 if (m.medical_class === 1) {
                     months = 12;
                 } else if (m.medical_class === 2) {
@@ -932,6 +1099,8 @@
                 } else if (m.medical_class === 3 && m.date_of_birth) {
                     const ageAtIssue = (new Date(m.medical_date) - new Date(m.date_of_birth)) / (365.25 * 86400000);
                     months = ageAtIssue < 40 ? 60 : 24;
+                } else if (m.medical_class === 4) {
+                    months = 48; // BasicMed valid 48 months
                 }
                 medExpiry = new Date(m.medical_date);
                 medExpiry.setMonth(medExpiry.getMonth() + months);
@@ -944,29 +1113,36 @@
             card.style.display = '';
 
             const fmtD = d => d.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
-            const classLabel = { 1:'1st Class', 2:'2nd Class', 3:'3rd Class' };
+            const classLabel = { 1:'1st Class', 2:'2nd Class', 3:'3rd Class', 4:'BasicMed' };
+            const notTracked = 'Not tracked — tap Profile to add';
+
             const items = [
-                {
+                hasLandingData ? {
                     cls:    passengerCurrent ? 'current' : 'lapsed',
                     icon:   passengerCurrent ? '✅' : '⚠️',
                     label:  '90-Day Passenger Currency',
                     detail: landingCount + ' of 3 required landings in the past 90 days'
+                } : {
+                    cls:    'missing',
+                    icon:   '—',
+                    label:  '90-Day Passenger Currency',
+                    detail: 'Not tracked — landings auto-populate from post-flight logs'
                 },
                 {
                     cls:    m.bfr_date ? (bfrCurrent ? 'current' : 'lapsed') : 'missing',
-                    icon:   m.bfr_date ? (bfrCurrent ? '✅' : '⚠️') : '❓',
+                    icon:   m.bfr_date ? (bfrCurrent ? '✅' : '⚠️') : '—',
                     label:  'Biennial Flight Review (BFR)',
                     detail: m.bfr_date
-                        ? 'Expires ' + fmtD(bfrExpiry)
-                        : 'Not on file — contact admin to update'
+                        ? (bfrCurrent ? 'Expires ' + fmtD(bfrExpiry) : 'Expired ' + fmtD(bfrExpiry))
+                        : notTracked
                 },
                 {
                     cls:    m.medical_date ? (medCurrent ? 'current' : 'lapsed') : 'missing',
-                    icon:   m.medical_date ? (medCurrent ? '✅' : '⚠️') : '❓',
+                    icon:   m.medical_date ? (medCurrent ? '✅' : '⚠️') : '—',
                     label:  'Medical Certificate' + (m.medical_class ? ' — ' + (classLabel[m.medical_class] || '') : ''),
                     detail: m.medical_date
-                        ? 'Expires ' + fmtD(medExpiry)
-                        : 'Not on file — contact admin to update'
+                        ? (medCurrent ? 'Expires ' + fmtD(medExpiry) : 'Expired ' + fmtD(medExpiry))
+                        : notTracked
                 }
             ];
 
