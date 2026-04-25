@@ -1,0 +1,24 @@
+[build]
+  publish = "flightboard-site"
+
+# ── Security headers ───────────────────────────────────────────
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options           = "DENY"
+    X-Content-Type-Options    = "nosniff"
+    Referrer-Policy           = "strict-origin-when-cross-origin"
+    Permissions-Policy        = "camera=(), microphone=(), geolocation=()"
+    Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
+    Content-Security-Policy   = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none';"
+
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+# ── 404 ────────────────────────────────────────────────────────
+[[redirects]]
+  from   = "/*"
+  to     = "/index.html"
+  status = 404
