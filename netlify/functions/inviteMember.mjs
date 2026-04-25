@@ -59,7 +59,7 @@ export const handler = async (event) => {
     // SDK-based approaches (auth.getUser / user-context client) have unreliable
     // behaviour server-side with a service-role client, so we call the endpoint raw.
     const anonKey = process.env.SUPABASE_ANON_KEY || serviceRole;
-    let userId;
+    let userId, userData;
     try {
         const authRes = await fetch(`${supabaseUrl}/auth/v1/user`, {
             headers: {
@@ -68,11 +68,11 @@ export const handler = async (event) => {
             }
         });
         if (!authRes.ok) {
-            const body = await authRes.text();
-            console.error('[inviteMember] auth/v1/user error:', authRes.status, body);
+            const errBody = await authRes.text();
+            console.error('[inviteMember] auth/v1/user error:', authRes.status, errBody);
             return { statusCode: 401, headers: cors, body: JSON.stringify({ error: 'Invalid session' }) };
         }
-        const userData = await authRes.json();
+        userData = await authRes.json();
         userId = userData?.id;
     } catch (e) {
         console.error('[inviteMember] fetch auth error:', e?.message || e);
@@ -80,10 +80,25 @@ export const handler = async (event) => {
     }
     if (!userId) return { statusCode: 401, headers: cors, body: JSON.stringify({ error: 'Invalid session' }) };
 
-    const { data: callerMember } = await admin
-        .from('members').select('role').eq('id', userId).single();
+    // Look up caller's role — try by auth user ID first, then fall back to email.
+    // The ID fallback covers cases where the members row was created manually
+    // and might not have the auth.users UUID as its primary key.
+    let callerMember = null;
+    const { data: byId } = await admin
+        .from('members').select('role, email').eq('id', userId).single();
+    if (byId) {
+        callerMember = byId;
+    } else if (userData?.email) {
+        const { data: byEmail } = await admin
+            .from('members').select('role, email').eq('email', userData.email).single();
+        callerMember = byEmail;
+    }
+
     if (callerMember?.role !== 'admin') {
-        return { statusCode: 403, headers: cors, body: JSON.stringify({ error: 'Admin access required' }) };
+        console.error('[inviteMember] role check failed — userId:', userId,
+            'email:', userData?.email, 'found role:', callerMember?.role);
+        return { statusCode: 403, headers: cors,
+            body: JSON.stringify({ error: `Admin access required (found role: ${callerMember?.role || 'none'})` }) };
     }
 
     // ── Parse body ──
