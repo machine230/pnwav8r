@@ -81,31 +81,28 @@ export const handler = async (event) => {
     if (!userId) return { statusCode: 401, headers: cors, body: JSON.stringify({ error: 'Invalid session' }) };
 
     // Look up caller's role — try by auth user ID first, then fall back to email.
-    // The ID fallback covers cases where the members row was created manually
-    // and might not have the auth.users UUID as its primary key.
+    // Uses .limit(1) + array access instead of .single() to avoid null returns
+    // when the members row ID differs from the auth.users UUID.
     let callerMember = null;
-    const { data: byId } = await admin
-        .from('members').select('role, email').eq('id', userId).single();
-    if (byId) {
-        callerMember = byId;
+
+    const { data: idRows, error: idErr } = await admin
+        .from('members').select('role, email').eq('id', userId).limit(1);
+    console.log('[inviteMember] byId lookup:', JSON.stringify({ userId, found: idRows?.length ?? 0, error: idErr?.message }));
+
+    if (idRows?.length) {
+        callerMember = idRows[0];
     } else if (userData?.email) {
-        const { data: byEmail } = await admin
-            .from('members').select('role, email').eq('email', userData.email).single();
-        callerMember = byEmail;
+        const { data: emailRows, error: emailErr } = await admin
+            .from('members').select('role, email').eq('email', userData.email).limit(1);
+        console.log('[inviteMember] byEmail lookup:', JSON.stringify({ email: userData.email, found: emailRows?.length ?? 0, role: emailRows?.[0]?.role, error: emailErr?.message }));
+        if (emailRows?.length) callerMember = emailRows[0];
     }
 
+    console.log('[inviteMember] callerMember:', JSON.stringify(callerMember));
+
     if (callerMember?.role !== 'admin') {
-        // TEMP DIAGNOSTIC — remove after confirming fix
         return { statusCode: 403, headers: cors,
-            body: JSON.stringify({
-                error: 'Admin access required',
-                _debug: {
-                    jwt_user_id:   userId,
-                    jwt_email:     userData?.email,
-                    found_by_id:   byId   ? { role: byId.role,   email: byId.email   } : null,
-                    found_by_email: (userData?.email && !byId) ? { role: (await admin.from('members').select('role,email,id').eq('email', userData.email).single()).data?.role } : null
-                }
-            }) };
+            body: JSON.stringify({ error: 'Admin access required' }) };
     }
 
     // ── Parse body ──
