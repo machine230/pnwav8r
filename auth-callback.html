@@ -168,14 +168,31 @@
     <script src="js/club-config.js"></script>
     <script src="js/supabase-client.js"></script>
     <script>
-        // Capture the URL type BEFORE the SDK clears the hash fragment.
-        // Supabase appends ?type=invite or #type=invite to the redirectTo URL.
+        // Capture URL params BEFORE the SDK clears the hash fragment.
         const _urlParams = new URLSearchParams(
             window.location.hash.substring(1) || window.location.search.substring(1)
         );
-        const _urlType = _urlParams.get('type'); // 'invite' | 'recovery' | null
+        const _urlType  = _urlParams.get('type');  // 'invite' | 'recovery' | null
+        const _urlError = _urlParams.get('error');
+        const _urlErrorDesc = _urlParams.get('error_description');
 
         let done = false;
+
+        // Show error immediately if Supabase returned one in the URL
+        // (e.g. expired token, invalid link)
+        if (_urlError) {
+            const friendly = _urlErrorDesc
+                ? decodeURIComponent(_urlErrorDesc).replace(/\+/g, ' ')
+                : 'The link is invalid or has expired.';
+            // Use setTimeout so DOM + showError fn are ready
+            window.addEventListener('DOMContentLoaded', () => {
+                showError(
+                    friendly + '<br><br>' +
+                    'Ask your club admin to send a new invite, or ' +
+                    '<a href="login.html" style="color:#5BB8E8">return to login</a>.'
+                );
+            });
+        }
 
         // ── UI helpers ──────────────────────────────────────────────────────────
         function showError(html) {
