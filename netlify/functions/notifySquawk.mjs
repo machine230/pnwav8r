@@ -10,13 +10,27 @@ const ALLOWED_ORIGINS = [
 
 function getCorsHeaders(event) {
     const origin = event.headers?.origin || '';
-    const allowed = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+    const allowed = ALLOWED_ORIGINS.includes(origin) ? origin : '';
     return {
         'Access-Control-Allow-Origin': allowed,
-        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         'Access-Control-Allow-Methods': 'POST, OPTIONS',
         'Content-Type': 'application/json'
     };
+}
+
+async function verifyMember(event) {
+    const jwt = (event.headers?.authorization || '').replace('Bearer ', '').trim();
+    if (!jwt) return false;
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const anonKey    = process.env.SUPABASE_ANON_KEY;
+    if (!supabaseUrl || !anonKey) return false;
+    try {
+        const res = await fetch(`${supabaseUrl}/auth/v1/user`, {
+            headers: { Authorization: `Bearer ${jwt}`, apikey: anonKey }
+        });
+        return res.ok;
+    } catch { return false; }
 }
 
 // Escape HTML to prevent injection in email body
@@ -35,6 +49,10 @@ export const handler = async (event) => {
 
     if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers: cors, body: '' };
     if (event.httpMethod !== 'POST')    return { statusCode: 405, headers: cors, body: 'Method not allowed' };
+
+    // Require a valid Supabase member session
+    const authed = await verifyMember(event);
+    if (!authed) return { statusCode: 401, headers: cors, body: JSON.stringify({ error: 'Unauthorized' }) };
 
     const RESEND_API_KEY = process.env.RESEND_API_KEY;
     const ADMIN_EMAIL    = process.env.ADMIN_EMAIL;

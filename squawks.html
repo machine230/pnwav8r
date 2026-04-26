@@ -525,11 +525,13 @@
 
             // Notify any waitlisted members that the plane is back in service
             if (airplaneId) {
-                fetch('/.netlify/functions/notifyWaitlist', {
-                    method:  'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body:    JSON.stringify({ airplane_id: airplaneId })
-                }).catch(err => console.error('[ungroundPlane] Waitlist notify failed:', err?.message || err));
+                _supabase.auth.getSession().then(({ data: { session } }) => {
+                    fetch('/.netlify/functions/notifyWaitlist', {
+                        method:  'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token || ''}` },
+                        body:    JSON.stringify({ airplane_id: airplaneId })
+                    }).catch(err => console.error('[ungroundPlane] Waitlist notify failed:', err?.message || err));
+                });
             }
         }
 

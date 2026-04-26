@@ -612,11 +612,13 @@
                         description: desc,
                         status:      'open'
                     });
-                    fetch('/.netlify/functions/notifySquawk', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ description: desc, reporter: currentMember.name || currentMember.email, tail: AIRPLANE_TAIL })
-                    }).catch(err => console.error('Squawk notification failed:', err?.message || err));
+                    _supabase.auth.getSession().then(({ data: { session } }) => {
+                        fetch('/.netlify/functions/notifySquawk', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token || ''}` },
+                            body: JSON.stringify({ description: desc, reporter: currentMember.name || currentMember.email, tail: AIRPLANE_TAIL })
+                        }).catch(err => console.error('Squawk notification failed:', err?.message || err));
+                    });
                 }
                 if (selectedGround) {
                     await _supabase.from('airplanes').update({ status: 'squawk' }).eq('id', airplaneId);

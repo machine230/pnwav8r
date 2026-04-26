@@ -22,7 +22,7 @@ function corsHeaders(event) {
     const origin = event.headers?.origin || '';
     const ok = ALLOWED_ORIGINS.includes(origin) || NETLIFY_PREVIEW_RE.test(origin);
     return {
-        'Access-Control-Allow-Origin': ok ? origin : ALLOWED_ORIGINS[0],
+        'Access-Control-Allow-Origin': ok ? origin : '',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         'Access-Control-Allow-Methods': 'POST, OPTIONS',
         'Content-Type': 'application/json'
@@ -98,7 +98,7 @@ export const handler = async (event) => {
         console.error('[inviteMember] role check failed — userId:', userId,
             'email:', userData?.email, 'found role:', callerMember?.role);
         return { statusCode: 403, headers: cors,
-            body: JSON.stringify({ error: `Admin access required (found role: ${callerMember?.role || 'none'})` }) };
+            body: JSON.stringify({ error: 'Admin access required' }) };
     }
 
     // ── Parse body ──

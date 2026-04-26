@@ -899,8 +899,8 @@
                 <div class="squawk-item">
                     <div class="squawk-dot"></div>
                     <div>
-                        <div class="squawk-text">${s.description}</div>
-                        <div class="squawk-meta">Reported by ${s.members?.name || '—'} · ${fmtDate(s.reported_at)}</div>
+                        <div class="squawk-text">${escapeHtml(s.description)}</div>
+                        <div class="squawk-meta">Reported by ${escapeHtml(s.members?.name || '—')} · ${fmtDate(s.reported_at)}</div>
                     </div>
                 </div>`).join('');
 

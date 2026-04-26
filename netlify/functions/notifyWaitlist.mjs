@@ -15,13 +15,26 @@ const ALLOWED_ORIGINS = [
 
 function getCorsHeaders(event) {
     const origin = event.headers?.origin || '';
-    const allowed = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+    const allowed = ALLOWED_ORIGINS.includes(origin) ? origin : '';
     return {
         'Access-Control-Allow-Origin': allowed,
-        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         'Access-Control-Allow-Methods': 'POST, OPTIONS',
         'Content-Type': 'application/json'
     };
+}
+
+async function verifyMember(event, supabaseUrl) {
+    const jwt = (event.headers?.authorization || '').replace('Bearer ', '').trim();
+    if (!jwt) return false;
+    const anonKey = process.env.SUPABASE_ANON_KEY;
+    if (!anonKey) return false;
+    try {
+        const res = await fetch(`${supabaseUrl}/auth/v1/user`, {
+            headers: { Authorization: `Bearer ${jwt}`, apikey: anonKey }
+        });
+        return res.ok;
+    } catch { return false; }
 }
 
 function esc(str) {
@@ -47,6 +60,10 @@ export const handler = async (event) => {
     if (!SUPABASE_URL || !SUPABASE_SERVICE) {
         return { statusCode: 500, headers: cors, body: JSON.stringify({ error: 'Server not configured' }) };
     }
+
+    // Require a valid Supabase member session
+    const authed = await verifyMember(event, SUPABASE_URL);
+    if (!authed) return { statusCode: 401, headers: cors, body: JSON.stringify({ error: 'Unauthorized' }) };
 
     let body;
     try {
