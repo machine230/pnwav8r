@@ -117,34 +117,55 @@ export const handler = async (event) => {
     if (!name  || name.length < 2 || name.length > 100)       return { statusCode: 400, headers: cors, body: JSON.stringify({ error: 'Name must be 2–100 characters' }) };
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { statusCode: 400, headers: cors, body: JSON.stringify({ error: 'Valid email required' }) };
 
-    // 1. Upsert member record (create or update)
-    // id is generated here because the members table may not have a DB-level default.
-    // On conflict (email already exists) Supabase ignores the provided id and keeps the existing one.
-    const { error: dbErr } = await admin.from('members').upsert(
-        { id: crypto.randomUUID(), name, email, phone, role, membership_active: true, pic_status: false },
-        { onConflict: 'email' }
-    );
-    if (dbErr) {
-        console.error('[inviteMember] DB error:', dbErr);
-        return { statusCode: 500, headers: cors, body: JSON.stringify({ error: 'Failed to save member: ' + dbErr.message }) };
-    }
-
-    // 2. Send Supabase invite email
-    const { error: inviteErr } = await admin.auth.admin.inviteUserByEmail(email, {
+    // ── Step 1: Send Supabase auth invite ──
+    // Must happen BEFORE the members upsert because members.id is a FK to auth.users.id.
+    // inviteUserByEmail creates the auth.users record and returns the UUID we need.
+    const { data: inviteData, error: inviteErr } = await admin.auth.admin.inviteUserByEmail(email, {
         redirectTo: `${siteUrl}/auth-callback.html`,
         data: { name }
     });
 
+    let authUserId  = inviteData?.user?.id;
+    let alreadyExists = false;
+
     if (inviteErr) {
-        // Member already has an auth account — not a failure, just notify
         if (inviteErr.message?.includes('already been registered')) {
-            return { statusCode: 200, headers: cors,
-                body: JSON.stringify({ ok: true, alreadyExists: true,
-                    message: `${name} already has an account. Member record updated.` }) };
+            // Auth user already exists — look up their UUID from auth so we can
+            // still upsert the member record correctly.
+            alreadyExists = true;
+            const { data: listData } = await admin.auth.admin.listUsers({ perPage: 1000 });
+            const existing = listData?.users?.find(u => u.email === email);
+            authUserId = existing?.id ?? null;
+        } else {
+            console.error('[inviteMember] Auth invite error:', inviteErr);
+            return { statusCode: 500, headers: cors,
+                body: JSON.stringify({ error: 'Invite email failed: ' + inviteErr.message }) };
         }
-        console.error('[inviteMember] Auth invite error:', inviteErr);
+    }
+
+    if (!authUserId) {
+        console.error('[inviteMember] Could not resolve auth user ID for', email);
         return { statusCode: 500, headers: cors,
-            body: JSON.stringify({ error: 'Member record saved but invite email failed: ' + inviteErr.message }) };
+            body: JSON.stringify({ error: 'Could not resolve auth account for this email' }) };
+    }
+
+    // ── Step 2: Upsert member record using the real auth UUID ──
+    // id = authUserId satisfies the members.id → auth.users.id FK constraint.
+    // On email conflict (member already exists) Supabase updates the row and keeps the existing id.
+    const { error: dbErr } = await admin.from('members').upsert(
+        { id: authUserId, name, email, phone, role, membership_active: true, pic_status: false },
+        { onConflict: 'email' }
+    );
+    if (dbErr) {
+        console.error('[inviteMember] DB upsert error:', dbErr);
+        return { statusCode: 500, headers: cors,
+            body: JSON.stringify({ error: 'Failed to save member: ' + dbErr.message }) };
+    }
+
+    if (alreadyExists) {
+        return { statusCode: 200, headers: cors,
+            body: JSON.stringify({ ok: true, alreadyExists: true,
+                message: `${name} already has an account. Member record updated.` }) };
     }
 
     return { statusCode: 200, headers: cors,
