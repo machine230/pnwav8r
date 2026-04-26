@@ -118,8 +118,10 @@ export const handler = async (event) => {
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { statusCode: 400, headers: cors, body: JSON.stringify({ error: 'Valid email required' }) };
 
     // 1. Upsert member record (create or update)
+    // id is generated here because the members table may not have a DB-level default.
+    // On conflict (email already exists) Supabase ignores the provided id and keeps the existing one.
     const { error: dbErr } = await admin.from('members').upsert(
-        { name, email, phone, role, membership_active: true, pic_status: false },
+        { id: crypto.randomUUID(), name, email, phone, role, membership_active: true, pic_status: false },
         { onConflict: 'email' }
     );
     if (dbErr) {
