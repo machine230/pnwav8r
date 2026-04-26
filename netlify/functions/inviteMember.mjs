@@ -95,10 +95,17 @@ export const handler = async (event) => {
     }
 
     if (callerMember?.role !== 'admin') {
-        console.error('[inviteMember] role check failed — userId:', userId,
-            'email:', userData?.email, 'found role:', callerMember?.role);
+        // TEMP DIAGNOSTIC — remove after confirming fix
         return { statusCode: 403, headers: cors,
-            body: JSON.stringify({ error: 'Admin access required' }) };
+            body: JSON.stringify({
+                error: 'Admin access required',
+                _debug: {
+                    jwt_user_id:   userId,
+                    jwt_email:     userData?.email,
+                    found_by_id:   byId   ? { role: byId.role,   email: byId.email   } : null,
+                    found_by_email: (userData?.email && !byId) ? { role: (await admin.from('members').select('role,email,id').eq('email', userData.email).single()).data?.role } : null
+                }
+            }) };
     }
 
     // ── Parse body ──
