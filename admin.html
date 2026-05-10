@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/light.css?v=1">
     <script src="js/theme.js?v=3"></script>
     <style>body{visibility:hidden}</style>
     <style>
@@ -327,6 +328,7 @@
             <button class="admin-tab" onclick="showTab('squawks',this)">Squawks</button>
             <button class="admin-tab" onclick="showTab('reservations',this)">Reservations</button>
             <button class="admin-tab" onclick="showTab('flights',this)">Flight Log</button>
+            <button class="admin-tab" onclick="showTab('feedback',this)">💬 Feedback <span id="feedbackBadge" style="display:none;background:rgba(42,122,82,0.25);color:#5DD89A;border-radius:20px;padding:1px 7px;font-size:0.82em;margin-left:4px">0</span></button>
         </div>
 
         <!-- ── Members ── -->
@@ -540,6 +542,32 @@
                 </div>
             </div>
         </div>
+
+        <!-- ── Beta Feedback ── -->
+        <div class="tab-panel" id="tab-feedback">
+            <div class="admin-card">
+                <div class="admin-card-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+                    <h3>Beta Feedback <span id="feedbackCount" style="font-size:0.78em;font-weight:400;color:rgba(255,255,255,0.4);margin-left:6px"></span></h3>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap">
+                        <button id="fbf-all" class="filter-btn filter-btn-apply" onclick="filterFeedback('')">All</button>
+                        <button id="fbf-bug"       class="filter-btn" style="border-radius:20px;border:1px solid rgba(255,255,255,0.15)" onclick="filterFeedback('bug')">🐛 Bug</button>
+                        <button id="fbf-confusing" class="filter-btn" style="border-radius:20px;border:1px solid rgba(255,255,255,0.15)" onclick="filterFeedback('confusing')">😕 Confusing</button>
+                        <button id="fbf-idea"      class="filter-btn" style="border-radius:20px;border:1px solid rgba(255,255,255,0.15)" onclick="filterFeedback('idea')">💡 Idea</button>
+                        <button id="fbf-positive"  class="filter-btn" style="border-radius:20px;border:1px solid rgba(255,255,255,0.15)" onclick="filterFeedback('positive')">✅ Positive</button>
+                    </div>
+                </div>
+                <div class="table-scroll">
+                    <table class="admin-table">
+                        <thead>
+                            <tr><th>Date</th><th>Member</th><th>Page</th><th>⭐</th><th>Category</th><th>Message</th></tr>
+                        </thead>
+                        <tbody id="feedbackTableBody">
+                            <tr><td colspan="6" style="text-align:center;color:rgba(255,255,255,0.3);padding:28px">Loading…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Member edit modal -->
@@ -670,7 +698,7 @@
                 if (plane.grounded_until) document.getElementById('adminGroundedUntil').value = plane.grounded_until.slice(0,16);
                 document.getElementById('maintNote').value  = plane.notes || '';
             }
-            await Promise.all([ loadMembers(), loadSquawks(), loadFlights(), loadInspections(), loadReservations() ]);
+            await Promise.all([ loadMembers(), loadSquawks(), loadFlights(), loadInspections(), loadReservations(), loadFeedback() ]);
             populatePilotFilter();
         });
 
@@ -1295,6 +1323,108 @@
 
         function fmtDate(iso) { return new Date(iso).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }
         function toggleNav()  { document.getElementById('navLinks').classList.toggle('nav-open'); }
+
+        // ── Beta Feedback ────────────────────────────────────────────
+        let _allFeedback = [];
+
+        const FB_CAT = {
+            bug:       { label:'🐛 Bug',        color:'#ff8090',  bg:'rgba(220,53,69,0.15)'  },
+            confusing: { label:'😕 Confusing',  color:'#F5B942',  bg:'rgba(245,185,66,0.15)' },
+            idea:      { label:'💡 Idea',        color:'#4A9ECC',  bg:'rgba(74,158,204,0.15)' },
+            positive:  { label:'✅ Positive',    color:'#5DDBA6',  bg:'rgba(93,219,166,0.12)' },
+        };
+
+        async function loadFeedback() {
+            const { data, error } = await _supabase
+                .from('beta_feedback')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) { console.error('[loadFeedback]', error.message); return; }
+            _allFeedback = data || [];
+
+            const badge = document.getElementById('feedbackBadge');
+            if (badge && _allFeedback.length) {
+                badge.textContent = _allFeedback.length;
+                badge.style.display = 'inline';
+            }
+
+            const countEl = document.getElementById('feedbackCount');
+            if (countEl) countEl.textContent = _allFeedback.length + ' entr' + (_allFeedback.length === 1 ? 'y' : 'ies');
+
+            renderFeedback(_allFeedback);
+        }
+
+        function filterFeedback(cat) {
+            ['all','bug','confusing','idea','positive'].forEach(k => {
+                const btn = document.getElementById('fbf-' + (k === 'all' ? 'all' : k));
+                if (btn) btn.className = ((!cat && k === 'all') || cat === k)
+                    ? 'filter-btn filter-btn-apply'
+                    : 'filter-btn';
+                if (btn && k !== 'all') btn.style.cssText = 'border-radius:20px;border:1px solid rgba(255,255,255,0.15)';
+            });
+            const filtered = cat ? _allFeedback.filter(f => f.category === cat) : _allFeedback;
+            renderFeedback(filtered);
+        }
+
+        function renderFeedback(rows) {
+            const tbody = document.getElementById('feedbackTableBody');
+            if (!tbody) return;
+            if (!rows.length) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:rgba(255,255,255,0.3);padding:32px">No feedback yet — share the beta link with members.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = rows.map(f => {
+                const cat  = FB_CAT[f.category] || { label: f.category, color:'#fff', bg:'rgba(255,255,255,0.08)' };
+                const stars = f.rating ? '⭐'.repeat(f.rating) : '<span style="opacity:0.3">—</span>';
+                const date  = new Date(f.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit',hour12:true});
+                return `<tr>
+                    <td style="font-size:0.82em;white-space:nowrap;color:rgba(255,255,255,0.55)">${date}</td>
+                    <td style="font-size:0.88em">${escapeHtml(f.member_name || '—')}</td>
+                    <td style="font-size:0.82em;color:rgba(255,255,255,0.55)">${escapeHtml(f.page || '—')}</td>
+                    <td style="font-size:0.82em;white-space:nowrap">${stars}</td>
+                    <td><span style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:0.76em;font-weight:700;background:${cat.bg};color:${cat.color}">${cat.label}</span></td>
+                    <td style="font-size:0.88em;max-width:300px;word-break:break-word">${escapeHtml(f.message)}</td>
+                </tr>`;
+            }).join('');
+        }
     </script>
+    <footer class="portal-footer" style="border-top:1px solid var(--border-dim);padding:20px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:0.78em;color:var(--text-muted);max-width:1100px;margin:0 auto">
+        <span>© 2026 PNWAV8R · KBFI</span>
+        <a href="https://flightboard.app/" target="_blank" rel="noopener" style="color:var(--sky-text);text-decoration:none;font-family:'Montserrat',sans-serif;font-weight:700;font-size:0.95em">Powered by FlightBoard →</a>
+    </footer>
+
+    <!-- Mobile bottom app bar -->
+    <style>
+        .bottom-app-bar { display:none; position:fixed; bottom:0; left:0; right:0; z-index:1200; background:rgba(10,22,16,0.97); border-top:1px solid rgba(255,255,255,0.10); padding:0 4px env(safe-area-inset-bottom); height:60px; justify-content:space-around; align-items:center; }
+        .bottom-app-bar a { display:flex; flex-direction:column; align-items:center; gap:2px; text-decoration:none; color:var(--text-muted); font-size:0.62em; font-weight:700; font-family:'Montserrat',sans-serif; letter-spacing:0.5px; padding:4px 10px; border-radius:8px; min-width:52px; }
+        .bar-icon { font-size:1.35rem; line-height:1; }
+        .bar-label { font-size:0.68em; font-weight:700; letter-spacing:0.3px; }
+        .bar-active { color:var(--green) !important; }
+        .bar-book { color:var(--sky) !important; }
+        @media(max-width:680px) { .bottom-app-bar { display:flex !important; } }
+    </style>
+    <nav class="bottom-app-bar" aria-label="Quick actions">
+        <a href="schedule.html" class="bar-book">
+            <span class="bar-icon">✈️</span>
+            <span class="bar-label">Book</span>
+        </a>
+        <a href="post-flight.html">
+            <span class="bar-icon">📋</span>
+            <span class="bar-label">Log</span>
+        </a>
+        <a href="weather.html">
+            <span class="bar-icon">🌤</span>
+            <span class="bar-label">Weather</span>
+        </a>
+        <a href="squawks.html">
+            <span class="bar-icon">🔧</span>
+            <span class="bar-label">Squawks</span>
+        </a>
+        <a href="admin.html" class="bar-active" data-bar-last>
+            <span class="bar-icon">⚙️</span>
+            <span class="bar-label">Admin</span>
+        </a>
+    </nav>
 </body>
 </html>

@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/light.css?v=1">
     <script src="js/theme.js?v=3"></script>
     <style>body{visibility:hidden}</style>
     <style>
@@ -201,13 +202,26 @@
             }
             .club-nav-links.nav-open { display: flex; }
             .club-nav-links a { padding: 12px 8px; border-bottom: 1px solid rgba(255,255,255,0.08); border-radius: 0; font-size: 1em; width: 100%; }
-            .page-wrap { padding: 16px; }
+            .page-wrap { padding: 16px 16px 88px; }
             .squawk-card { padding: 18px; }
             .sq-respond-actions { flex-direction: column; gap: 8px; }
             .sq-btn { width: 100%; text-align: center; padding: 12px; min-height: 44px; }
             .filter-tabs { gap: 6px; }
             .filter-tab { padding: 9px 14px; }
+            .bottom-app-bar { display: flex !important; }
         }
+
+        /* ── Portal Footer ── */
+        .portal-footer { border-top:1px solid var(--border-dim); padding:20px 28px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; font-size:0.78em; color:var(--text-muted); max-width:1100px; margin:0 auto; }
+        .portal-footer-fb { color:var(--sky-text); text-decoration:none; font-family:'Montserrat',sans-serif; font-weight:700; font-size:0.95em; transition:color 0.2s; }
+        .portal-footer-fb:hover { color:var(--green); }
+        /* ── Bottom App Bar (mobile) ── */
+        .bottom-app-bar { display:none; position:fixed; bottom:0; left:0; right:0; z-index:1200; background:rgba(10,22,16,0.97); border-top:1px solid rgba(255,255,255,0.10); padding:0 4px env(safe-area-inset-bottom); height:60px; justify-content:space-around; align-items:center; }
+        .bottom-app-bar a { display:flex; flex-direction:column; align-items:center; gap:2px; text-decoration:none; color:var(--text-muted); font-size:0.62em; font-weight:700; font-family:'Montserrat',sans-serif; letter-spacing:0.5px; padding:4px 10px; border-radius:8px; min-width:52px; }
+        .bar-icon { font-size:1.35rem; line-height:1; }
+        .bar-label { font-size:0.68em; font-weight:700; letter-spacing:0.3px; }
+        .bar-active { color:var(--green) !important; }
+        .bar-book { color:var(--sky) !important; }
     </style>
 </head>
 <body>
@@ -219,6 +233,7 @@
                 <a href="schedule.html">Schedule</a>
                 <a href="squawks.html" class="active">Squawks</a>
                 <a href="post-flight.html">Post-Flight</a>
+                <a href="weather.html">Weather</a>
                 <a href="directory.html">Directory</a>
                 <span id="adminLink" style="display:none"><a href="admin.html">Admin</a></span>
             </div>
@@ -295,6 +310,8 @@
             currentMember = await getCurrentMember();
             renderNavUser(currentMember);
             if (isAdmin(currentMember)) document.getElementById('adminLink').style.display = 'inline';
+            updateBottomBarForRole(currentMember);
+            initFeedbackWidget(currentMember);
 
             const { data: plane } = await _supabase.from('airplanes').select('id,status,grounded_from,grounded_until').eq('tail_number', AIRPLANE_TAIL).single();
             airplaneId = plane?.id;
@@ -537,6 +554,35 @@
 
         function fmtDate(iso) { return new Date(iso).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit',hour12:true}); }
         function toggleNav()  { document.getElementById('navLinks').classList.toggle('nav-open'); }
+
+        function updateBottomBarForRole(m) {
+            const bar = document.querySelector('.bottom-app-bar');
+            if (!bar) return;
+            if (typeof isAdmin === 'function' && isAdmin(m)) {
+                const last = bar.querySelector('[data-bar-last]');
+                if (last) {
+                    last.href = 'admin.html';
+                    last.querySelector('.bar-icon').textContent = '⚙️';
+                    last.querySelector('.bar-label').textContent = 'Admin';
+                    last.classList.remove('bar-active');
+                }
+            } else if (m?.role === 'ap') {
+                const sq = bar.querySelector('a[href="squawks.html"]');
+                if (sq) sq.classList.add('bar-book');
+            }
+        }
     </script>
+    <script src="js/feedback.js?v=1"></script>
+    <footer class="portal-footer">
+        <span>© 2026 PNWAV8R · KBFI</span>
+        <a href="https://flightboard.app/" target="_blank" rel="noopener" class="portal-footer-fb">Powered by FlightBoard →</a>
+    </footer>
+    <nav class="bottom-app-bar" aria-label="Quick actions">
+        <a href="schedule.html" class="bar-book"><span class="bar-icon">✈️</span><span class="bar-label">Book</span></a>
+        <a href="post-flight.html"><span class="bar-icon">📋</span><span class="bar-label">Log</span></a>
+        <a href="weather.html"><span class="bar-icon">🌤</span><span class="bar-label">Weather</span></a>
+        <a href="squawks.html" class="bar-active"><span class="bar-icon">🔧</span><span class="bar-label">Squawks</span></a>
+        <a href="#" onclick="openProfile();return false;" data-bar-last><span class="bar-icon">👤</span><span class="bar-label">Profile</span></a>
+    </nav>
 </body>
 </html>

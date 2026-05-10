@@ -52,6 +52,12 @@
   /* ── Accent text / borders ──────────────────────────── */
   --sky-text:   #5BB8E8;
   --sky-border: rgba(91, 184, 232, 0.38);
+  --sky-lt:     #5BB8E8;
+
+  /* Aliases for cross-club shared component compatibility */
+  --amber-lt:     var(--green-lt);           /* CTA hover → green */
+  --amber-text:   var(--green);              /* CTA text  → green */
+  --amber-border: rgba(42, 122, 82, 0.38);   /* CTA border → green */
 
   /* ── Status chips (bg / border / text) ──────────────── */
   --ok-bg:    rgba( 42, 122,  82, 0.20);  --ok-border:    rgba( 42, 122,  82, 0.45);  --ok-text:    #6edba0;
