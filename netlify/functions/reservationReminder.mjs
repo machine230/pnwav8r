@@ -101,7 +101,7 @@ export default async () => {
                             <p style="margin:4px 0 0;color:#555">${startTime} – ${endTime} PT</p>
                         </div>
                         <p>Check the squawk board before departure and confirm the aircraft is available.</p>
-                        <a href="https://pnwav8r.com/schedule"
+                        <a href="${process.env.SITE_URL || 'https://pnwav8r.com'}/schedule.html"
                            style="background:#2A7A52;color:white;padding:10px 20px;border-radius:8px;text-decoration:none;display:inline-block;margin-top:8px">
                             View Schedule →
                         </a>
