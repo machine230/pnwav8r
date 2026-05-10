@@ -11,6 +11,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
     <script src="js/theme.js?v=3"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
     <style>body{visibility:hidden}</style>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -170,7 +171,8 @@
         /* ── Bottom App Bar (mobile) ── */
         .bottom-app-bar { display:none; position:fixed; bottom:0; left:0; right:0; z-index:1200; background:rgba(10,22,16,0.97); border-top:1px solid rgba(255,255,255,0.10); padding:0 4px env(safe-area-inset-bottom); height:60px; justify-content:space-around; align-items:center; }
         .bottom-app-bar a { display:flex; flex-direction:column; align-items:center; gap:2px; text-decoration:none; color:var(--text-muted); font-size:0.62em; font-weight:700; font-family:'Montserrat',sans-serif; letter-spacing:0.5px; padding:4px 10px; border-radius:8px; min-width:52px; }
-        .bar-icon { font-size:1.35rem; line-height:1; }
+        .bar-icon { font-size:unset; height:24px; display:flex; align-items:center; justify-content:center; }
+        .bar-icon svg { width:22px; height:22px; stroke:currentColor; stroke-width:1.75; fill:none; }
         .bar-label { font-size:0.68em; font-weight:700; letter-spacing:0.3px; }
         .bar-active { color:var(--green) !important; }
         .bar-book { color:var(--sky) !important; }
@@ -266,6 +268,7 @@
             if (isAdmin(currentMember)) document.getElementById('adminLink').style.display = 'inline';
             updateBottomBarForRole(currentMember);
             initFeedbackWidget(currentMember);
+            lucide.createIcons();
 
             // Fetch plane including maintenance window
             // Note: add grounded_from + grounded_until columns to airplanes table:
@@ -585,7 +588,7 @@
                 const last = bar.querySelector('[data-bar-last]');
                 if (last) {
                     last.href = 'admin.html';
-                    last.querySelector('.bar-icon').textContent = '⚙️';
+                    last.querySelector('.bar-icon').setAttribute('data-lucide', 'settings'); lucide.createIcons();
                     last.querySelector('.bar-label').textContent = 'Admin';
                     last.classList.remove('bar-active');
                 }
@@ -601,11 +604,11 @@
         <a href="https://flightboard.app/" target="_blank" rel="noopener" class="portal-footer-fb">Powered by FlightBoard →</a>
     </footer>
     <nav class="bottom-app-bar" aria-label="Quick actions">
-        <a href="schedule.html" class="bar-book bar-active"><span class="bar-icon">✈️</span><span class="bar-label">Book</span></a>
-        <a href="post-flight.html"><span class="bar-icon">📋</span><span class="bar-label">Log</span></a>
-        <a href="weather.html"><span class="bar-icon">🌤</span><span class="bar-label">Weather</span></a>
-        <a href="squawks.html"><span class="bar-icon">🔧</span><span class="bar-label">Squawks</span></a>
-        <a href="#" onclick="openProfile();return false;" data-bar-last><span class="bar-icon">👤</span><span class="bar-label">Profile</span></a>
+        <a href="schedule.html" class="bar-book bar-active"><i data-lucide="plane" class="bar-icon"></i><span class="bar-label">Book</span></a>
+        <a href="post-flight.html"><i data-lucide="clipboard-list" class="bar-icon"></i><span class="bar-label">Log</span></a>
+        <a href="weather.html"><i data-lucide="cloud-sun" class="bar-icon"></i><span class="bar-label">Weather</span></a>
+        <a href="squawks.html"><i data-lucide="wrench" class="bar-icon"></i><span class="bar-label">Squawks</span></a>
+        <a href="#" onclick="openProfile();return false;" data-bar-last><i data-lucide="user" class="bar-icon"></i><span class="bar-label">Profile</span></a>
     </nav>
 </body>
 </html>

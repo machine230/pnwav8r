@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="css/theme.css">
     <link rel="stylesheet" href="css/light.css?v=1">
     <script src="js/theme.js?v=3"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
     <style>body{visibility:hidden}</style>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -328,7 +329,7 @@
             <button class="admin-tab" onclick="showTab('squawks',this)">Squawks</button>
             <button class="admin-tab" onclick="showTab('reservations',this)">Reservations</button>
             <button class="admin-tab" onclick="showTab('flights',this)">Flight Log</button>
-            <button class="admin-tab" onclick="showTab('feedback',this)">💬 Feedback <span id="feedbackBadge" style="display:none;background:rgba(42,122,82,0.25);color:#5DD89A;border-radius:20px;padding:1px 7px;font-size:0.82em;margin-left:4px">0</span></button>
+            <button class="admin-tab" onclick="showTab('feedback',this)"><i data-lucide="message-circle" style="width:14px;height:14px;vertical-align:middle;margin-right:4px;stroke:currentColor;fill:none"></i>Feedback <span id="feedbackBadge" style="display:none;background:rgba(42,122,82,0.25);color:#5DD89A;border-radius:20px;padding:1px 7px;font-size:0.82em;margin-left:4px">0</span></button>
         </div>
 
         <!-- ── Members ── -->
@@ -688,6 +689,7 @@
             if (!session) return;
             currentMember = await getCurrentMember();
             renderNavUser(currentMember);
+            lucide.createIcons();
             const { data: plane } = await _supabase.from('airplanes').select('*,grounded_from,grounded_until').eq('tail_number', AIRPLANE_TAIL).single();
             airplaneId = plane?.id;
             if (plane) {
@@ -1398,7 +1400,8 @@
     <style>
         .bottom-app-bar { display:none; position:fixed; bottom:0; left:0; right:0; z-index:1200; background:rgba(10,22,16,0.97); border-top:1px solid rgba(255,255,255,0.10); padding:0 4px env(safe-area-inset-bottom); height:60px; justify-content:space-around; align-items:center; }
         .bottom-app-bar a { display:flex; flex-direction:column; align-items:center; gap:2px; text-decoration:none; color:var(--text-muted); font-size:0.62em; font-weight:700; font-family:'Montserrat',sans-serif; letter-spacing:0.5px; padding:4px 10px; border-radius:8px; min-width:52px; }
-        .bar-icon { font-size:1.35rem; line-height:1; }
+        .bar-icon { font-size:unset; height:24px; display:flex; align-items:center; justify-content:center; }
+        .bar-icon svg { width:22px; height:22px; stroke:currentColor; stroke-width:1.75; fill:none; }
         .bar-label { font-size:0.68em; font-weight:700; letter-spacing:0.3px; }
         .bar-active { color:var(--green) !important; }
         .bar-book { color:var(--sky) !important; }
@@ -1406,23 +1409,23 @@
     </style>
     <nav class="bottom-app-bar" aria-label="Quick actions">
         <a href="schedule.html" class="bar-book">
-            <span class="bar-icon">✈️</span>
+            <i data-lucide="plane" class="bar-icon"></i>
             <span class="bar-label">Book</span>
         </a>
         <a href="post-flight.html">
-            <span class="bar-icon">📋</span>
+            <i data-lucide="clipboard-list" class="bar-icon"></i>
             <span class="bar-label">Log</span>
         </a>
         <a href="weather.html">
-            <span class="bar-icon">🌤</span>
+            <i data-lucide="cloud-sun" class="bar-icon"></i>
             <span class="bar-label">Weather</span>
         </a>
         <a href="squawks.html">
-            <span class="bar-icon">🔧</span>
+            <i data-lucide="wrench" class="bar-icon"></i>
             <span class="bar-label">Squawks</span>
         </a>
         <a href="admin.html" class="bar-active" data-bar-last>
-            <span class="bar-icon">⚙️</span>
+            <i data-lucide="settings" class="bar-icon"></i>
             <span class="bar-label">Admin</span>
         </a>
     </nav>
