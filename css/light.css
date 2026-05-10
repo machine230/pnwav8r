@@ -543,7 +543,29 @@ select option { background: #FFFFFF; color: #1E293B; }
   border-color: rgba(232,160,48,0.30) !important;
 }
 
-/* ── 16. Portal Footer ───────────────────────────────────────── */
+/* ── 16. Missing text color overrides ───────────────────────── */
+/* Squawks — additional text elements */
+.sq-maint-text        { color: #334155 !important; }
+.sq-response-text     { color: #334155 !important; }
+.sq-response-meta     { color: #94A3B8 !important; }
+.sq-status-label      { color: #94A3B8 !important; }
+.sq-badge.deferred    { background: rgba(0,0,0,0.06) !important; color: #64748B !important; border-color: rgba(0,0,0,0.12) !important; }
+
+/* Profile modal — optional sections */
+.optional-section         { border-top-color: rgba(0,0,0,0.08) !important; }
+.optional-section-title   { color: #475569 !important; }
+.optional-section-note    { color: #64748B !important; }
+.profile-doc-section      { border-top-color: rgba(0,0,0,0.08) !important; }
+.profile-doc-upload select,
+.profile-doc-upload input[type=text],
+.profile-doc-upload input[type=file] { background: #F8FAFC !important; border-color: rgba(0,0,0,0.12) !important; color: #1E293B !important; }
+.profile-doc-list         { color: #64748B; }
+
+/* Dashboard waitlist banner */
+.waitlist-banner     { color: #1E293B !important; background: rgba(245,185,66,0.10) !important; }
+.waitlist-btn        { background: rgba(245,185,66,0.15) !important; color: #B8780A !important; border-color: rgba(245,185,66,0.30) !important; }
+
+/* ── 17. Portal Footer ───────────────────────────────────────── */
 .portal-footer {
   border-top: 1px solid rgba(0,0,0,0.08);
   padding: 20px 28px;
