@@ -1,7 +1,7 @@
-// Netlify function — FlightBoard lead intake + AI personalized response
+// Netlify function — FlightBoard lead intake + email notification
 // POST /.netlify/functions/intakeAgent
 // Public endpoint — no auth required.
-// Env vars: ANTHROPIC_API_KEY, RESEND_API_KEY, ADMIN_EMAIL, SITE_URL
+// Env vars: RESEND_API_KEY, ADMIN_EMAIL
 
 const ALLOWED_ORIGINS = [
     'https://flightboard.app',
@@ -34,24 +34,19 @@ const MEMBERS_OPTS  = ['1–4', '5–15', '16–30', '31–50', '50+'];
 const AIRCRAFT_OPTS = ['1', '2', '3', '4', '5+'];
 const SOFTWARE_OPTS = ['Spreadsheets / email', 'AircraftClubs', 'FlightCircle', 'Coflyt', 'OpenFlyers', 'Nothing yet', 'Other'];
 
-// ── Claude system prompt ────────────────────────────────────────────────────
-const SYSTEM_PROMPT = `You are Manju, the founder of FlightBoard — a modern, affordable flight club management platform built specifically for small flying clubs.
+// ── Pre-written lead reply ──────────────────────────────────────────────────
+function buildReplyText(firstName, club) {
+    return `Hi ${firstName},
 
-Your job is to write a warm, personal, conversational reply to someone who just filled out our early-access request form. You are a pilot and aviation enthusiast yourself, so you "get it."
+Thanks for reaching out about FlightBoard for ${club}! I'm glad you found us.
 
-Your reply should:
-- Open by addressing them by first name warmly (e.g. "Hi Sarah,")
-- Acknowledge the specific details they shared (club name, members, aircraft count, current software) — make it feel like you read their form carefully, not a template
-- Speak naturally and briefly about how FlightBoard directly addresses their situation (1–2 specific sentences, not a feature list)
-- Mention that you personally set up each club and will reach out within one business day to get them onboarded
-- Close with genuine enthusiasm and a light aviation touch
-- Sign off as:
-  Manju | FlightBoard
-  hello@flightboard.app
+I set up and configure each club personally — it usually takes less than a day to get everything running. I'll be in touch within one business day to walk you through the setup and answer any questions you have.
 
-Tone: warm, direct, knowledgeable, not salesy. Like a message from a founder who genuinely cares — not a marketing email.
-Length: 4–6 short paragraphs maximum. No bullet lists.
-Do NOT include a subject line. Do NOT start with "Subject:". Output only the email body.`;
+Looking forward to getting ${club} off the ground on FlightBoard!
+
+Manju | FlightBoard
+hello@flightboard.app`;
+}
 
 // ── Resend email helper ─────────────────────────────────────────────────────
 async function sendEmail({ apiKey, from, to, subject, html }) {
@@ -68,8 +63,8 @@ async function sendEmail({ apiKey, from, to, subject, html }) {
 }
 
 // ── Email HTML: personalized response to lead ───────────────────────────────
-function buildLeadHtml(aiText) {
-    const bodyHtml = aiText
+function buildLeadHtml(replyText) {
+    const bodyHtml = replyText
         .split(/\n{2,}/)
         .map(p => `<p style="margin:0 0 16px;line-height:1.7">${esc(p.trim()).replace(/\n/g, '<br>')}</p>`)
         .join('');
@@ -129,7 +124,7 @@ function buildAdminHtml(data, aiPreview) {
         <p style="margin:0;font-size:0.9em;white-space:pre-wrap">${f.message}</p>
       </div>
       <div style="margin-top:14px;padding:14px;background:#F0FDF4;border-radius:8px;border-left:3px solid #2A7A52">
-        <p style="margin:0 0 6px;font-weight:700;color:#64748B;font-size:0.82em">CLAUDE RESPONSE SENT TO LEAD</p>
+        <p style="margin:0 0 6px;font-weight:700;color:#64748B;font-size:0.82em">REPLY SENT TO LEAD</p>
         <p style="margin:0;font-size:0.88em;color:#374151">${f.preview}</p>
       </div>
     </div>
@@ -144,11 +139,10 @@ export const handler = async (event) => {
     if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers: cors, body: '' };
     if (event.httpMethod !== 'POST')    return { statusCode: 405, headers: cors, body: JSON.stringify({ error: 'Method not allowed' }) };
 
-    const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
-    const RESEND_API_KEY    = process.env.RESEND_API_KEY;
-    const ADMIN_EMAIL       = process.env.ADMIN_EMAIL;
+    const RESEND_API_KEY = process.env.RESEND_API_KEY;
+    const ADMIN_EMAIL   = process.env.ADMIN_EMAIL;
 
-    if (!ANTHROPIC_API_KEY || !RESEND_API_KEY || !ADMIN_EMAIL) {
+    if (!RESEND_API_KEY || !ADMIN_EMAIL) {
         console.error('[intakeAgent] Missing env vars');
         return { statusCode: 500, headers: cors, body: JSON.stringify({ error: 'Server not configured' }) };
     }
@@ -184,48 +178,9 @@ export const handler = async (event) => {
     if (software && !SOFTWARE_OPTS.includes(software)) return { statusCode: 400, headers: cors, body: JSON.stringify({ error: 'Invalid software value' }) };
     if (message.length > 1000) return { statusCode: 400, headers: cors, body: JSON.stringify({ error: 'Message too long (1000 char max)' }) };
 
-    const data = { name, club, email, members, aircraft, software, message };
+    const data      = { name, club, email, members, aircraft, software, message };
     const firstName = name.split(/\s+/)[0];
-
-    // ── Call Claude API ──────────────────────────────────────────────────────
-    let aiText = '';
-    try {
-        const userPrompt = `Write a personalized early-access reply to this lead:
-
-Name: ${name}
-Club: ${club}
-Members: ${members || 'not specified'}
-Aircraft: ${aircraft || 'not specified'}
-Current software: ${software || 'not specified'}
-Their message: ${message || '(none provided)'}
-
-Reply as Manju, founder of FlightBoard.`;
-
-        const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
-            method:  'POST',
-            headers: {
-                'x-api-key':         ANTHROPIC_API_KEY,
-                'anthropic-version': '2023-06-01',
-                'content-type':      'application/json'
-            },
-            body: JSON.stringify({
-                model:    'claude-3-5-haiku-20241022',
-                max_tokens: 500,
-                system:   SYSTEM_PROMPT,
-                messages: [{ role: 'user', content: userPrompt }]
-            })
-        });
-
-        if (!claudeRes.ok) throw new Error(`Claude API ${claudeRes.status}`);
-        const claudeData = await claudeRes.json();
-        aiText = claudeData?.content?.[0]?.text || '';
-        if (!aiText) throw new Error('Empty Claude response');
-
-    } catch (e) {
-        console.error('[intakeAgent] Claude error:', e?.message);
-        // Fallback — lead still gets a reply
-        aiText = `Hi ${firstName},\n\nThank you for reaching out about FlightBoard for ${club}! We received your request and I'll be in touch personally within one business day to walk you through the setup — it takes less than a day to get your club flying.\n\nLooking forward to connecting!\n\nManju | FlightBoard\nhello@flightboard.app`;
-    }
+    const replyText = buildReplyText(firstName, club);
 
     // ── Send both emails concurrently ────────────────────────────────────────
     const FROM = 'FlightBoard <onboarding@resend.dev>';
@@ -236,14 +191,14 @@ Reply as Manju, founder of FlightBoard.`;
             from:    FROM,
             to:      [email],
             subject: `Hi ${firstName} — let's get ${club} set up on FlightBoard`,
-            html:    buildLeadHtml(aiText)
+            html:    buildLeadHtml(replyText)
         }),
         sendEmail({
             apiKey:  RESEND_API_KEY,
             from:    FROM,
             to:      [ADMIN_EMAIL],
             subject: `✈️ New lead: ${name} — ${club}`,
-            html:    buildAdminHtml(data, aiText)
+            html:    buildAdminHtml(data, replyText)
         })
     ]);
 
