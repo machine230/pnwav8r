@@ -223,7 +223,7 @@
 
     /* ── PRICING ─────────────────────────────────────────────── */
     .pricing { background: rgba(0,0,0,0.10); }
-    .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .pricing-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
     .price-card {
       background: var(--surface); border: 1px solid var(--border);
       border-radius: 16px; padding: 36px 28px; position: relative; overflow: hidden;
@@ -327,7 +327,8 @@
       .how-steps::before { display: none; }
       .built-grid { grid-template-columns: 1fr; }
       .built-visual { display: none; }
-      .pricing-grid { grid-template-columns: 1fr; max-width: 420px; margin: 0 auto; }
+      .pricing-grid { grid-template-columns: repeat(2, 1fr); max-width: 100%; }
+      .fbo-strip { flex-direction: column; text-align: center; gap: 16px; }
       footer { flex-direction: column; text-align: center; }
     }
     @media (max-width: 560px) {
@@ -335,6 +336,37 @@
       .hero-stats { gap: 28px; }
       .nav-link { display: none; }
       .quote-box { padding: 36px 24px; }
+    }
+
+    /* ── FBO STRIP ───────────────────────────────────────────── */
+    .fbo-strip {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 24px; flex-wrap: wrap;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 14px;
+      padding: 28px 32px;
+      margin-top: 20px;
+    }
+    .fbo-strip-left { flex: 1; min-width: 200px; }
+    .fbo-strip-left .price-name { font-size: 1.1em; margin-bottom: 6px; }
+    .fbo-strip-left .price-desc { color: var(--dim); font-size: 0.9em; line-height: 1.55; margin: 0; }
+    .price-free-badge {
+      display: inline-block;
+      background: rgba(42,122,82,0.18);
+      border: 1px solid rgba(42,122,82,0.38);
+      color: #5DD89A;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 0.7em;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 20px;
+      margin-bottom: 10px;
+    }
+    @media (max-width: 560px) {
+      .pricing-grid { grid-template-columns: 1fr; }
     }
 
     /* ── INTAKE FORM ──────────────────────────────────────────── */
@@ -698,37 +730,69 @@
     <div class="wrap">
       <div class="section-label">Pricing</div>
       <h2 class="section-title">Simple, honest pricing</h2>
-      <p class="section-sub">No per-seat fees. No hidden add-ons. Pick the plan that fits your club.</p>
+      <p class="section-sub">Pick the plan that fits your operation. Upgrade anytime as your club grows.</p>
       <div class="pricing-grid">
 
+        <!-- Solo Free -->
         <div class="price-card">
-          <div class="price-name">Partnership</div>
-          <div class="price-amount"><sup>$</sup>24<sup style="font-size:0.4em;vertical-align:super">.99</sup><sub>/mo</sub></div>
-          <div class="price-desc">One aircraft, up to 4 members. Perfect for aircraft partnerships and small co-ownership groups.</div>
+          <div class="price-free-badge">Free Forever</div>
+          <div class="price-name">Solo</div>
+          <div class="price-amount" style="font-size:2em">Free</div>
+          <div class="price-desc">For individual pilots tracking their own aircraft, currency, and flights.</div>
           <ul class="price-features">
             <li>1 aircraft</li>
-            <li>Up to 4 members</li>
-            <li>Aircraft scheduling &amp; dispatch board</li>
+            <li>1 pilot</li>
+            <li>Flight logbook</li>
+            <li>Pilot currency tracking</li>
+            <li>Live weather (METAR/TAF)</li>
+            <li>Weight &amp; Balance calculator</li>
+          </ul>
+          <a class="price-cta ghost" href="#contact">Get Started</a>
+        </div>
+
+        <!-- Solo Paid -->
+        <div class="price-card">
+          <div class="price-name">Solo+</div>
+          <div class="price-amount"><sup>$</sup>9<sup style="font-size:0.4em;vertical-align:super">.99</sup><sub>/mo</sub></div>
+          <div class="price-desc">All the tools a solo owner-operator needs — scheduling, squawks, and post-flight logging.</div>
+          <ul class="price-features">
+            <li>1 aircraft</li>
+            <li>1 pilot</li>
+            <li>Everything in Solo Free</li>
+            <li>Aircraft scheduling</li>
             <li>Post-flight logging</li>
             <li>Squawk board</li>
-            <li>Weight &amp; Balance + range map</li>
-            <li>Live weather (METAR/TAF)</li>
-            <li>Pilot currency tracking</li>
             <li>Email notifications</li>
           </ul>
           <a class="price-cta ghost" href="#contact">Get Started</a>
         </div>
 
+        <!-- Partnership -->
+        <div class="price-card">
+          <div class="price-name">Partnership</div>
+          <div class="price-amount"><sup>$</sup>12<sup style="font-size:0.4em;vertical-align:super">.99</sup><sub>/mo</sub></div>
+          <div class="price-desc">One aircraft, up to 4 members. Perfect for co-ownership groups and small partnerships.</div>
+          <ul class="price-features">
+            <li>1 aircraft</li>
+            <li>Up to 4 members</li>
+            <li>Everything in Solo+</li>
+            <li>Shared scheduling calendar</li>
+            <li>Dispatch board</li>
+            <li>Member roles</li>
+          </ul>
+          <a class="price-cta ghost" href="#contact">Get Started</a>
+        </div>
+
+        <!-- Club (featured) -->
         <div class="price-card featured">
           <div class="price-badge">Most Popular</div>
           <div class="price-name">Club</div>
-          <div class="price-amount"><sup>$</sup>49<sup style="font-size:0.4em;vertical-align:super">.99</sup><sub>/mo</sub></div>
-          <div class="price-desc">Up to 4 aircraft and 50 members. The right fit for a full flying club — everyone in, one flat rate.</div>
+          <div class="price-amount"><sup>$</sup>19<sup style="font-size:0.4em;vertical-align:super">.99</sup><sub>/mo</sub></div>
+          <div class="price-desc">Up to 4 aircraft and 50 members. One flat rate for your entire flying club.</div>
           <ul class="price-features">
             <li>Up to 4 aircraft</li>
             <li>Up to 50 members</li>
             <li>Everything in Partnership</li>
-            <li>Member management &amp; roles</li>
             <li>BFR &amp; medical tracking</li>
             <li>Document uploads</li>
             <li>Aircraft waitlist</li>
@@ -737,22 +801,26 @@
           <a class="price-cta primary" href="#contact">Get Started →</a>
         </div>
 
-        <div class="price-card">
-          <div class="price-name">FBO / Fleet</div>
-          <div class="price-amount" style="font-size:2em">Custom</div>
-          <div class="price-desc">Large fleets, FBOs, or flight schools. We'll scope it together and build exactly what your operation needs.</div>
-          <ul class="price-features">
-            <li>Unlimited aircraft</li>
-            <li>Unlimited members</li>
-            <li>Everything in Club</li>
-            <li>Custom branding</li>
-            <li>Priority support</li>
-            <li>Dedicated onboarding</li>
-          </ul>
-          <a class="price-cta ghost" href="#contact">Contact Us</a>
-        </div>
-
       </div>
+
+      <!-- FBO / Fleet — enterprise strip -->
+      <div class="fbo-strip">
+        <div class="fbo-strip-left">
+          <div class="price-name">FBO / Fleet</div>
+          <p class="price-desc">Large fleets, FBOs, or flight schools with complex scheduling needs. We'll scope it together and build exactly what your operation requires.</p>
+        </div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;flex-shrink:0">
+          <ul style="list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px 20px;font-size:0.85em;color:var(--dim)">
+            <li>✓ Unlimited aircraft</li>
+            <li>✓ Unlimited members</li>
+            <li>✓ Custom branding</li>
+            <li>✓ Priority support</li>
+            <li>✓ Dedicated onboarding</li>
+          </ul>
+          <a class="price-cta ghost" href="#contact" style="white-space:nowrap;flex-shrink:0">Contact Us →</a>
+        </div>
+      </div>
+
     </div>
   </section>
 
