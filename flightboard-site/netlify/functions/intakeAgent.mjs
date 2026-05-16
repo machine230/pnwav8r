@@ -183,7 +183,7 @@ export const handler = async (event) => {
     const replyText = buildReplyText(firstName, club);
 
     // ── Send both emails concurrently ────────────────────────────────────────
-    const FROM = 'FlightBoard <onboarding@resend.dev>';
+    const FROM = 'FlightBoard <hello@pnwav8r.com>';
 
     const results = await Promise.allSettled([
         sendEmail({
